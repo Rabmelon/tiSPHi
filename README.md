@@ -1,4 +1,15 @@
-# 太极图形课S1-大作业
+# 太极图形课S1-tiSPHi
+<div align="center">
+  <img width="200px" src="./img/tiSPHi_logo.jpg">
+</div>
+
+## 背景简介
+
+源自我的研究学习任务，希冀能通过taichi熟悉并实现泥石流的SPH模拟过程。
+伟大的目标：实现3D-SPH-FEM耦合的泥石流模拟！
+首先实现SPH求解器，模拟简单的mud-flow，然后是debris-flow
+
+> Basic SPH logo by MichellLaurence on [DeviantArt](http://michelllaurence.deviantart.com/art/sph-logo-139673758)
 
 ## 作业来源
 > 请你介绍大作业的灵感来源，可以是自己原创的想法，也可以是复现一篇论文。如果有参考论文、文章或者参考代码，请**务必**给出来源。
@@ -52,7 +63,7 @@
 
 
 ## 效果展示
-左侧：Direct solver；右侧： Conjugate Gradient (CG) solver。 
+左侧：Direct solver；右侧： Conjugate Gradient (CG) solver。
 ![mass spring demo](./data/direct_vs_cg.gif)
 
 ## 整体结构
@@ -83,17 +94,17 @@
      - 重力
      - 弹簧力
      - 约束力: 固定布料的两个顶点，使用一个刚度极大的弹簧来模拟。
-     
+
     **计算力的导数**:[`compute_force_Jacobians`](https://github.com/FantasyVR/taichi_course_final_project/blob/304a32dfa686862adcb54f737ed6970e21fe8d5b/implicit_mass_spring.py#L120)
      - 弹簧力的导数
      - 约束力的导数
-     
+
     **组装刚度矩阵**: [`assemble_K`](https://github.com/FantasyVR/taichi_course_final_project/blob/304a32dfa686862adcb54f737ed6970e21fe8d5b/implicit_mass_spring.py#L138)
      - 遍历每个弹簧，组建度矩阵
-     
+
     **组装系统矩阵**：[here](https://github.com/FantasyVR/taichi_course_final_project/blob/304a32dfa686862adcb54f737ed6970e21fe8d5b/implicit_mass_spring.py#L162)
      - 系统矩阵<img src="https://user-images.githubusercontent.com/6712304/145008587-696452f3-497e-4b6e-985d-2f7f8720110a.png" width="100">
-     
+
     **计算系统矩阵右侧b**: [here](https://github.com/FantasyVR/taichi_course_final_project/blob/304a32dfa686862adcb54f737ed6970e21fe8d5b/implicit_mass_spring.py#L169)
      - <img src="https://user-images.githubusercontent.com/6712304/145009103-ac8720e1-61ec-4dda-9121-820a62376316.png" width="150">
 
@@ -102,8 +113,7 @@
 
     **更新速度和位置**: [`directUpdatePosVel`](https://github.com/FantasyVR/taichi_course_final_project/blob/8f79e0026237e75ec3abe7d09b39be0a2fadc994/implicit_mass_spring.py#L151)
      - <img src="https://user-images.githubusercontent.com/6712304/145009488-40d3a2d2-5d0c-454c-b654-235d94ae724d.png" width="200">
-     
+
 3. 布料更新 CG solver: [`update_cg(h)`](https://github.com/FantasyVR/taichi_course_final_project/blob/8f79e0026237e75ec3abe7d09b39be0a2fadc994/implicit_mass_spring.py#L249)
 
    在使用CG进行布料更新的时候，同样需要计算力和计算力的导数。但我们使用CG的时候，不需要显式的构建出刚度矩阵，只需要计算矩阵-向量乘就可以。具体算法请参考：[here](https://github.com/taichiCourse01/taichiCourse01/blob/main/material/09_implicit_integration.pdf) (P105-110)。
-
