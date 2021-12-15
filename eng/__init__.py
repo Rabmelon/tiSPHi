@@ -1,1 +1,1 @@
-from . import sph_solver
+from . import sph_solver, particle_system
