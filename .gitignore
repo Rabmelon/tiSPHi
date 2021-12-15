@@ -1,3 +1,8 @@
+# AutoCAD
+*.dwl
+*.dwl2
+*.bak
+
 # Pycharm
 .idea
 

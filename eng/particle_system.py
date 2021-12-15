@@ -34,7 +34,8 @@ class ParticleSystem:
         self.particle_num = ti.field(int, shape=())  # 记录当前的粒子总数
 
         # Grid property 背景格网的基本属性
-        self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子
+        self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
+        # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
         self.grid_num = np.ceil(np.array(res) / self.grid_size).astype(int)  # 格网总数？
         self.grid_particles_num = ti.field(int)  # 格网中的粒子总数？
         self.grid_particles = ti.field(int)  # 格网中的粒子编号？
@@ -121,11 +122,10 @@ class ParticleSystem:
             offset = self.grid_particles_num[cell].atomic_add(1)    # 当前粒子是这个grid中的第几个粒子
             self.grid_particles[cell, offset] = p
 
-            # 输出粒子的位置及对应的grid信息
-            print('particle ', p, end=', ')
-            print('pos = ', self.x[p], end=', ')
-            print('grid = ', [cell, offset], end=', ')
-            print()
+            # print('particle ', p, end=', ')   # -------------------------
+            # print('pos = ', self.x[p], end=', ')   # -------------------------
+            # print('grid = ', [cell, offset], end=', ')   # -------------------------
+            # print()   # -------------------------
 
     # 搜索邻域粒子，使用的应该是常规的基于格网的搜索方法
     @ti.kernel
@@ -136,20 +136,31 @@ class ParticleSystem:
             if self.material[p_i] == self.material_boundary:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
+            print('particle', p_i, end=', ')   # -------------------------
+            print('center cell =', center_cell, end=', ')   # -------------------------
+            # print('particle_neighbors = [', end='')   # -------------------------
+            print('cell = [', end='')   # -------------------------
             cnt = 0
+            offset_check = 0
             for offset in ti.grouped(ti.ndrange(*((-1, 2),) * self.dim)):
+                if offset_check > 10:   # -------------------------
+                    break   # -------------------------
+                offset_check += 1   # -------------------------
                 if cnt >= self.particle_max_num_neighbor:
                     break
                 cell = center_cell + offset
+                print(cell, end='; ')   # -------------------------
                 if not self.is_valid_cell(cell):
-                    break
+                    continue        # still be a big problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 for j in range(self.grid_particles_num[cell]):
                     p_j = self.grid_particles[cell, j]
                     distance = (self.x[p_i] - self.x[p_j]).norm()
                     if p_i != p_j and distance < self.support_radius:
                         self.particle_neighbors[p_i, cnt] = p_j
+                        # print(self.particle_neighbors[p_i, cnt], end=',')   # -------------------------
                         cnt += 1
             self.particle_neighbors_num[p_i] = cnt
+            print(']')   # -------------------------
 
     # 初始化粒子系统？？？
     def initialize_particle_system(self):
