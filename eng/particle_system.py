@@ -2,7 +2,6 @@ import taichi as ti
 import numpy as np
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
-
 @ti.data_oriented
 class ParticleSystem:
     def __init__(self, res):
@@ -151,7 +150,7 @@ class ParticleSystem:
                 cell = center_cell + offset
                 print(cell, end='; ')   # -------------------------
                 if not self.is_valid_cell(cell):
-                    continue        # still be a big problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    break        # still be a big problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 for j in range(self.grid_particles_num[cell]):
                     p_j = self.grid_particles[cell, j]
                     distance = (self.x[p_i] - self.x[p_j]).norm()
