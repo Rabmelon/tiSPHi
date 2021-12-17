@@ -23,8 +23,10 @@ def func_test():
             cell = center_cell[i] + offset
             print(cell, end=', ')
             if not is_valid_cell(cell):
-                print('kill', end='! ')
+                print('k!', end='')
                 continue
+            for j in range(3):
+                print(j, end='v')
         print()
 
 func_test()

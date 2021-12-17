@@ -12,7 +12,8 @@ class ParticleSystem:
         self.dim = len(res)
         assert self.dim > 1 & self.dim < 4
         self.screen_to_world_ratio = 50  # 是指屏幕中的多少个像素表示一个模拟计算中的长度单位？？？
-        self.bound = np.array(res) / self.screen_to_world_ratio     # 这个应该是一个绘图用的边界？具体指代什么？似乎没有用到？？？
+        self.bound = np.array(res) / self.screen_to_world_ratio     # 这个应该是res对应的边界的计算数值
+        # print('bound =', self.bound)
 
         # Material 材料类型定义
         self.material_boundary = 0
@@ -111,6 +112,7 @@ class ParticleSystem:
         flag = True
         for d in ti.static(range(self.dim)):
             flag = flag and (0 <= cell[d] < self.grid_num[d])
+        if not flag: print('k!', end='')   # -------------------------
         return flag
 
     # 计算每个粒子对应的grid编号？？？并将粒子编号加入到对应的grid的链表中？？？
@@ -121,9 +123,9 @@ class ParticleSystem:
             offset = self.grid_particles_num[cell].atomic_add(1)    # 当前粒子是这个grid中的第几个粒子
             self.grid_particles[cell, offset] = p
 
-            # print('particle ', p, end=', ')   # -------------------------
-            # print('pos = ', self.x[p], end=', ')   # -------------------------
-            # print('grid = ', [cell, offset], end=', ')   # -------------------------
+            # print('p', p, end=', ')   # -------------------------
+            # print('pos =', self.x[p], end=', ')   # -------------------------
+            # print('grid =', [cell, offset], end=', ')   # -------------------------
             # print()   # -------------------------
 
     # 搜索邻域粒子，使用的应该是常规的基于格网的搜索方法
@@ -135,22 +137,23 @@ class ParticleSystem:
             if self.material[p_i] == self.material_boundary:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
-            # print('particle', p_i, end=', ')   # -------------------------
-            # print('center cell =', center_cell, end=', ')   # -------------------------
+            print('p', p_i, end=', ')   # -------------------------
+            print('center cell', center_cell, end=', ')   # -------------------------
             # print('particle_neighbors = [', end='')   # -------------------------
-            # print('cell = [', end='')   # -------------------------
+            print('NS cell:', end='')   # -------------------------
             cnt = 0
             offset_check = 0
             for offset in ti.grouped(ti.ndrange(*((-1, 2),) * self.dim)):
-                if offset_check > 10:   # -------------------------
+                if offset_check > 9:   # -------------------------
+                    print('dieLoop!', end='')   # -------------------------
                     break   # -------------------------
                 offset_check += 1   # -------------------------
                 if cnt >= self.particle_max_num_neighbor:
                     break
                 cell = center_cell + offset
-                # print(cell, end='; ')   # -------------------------
+                print(cell, end='; ')   # -------------------------
                 if not self.is_valid_cell(cell):
-                    break        # still be a big problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    continue        # still be a big problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 for j in range(self.grid_particles_num[cell]):
                     p_j = self.grid_particles[cell, j]
                     distance = (self.x[p_i] - self.x[p_j]).norm()
@@ -159,7 +162,7 @@ class ParticleSystem:
                         # print(self.particle_neighbors[p_i, cnt], end=',')   # -------------------------
                         cnt += 1
             self.particle_neighbors_num[p_i] = cnt
-            # print(']')   # -------------------------
+            print('')   # -------------------------
 
     # 数据交换至numpy方法：向量数据
     @ti.kernel

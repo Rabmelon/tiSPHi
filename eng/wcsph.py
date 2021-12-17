@@ -1,7 +1,6 @@
 import taichi as ti
 from .sph_solver import SPHSolver
 
-@ti.data_oriented
 class WCSPHSolver(SPHSolver):
     def __init__(self, particle_system):
         super().__init__(particle_system)
@@ -11,9 +10,9 @@ class WCSPHSolver(SPHSolver):
         self.stiffness = 50.0   # k1
         self.exponent = 7.0     # k2
 
-        self.dv = ti.Vector.field(self.ps.dim, dtype=float)
+        self.d_velocity = ti.Vector.field(self.ps.dim, dtype=float)
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.dv)
+        particle_node.place(self.d_velocity)
 
     # Evaluate density
     @ti.kernel
@@ -42,7 +41,7 @@ class WCSPHSolver(SPHSolver):
                 if self.ps.material[p_i] == self.ps.material_water:
                     # Compute Pressure force contribution
                     d_v += self.pressure_force(p_i, p_j, x_i-x_j)
-            self.dv[p_i] += d_v
+            self.d_velocity[p_i] += d_v
 
     # Evaluate viscosity and add gravity
     @ti.kernel
@@ -60,14 +59,14 @@ class WCSPHSolver(SPHSolver):
             # Add body force
             if self.ps.material[p_i] == self.ps.material_water:
                 d_v += ti.Vector([0.0, self.g] if self.ps.dim == 2 else [0.0, 0.0, self.g])
-            self.dv[p_i] = d_v
+            self.d_velocity[p_i] = d_v
 
     # Symplectic Euler
     @ti.kernel
     def advect(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_water:
-                self.ps.v[p_i] += self.dt[None] * self.dv[p_i]
+                self.ps.v[p_i] += self.dt[None] * self.d_velocity[p_i]
                 self.ps.x[p_i] += self.dt[None] * self.ps.v[p_i]
 
     def substep(self):
