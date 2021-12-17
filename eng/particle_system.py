@@ -11,7 +11,7 @@ class ParticleSystem:
         self.res = res
         self.dim = len(res)
         assert self.dim > 1 & self.dim < 4
-        self.screen_to_world_ratio = 32  # 是指屏幕中的多少个像素表示一个模拟计算中的长度单位？？？
+        self.screen_to_world_ratio = 50  # 是指屏幕中的多少个像素表示一个模拟计算中的长度单位？？？
         self.bound = np.array(res) / self.screen_to_world_ratio     # 这个应该是一个绘图用的边界？具体指代什么？似乎没有用到？？？
 
         # Material 材料类型定义
@@ -24,8 +24,8 @@ class ParticleSystem:
 
         # Basic particle property 粒子的基本属性
         self.particle_radius = 0.25  # particle radius
-        self.particle_diameter = 2 * self.particle_radius
-        self.support_radius = self.particle_radius * 4.0  # support radius
+        self.particle_diameter = 2.0 * self.particle_radius
+        self.support_radius = 4.0 * self.particle_radius  # support radius
         self.m_V = ( np.pi / 4.0 if self.dim == 2 else 3 * np.pi / 32) * self.particle_diameter**self.dim  # 2d为pi/4≈0.8，3d为3π/32≈0.3
         self.particle_max_num = 2**15  # 粒子上限数目2^15个
         self.particle_max_num_per_cell = 100  # 每格网最多100个
@@ -135,10 +135,10 @@ class ParticleSystem:
             if self.material[p_i] == self.material_boundary:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
-            print('particle', p_i, end=', ')   # -------------------------
-            print('center cell =', center_cell, end=', ')   # -------------------------
+            # print('particle', p_i, end=', ')   # -------------------------
+            # print('center cell =', center_cell, end=', ')   # -------------------------
             # print('particle_neighbors = [', end='')   # -------------------------
-            print('cell = [', end='')   # -------------------------
+            # print('cell = [', end='')   # -------------------------
             cnt = 0
             offset_check = 0
             for offset in ti.grouped(ti.ndrange(*((-1, 2),) * self.dim)):
@@ -148,7 +148,7 @@ class ParticleSystem:
                 if cnt >= self.particle_max_num_neighbor:
                     break
                 cell = center_cell + offset
-                print(cell, end='; ')   # -------------------------
+                # print(cell, end='; ')   # -------------------------
                 if not self.is_valid_cell(cell):
                     break        # still be a big problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 for j in range(self.grid_particles_num[cell]):
@@ -159,14 +159,7 @@ class ParticleSystem:
                         # print(self.particle_neighbors[p_i, cnt], end=',')   # -------------------------
                         cnt += 1
             self.particle_neighbors_num[p_i] = cnt
-            print(']')   # -------------------------
-
-    # 初始化粒子系统？？？
-    def initialize_particle_system(self):
-        self.grid_particles_num.fill(0)
-        self.particle_neighbors.fill(-1)
-        self.allocate_particles_to_grid()
-        self.search_neighbors()
+            # print(']')   # -------------------------
 
     # 数据交换至numpy方法：向量数据
     @ti.kernel
@@ -219,22 +212,37 @@ class ParticleSystem:
                 np.arange(lower_corner[i],
                           lower_corner[i] + cube_size[i] + 1e-5,
                           self.particle_diameter))
-        num_new_particles = reduce(lambda x, y: x * y, [len(n) for n in num_dim])
-        assert self.particle_num[None] + num_new_particles <= self.particle_max_num
+        num_new_particles = reduce(lambda x, y: x * y,
+                                   [len(n) for n in num_dim])
+        assert self.particle_num[
+            None] + num_new_particles <= self.particle_max_num
 
         new_positions = np.array(np.meshgrid(*num_dim,
                                              sparse=False,
                                              indexing='ij'),
                                  dtype=np.float32)
-        new_positions = new_positions.reshape(-1, reduce(lambda x, y: x * y, list(new_positions.shape[1:]))).transpose()
+        new_positions = new_positions.reshape(
+            -1, reduce(lambda x, y: x * y,
+                       list(new_positions.shape[1:]))).transpose()
         print("new position shape: ", new_positions.shape)
         if velocity is None:
             velocity = np.full_like(new_positions, 0)
         else:
-            velocity = np.array([velocity for _ in range(num_new_particles)], dtype=np.float32)
+            velocity = np.array([velocity for _ in range(num_new_particles)],
+                                dtype=np.float32)
 
         material = np.full_like(np.zeros(num_new_particles), material)
         color = np.full_like(np.zeros(num_new_particles), color)
-        density = np.full_like(np.zeros(num_new_particles), density if density is not None else 1000.)
-        pressure = np.full_like(np.zeros(num_new_particles), pressure if pressure is not None else 0.)
-        self.add_particles(num_new_particles, new_positions, velocity, density, pressure, material, color)
+        density = np.full_like(np.zeros(num_new_particles),
+                               density if density is not None else 1000.)
+        pressure = np.full_like(np.zeros(num_new_particles),
+                                pressure if pressure is not None else 0.)
+        self.add_particles(num_new_particles, new_positions, velocity, density,
+                           pressure, material, color)
+
+    # 根据当前的粒子位置，初始化粒子系统
+    def initialize_particle_system(self):
+        self.grid_particles_num.fill(0)
+        self.particle_neighbors.fill(-1)
+        self.allocate_particles_to_grid()
+        self.search_neighbors()
