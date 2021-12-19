@@ -11,6 +11,7 @@
   - [Conservation of mass](#conservation-of-mass)
   - [Conservation of momentum](#conservation-of-momentum)
   - [Constitutive model](#constitutive-model)
+  - [Discretization](#discretization)
 - [Standard SPH](#standard-sph)
   - [SPH basic fomulations](#sph-basic-fomulations)
   - [Improving approximations for spatial derivatives:](#improving-approximations-for-spatial-derivatives)
@@ -36,6 +37,7 @@ For learning how SPH works in slope failure and post-failure process, also in th
 
 ### The spatial derivative operators in 3D
 $\nabla$ 算子的三个语义:
+$$\nabla=\boldsymbol{i}\frac{\partial}{\partial x}+\boldsymbol{j}\frac{\partial}{\partial y}+\boldsymbol{k}\frac{\partial}{\partial z}$$
 **梯度Gradient**：作用于**标量**$f(x, y, z)$得到**矢量**。$\mathbb{R}^1\rightarrow\mathbb{R}^3, \nabla$
 $$grad\ f=\nabla f=(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}, \frac{\partial f}{\partial z})$$
 **散度Divergence**：作用于**矢量**$(f_x, f_y, f_z)$得到**标量**。$\mathbb{R}^3\rightarrow\mathbb{R}^1, \nabla\cdot$
@@ -60,7 +62,7 @@ $$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{u}$$
 Conservation of momentum:
 $$\frac{{\rm D} \boldsymbol{u}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{b}$$
 Constitutive equation:
-$$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\widetilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\varepsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\varepsilon^p}$$
 where:
 $$\begin{aligned}
 \boldsymbol{x}=
@@ -101,7 +103,7 @@ $$\begin{aligned}
 \end{aligned}
 ,
 \begin{aligned}
-  \boldsymbol{\widetilde{\sigma}}=
+  \boldsymbol{\tilde{\sigma}}=
     \left(\begin{array}{c}
       2\sigma_{xy}\omega_{xy}\\
       2\sigma_{xy}\omega_{yx}\\
@@ -116,7 +118,7 @@ $$\begin{aligned}
 \boldsymbol{f}^u=
   \left (\begin{array}{cc}
     D^e_{11}u_x    &D^e_{12}u_y\\
-    D^e_{12}u_x    &D^e_{22}u_y\\
+    D^e_{21}u_x    &D^e_{22}u_y\\
     D^e_{33}u_y    &D^e_{33}u_x\\
     D^e_{41}u_x    &D^e_{42}u_y
   \end{array}\right)
@@ -152,12 +154,18 @@ D^e_{pq}=\frac{E}{(1+\nu)(1-\nu)}
   \end{array}\right)
 \end{aligned}$$
 
+and in soil mechanics, the soil pressure $p$ is obtained directly from the equation for hydrostatic pressure:
+$$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
+
 ### Conservation of mass
 The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
 $$-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm d}y{\rm d}z=[\frac{\partial (\rho u_x)}{\partial x}+\frac{\partial (\rho u_y)}{\partial y}+\frac{\partial (\rho u_z)}{\partial z}]{\rm d}x{\rm d}y{\rm d}z$$
-$$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho \boldsymbol{u})=0, ~ \nabla=\boldsymbol{i}\frac{\partial}{\partial x}+\boldsymbol{j}\frac{\partial}{\partial y}+\boldsymbol{k}\frac{\partial}{\partial z}$$
+$$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho \boldsymbol{u})=0$$
 $$\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{u}=0, ~ \frac{{\rm D}\rho}{{\rm D}t}=\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho$$
+$$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
 
+> **QUESTIONS**
+> 1. Where do these equations come from?
 
 ### Conservation of momentum
 根据牛顿流体的本构方程，推导获得流体的动量方程。
@@ -168,7 +176,6 @@ $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 > **QUESTIONS**
 > 1. The momentum considered here is not the same as Navier-Stokes equation but what???
 
-
 ### Constitutive model
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
 For Drucker-Prager yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
@@ -177,7 +184,17 @@ And for the elastoplastic constitutive equation of Drucker-Prager and *non-assoc
 
 > **QUESTIONS**
 > 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
-> 2. How does $\dot\omega_{\alpha\beta}$ calculated? Is it equal to $\omega_{\alpha\beta}$ in $\boldsymbol{\widetilde{\sigma}}$ ?
+> 2. How does $\dot\omega_{\alpha\beta}$ calculated? Is it equal to $\omega_{\alpha\beta}$ in $\boldsymbol{\tilde{\sigma}}$ ?
+
+### Discretization
+> @chalk2020 Section 3.1
+
+The discrete governing equations of soil motion in the framework of standard SPH are therefore:
+$$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}_i)\nabla W_{ij}$$
+$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\nabla W_{ij}+\boldsymbol{b}_i$$
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p}$$
+In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
+
 
 ## Standard SPH
 

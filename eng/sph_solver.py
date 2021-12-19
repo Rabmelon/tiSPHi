@@ -2,8 +2,6 @@ import taichi as ti
 import numpy as np
 from .particle_system import ParticleSystem
 
-# TODO: understand the code of wcsph then rewrite by self
-
 @ti.data_oriented
 class SPHSolver:
     def __init__(self, particle_system):
