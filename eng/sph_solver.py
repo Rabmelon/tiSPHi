@@ -12,7 +12,7 @@ class SPHSolver:
         self.density_0 = 1000.0  # reference density
         self.mass = self.ps.m_V * self.density_0
         self.dt = ti.field(float, shape=())
-        self.dt[None] = 2e-4
+        self.dt[None] = 5e-4
 
     # value of cubic spline smoothing kernel: PPT 10 p52
     @ti.func
@@ -66,28 +66,27 @@ class SPHSolver:
     # Compute the viscosity force contribution, Anti-symmetric formula
     @ti.func
     def viscosity_force(self, p_i, p_j, r):
-        v_xy = (self.ps.v[p_i] -
-                self.ps.v[p_j]).dot(r)
-        res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (
-            r.norm()**2 + 0.01 * self.ps.support_radius**2) * self.cubic_kernel_derivative(
-                r)
+        v_xy = (self.ps.v[p_i] - self.ps.v[p_j]).dot(r)
+        res = 2 * (self.ps.dim + 2) * self.viscosity * (
+            self.mass / (self.ps.density[p_j])) * v_xy / (
+                r.norm()**2 + 0.01 *
+                self.ps.support_radius**2) * self.cubic_kernel_derivative(r)
         return res
 
     # Compute the pressure force contribution, Symmetric formula
     @ti.func
     def pressure_force(self, p_i, p_j, r):
-        res = -self.density_0 * self.ps.m_V * (self.ps.pressure[p_i] / self.ps.density[p_i] ** 2
-              + self.ps.pressure[p_j] / self.ps.density[p_j] ** 2) \
-              * self.cubic_kernel_derivative(r)
+        res = -self.mass * (self.ps.pressure[p_i] / self.ps.density[p_i]**2 +
+                            self.ps.pressure[p_j] / self.ps.density[p_j]**2
+                            ) * self.cubic_kernel_derivative(r)
         return res
 
     # Collision factor, assume roughly (1-c_f)*velocity loss after collision
     @ti.func
     def simulate_collisions(self, p_i, vec, d):
-        c_f = 0.3
+        c_f = 0.7
         self.ps.x[p_i] += vec * d
-        self.ps.v[p_i] -= (
-            1.0 + c_f) * self.ps.v[p_i].dot(vec) * vec
+        self.ps.v[p_i] -= (1.0 + c_f) * self.ps.v[p_i].dot(vec) * vec
 
     # Treat the boundary problems
     @ti.kernel
@@ -97,21 +96,17 @@ class SPHSolver:
                 if self.ps.material[p_i] == self.ps.material_water:
                     pos = self.ps.x[p_i]
                     if pos[0] < self.ps.padding:
-                        self.simulate_collisions(
-                            p_i, ti.Vector([1.0, 0.0]),
-                            self.ps.padding - pos[0])
+                        self.simulate_collisions(p_i, ti.Vector([1.0, 0.0]),
+                                                 self.ps.padding - pos[0])
                     if pos[0] > self.ps.bound[0] - self.ps.padding:
-                        self.simulate_collisions(
-                            p_i, ti.Vector([-1.0, 0.0]),
+                        self.simulate_collisions(p_i, ti.Vector([-1.0, 0.0]),
                             pos[0] - (self.ps.bound[0] - self.ps.padding))
                     if pos[1] > self.ps.bound[1] - self.ps.padding:
-                        self.simulate_collisions(
-                            p_i, ti.Vector([0.0, -1.0]),
+                        self.simulate_collisions(p_i, ti.Vector([0.0, -1.0]),
                             pos[1] - (self.ps.bound[1] - self.ps.padding))
                     if pos[1] < self.ps.padding:
-                        self.simulate_collisions(
-                            p_i, ti.Vector([0.0, 1.0]),
-                           self.ps.padding - pos[1])
+                        self.simulate_collisions(p_i, ti.Vector([0.0, 1.0]),
+                                                 self.ps.padding - pos[1])
 
     def substep(self):
         pass

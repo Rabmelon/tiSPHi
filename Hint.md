@@ -1,5 +1,8 @@
 
 
+21.12.20.
+1. The sum of m_V of all particles DONOT equal to the area of cube!!!
+
 21.12.17.
 
 1. When the **particle radius > 0.05**, internal error occured:

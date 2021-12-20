@@ -4,15 +4,13 @@ from functools import reduce    # 整数：累加；字符串、列表、元组�
 
 @ti.data_oriented
 class ParticleSystem:
-    def __init__(self, res, ratio, radius, kh):
+    def __init__(self, world, radius, kh):
         print("Hallo, class Particle System starts to serve!")
 
         # Basic information of the simulation
-        self.res = res
-        self.dim = len(res)
+        self.dim = len(world)
         assert self.dim > 1 & self.dim < 4
-        self.screen_to_world_ratio = ratio  # 应该是指屏幕中的多少个像素表示一个模拟计算中的长度单位，例如：res=[500, 300]，ratio=50，则计算中的边界bound=[10, 6]。不应将粒子初始化在bound之外。
-        self.bound = np.array(res) / self.screen_to_world_ratio
+        self.bound = np.array(world)
         # print('bound =', self.bound)
 
         # Material 材料类型定义
@@ -27,7 +25,7 @@ class ParticleSystem:
         self.particle_radius = radius
         self.particle_diameter = 2.0 * self.particle_radius
         self.support_radius = kh * self.particle_radius
-        self.m_V = ( np.pi / 4.0 if self.dim == 2 else 3 * np.pi / 32) * self.particle_diameter**self.dim  # 2d为pi/4≈0.8，3d为3π/32≈0.3
+        self.m_V = (np.pi / 4.0 if self.dim == 2 else 3 * np.pi / 32) * self.particle_diameter**self.dim  # 2d为pi/4≈0.8，3d为3π/32≈0.3     然而这会导致体积丧失？？？？？？
         self.particle_max_num = 2**16  # 粒子上限数目
         self.particle_max_num_per_cell = 100  # 每格网最多100个
         self.particle_max_num_neighbor = 100  # 每个粒子的neighbour粒子最多100个
@@ -36,7 +34,7 @@ class ParticleSystem:
         # Grid property 背景格网的基本属性
         self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
         # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
-        self.grid_num = np.ceil(np.array(res) / self.grid_size).astype(int)  # 格网总数？
+        self.grid_num = np.ceil(np.array(world) / self.grid_size).astype(int)  # 格网总数？
         self.grid_particles_num = ti.field(int)  # 格网中的粒子总数？
         self.grid_particles = ti.field(int)  # 格网中的粒子编号？
         self.padding = self.grid_size  # padding是什么用途？用在enforce_boundary函数中
@@ -65,6 +63,11 @@ class ParticleSystem:
         cell_index = ti.k if self.dim == 2 else ti.l        # 建立粒子索引变量
         cell_node = grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子所需的空间？？？？？
         cell_node.place(self.grid_particles)
+
+    # 增加所有方向上矩形边界的粒子，2d
+    @ti.func
+    def gen_boundary_particles(self):
+        pass
 
 
     # 增加单个粒子，或者说第p个粒子，2/3d通用
@@ -156,6 +159,13 @@ class ParticleSystem:
             self.particle_neighbors_num[p_i] = cnt
             # print('')   # -------------------------
 
+    # 根据当前的粒子位置，初始化粒子系统
+    def initialize_particle_system(self):
+        self.grid_particles_num.fill(0)
+        self.particle_neighbors.fill(-1)
+        self.allocate_particles_to_grid()
+        self.search_neighbors()
+
     # 数据交换至numpy方法：向量数据
     @ti.kernel
     def copy_to_numpy_nd(self, np_arr: ti.ext_arr(), src_arr: ti.template()):
@@ -204,7 +214,7 @@ class ParticleSystem:
         num_dim = []
         for i in range(self.dim):
             num_dim.append(
-                np.arange(lower_corner[i],
+                np.arange(lower_corner[i] + self.particle_radius,
                           lower_corner[i] + cube_size[i] + 1e-5,
                           self.particle_diameter))
         num_new_particles = reduce(lambda x, y: x * y,
@@ -218,7 +228,7 @@ class ParticleSystem:
         new_positions = new_positions.reshape(
             -1, reduce(lambda x, y: x * y,
                        list(new_positions.shape[1:]))).transpose()
-        print("new position shape: ", new_positions.shape)
+        print("new cube's number and shape: ", new_positions.shape)
         if velocity is None:
             velocity = np.full_like(new_positions, 0)
         else:
@@ -234,9 +244,5 @@ class ParticleSystem:
         self.add_particles(num_new_particles, new_positions, velocity, density,
                            pressure, material, color)
 
-    # 根据当前的粒子位置，初始化粒子系统
-    def initialize_particle_system(self):
-        self.grid_particles_num.fill(0)
-        self.particle_neighbors.fill(-1)
-        self.allocate_particles_to_grid()
-        self.search_neighbors()
+        # check_Volume = self.m_V * num_new_particles - cube_size[0] * cube_size[1]
+        # print('Error of volume:', check_Volume)
