@@ -1,4 +1,10 @@
 
+21.12.21.
+1. Sometimes the grid(1, 1) will eat particles! (before add boundary particles)
+![grid eat particles](temp/Snipaste_2021-12-21_18-00-30.png)
+2. But after adding boundary particles, particles will be eaten in the grid(:, 1)!!!!!!!!! Amazing!!!
+![bottom eat particles!](temp/211221_bug1.gif)
+
 
 21.12.20.
 1. The sum of m_V of all particles DONOT equal to the area of cube!!!

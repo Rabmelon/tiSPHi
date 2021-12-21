@@ -86,7 +86,7 @@ class SPHSolver:
     def simulate_collisions(self, p_i, vec, d):
         c_f = 0.7
         self.ps.x[p_i] += vec * d
-        self.ps.v[p_i] -= (1.0 + c_f) * self.ps.v[p_i].dot(vec) * vec
+        self.ps.v[p_i] -= (1.0 + c_f) * (self.ps.v[p_i].dot(vec)) * vec
 
     # Treat the boundary problems
     @ti.kernel

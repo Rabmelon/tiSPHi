@@ -64,11 +64,8 @@ class ParticleSystem:
         cell_node = grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子所需的空间？？？？？
         cell_node.place(self.grid_particles)
 
-    # 增加所有方向上矩形边界的粒子，2d
-    @ti.func
-    def gen_boundary_particles(self):
-        pass
-
+        # Create boundary particles
+        self.gen_boundary_particles()
 
     # 增加单个粒子，或者说第p个粒子，2/3d通用
     @ti.func
@@ -200,7 +197,45 @@ class ParticleSystem:
             'color': np_color
         }
 
-    # 增加一个cube区域的粒子，2/3d通用
+    # 增加 padding region 中所有方向上矩形边界的粒子，2d
+    def gen_boundary_particles(self):
+        Bound_color = 0x9999FF
+        Bound_cube_d_dl = np.zeros(2) + self.padding - self.support_radius
+        Bound_cube_d_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.padding])
+        self.add_cube(lower_corner=Bound_cube_d_dl,
+                      cube_size=Bound_cube_d_tr - Bound_cube_d_dl,
+                      velocity=[.0, .0],
+                      density=1000.0,
+                      color=Bound_color,
+                      material=0)
+        Bound_cube_u_dl = np.array([self.padding - self.support_radius, self.bound[1] - self.padding])
+        Bound_cube_u_tr = self.bound - self.padding + self.support_radius
+        self.add_cube(lower_corner=Bound_cube_u_dl,
+                      cube_size=Bound_cube_u_tr - Bound_cube_u_dl,
+                      velocity=[.0, .0],
+                      density=1000.0,
+                      color=Bound_color,
+                      material=0)
+        Bound_cube_l_dl = np.array([self.padding - self.support_radius, self.padding])
+        Bound_cube_l_tr = np.array([self.padding, self.bound[1] - self.padding])
+        self.add_cube(lower_corner=Bound_cube_l_dl,
+                      cube_size=Bound_cube_l_tr - Bound_cube_l_dl,
+                      velocity=[.0, .0],
+                      density=1000.0,
+                      color=Bound_color,
+                      material=0)
+        Bound_cube_r_dl = np.array([self.bound[0] - self.padding, self.padding])
+        Bound_cube_r_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.bound[1] - self.padding])
+        self.add_cube(lower_corner=Bound_cube_r_dl,
+                      cube_size=Bound_cube_r_tr - Bound_cube_r_dl,
+                      velocity=[.0, .0],
+                      density=1000.0,
+                      color=Bound_color,
+                      material=0)
+
+
+    # 增加一个cube区域的粒子，2/3d通用。
+    # 目前矩形的左下角会自动加一个半径！！！
     # 具体实现仍需仔细学习！！！
     def add_cube(self,
                  lower_corner,
@@ -228,7 +263,7 @@ class ParticleSystem:
         new_positions = new_positions.reshape(
             -1, reduce(lambda x, y: x * y,
                        list(new_positions.shape[1:]))).transpose()
-        print("new cube's number and shape: ", new_positions.shape)
+        print("new cube's number and dim: ", new_positions.shape)
         if velocity is None:
             velocity = np.full_like(new_positions, 0)
         else:
