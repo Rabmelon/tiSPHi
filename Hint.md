@@ -2,8 +2,11 @@
 21.12.21.
 1. Sometimes the grid(1, 1) will eat particles! (before add boundary particles)
 ![grid eat particles](temp/Snipaste_2021-12-21_18-00-30.png)
-2. But after adding boundary particles, particles will be eaten in the grid(:, 1)!!!!!!!!! Amazing!!!
+2. But after just adding boundary particles, particles will be eaten in the grid(:, 1)!!!!!!!!! Amazing!!!
 ![bottom eat particles!](temp/211221_bug1.gif)
+------ After considering the $\rho$ of boundary particles, this has been solved, maybe.
+[running with boundary particles](temp/211221_show1.mp4)
+3. Still **DO NOT** konw if the collisions solver and boundary particles both should exist at the same time.
 
 
 21.12.20.

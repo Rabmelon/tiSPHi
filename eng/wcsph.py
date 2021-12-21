@@ -18,6 +18,9 @@ class WCSPHSolver(SPHSolver):
     @ti.kernel
     def compute_densities(self):
         for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] == self.ps.material_boundary:
+                self.ps.density[p_i] = self.density_0
+                continue
             x_i = self.ps.x[p_i]
             self.ps.density[p_i] = 0.0
             for j in range(self.ps.particle_neighbors_num[p_i]):
@@ -25,6 +28,7 @@ class WCSPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 self.ps.density[p_i] += self.ps.m_V * self.cubic_kernel(x_i - x_j)
             self.ps.density[p_i] *= self.density_0
+            self.ps.density[p_i] = ti.max(self.ps.density[p_i], self.density_0)
 
     # Evaluate viscosity and add gravity
     @ti.kernel
@@ -48,9 +52,7 @@ class WCSPHSolver(SPHSolver):
     @ti.kernel
     def compute_pressure_forces(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.ps.density[p_i] = ti.max(self.ps.density[p_i], self.density_0)
-            self.ps.pressure[p_i] = self.stiffness * (ti.pow(
-                self.ps.density[p_i] / self.density_0, self.exponent) - 1.0)
+            self.ps.pressure[p_i] = ti.max(self.stiffness * (ti.pow(self.ps.density[p_i] / self.density_0, self.exponent) - 1.0), 0.0)
         for p_i in range(self.ps.particle_num[None]):
             x_i = self.ps.x[p_i]
             d_v = ti.Vector([0.0 for _ in range(self.ps.dim)])
