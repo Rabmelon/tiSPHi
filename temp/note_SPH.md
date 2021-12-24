@@ -15,6 +15,7 @@
 - [Standard SPH](#standard-sph)
   - [SPH basic fomulations](#sph-basic-fomulations)
   - [Improving approximations for spatial derivatives:](#improving-approximations-for-spatial-derivatives)
+- [WCSPH](#wcsph)
   - [Forces for incompressible fluids](#forces-for-incompressible-fluids)
   - [Incompressible Navier-Stokes equation](#incompressible-navier-stokes-equation)
   - [Temporal discretization](#temporal-discretization)
@@ -26,6 +27,9 @@
 - [SPH improvement techniques](#sph-improvement-techniques)
 - [Nearest neighbouring search](#nearest-neighbouring-search)
 - [Time discretisation](#time-discretisation)
+  - [RK4 time integration](#rk4-time-integration)
+  - [XSPH and simplest position update](#xsph-and-simplest-position-update)
+  - [Steps](#steps)
 - [Stress-Particle SPH](#stress-particle-sph)
 
 <!-- /code_chunk_output -->
@@ -38,12 +42,16 @@ For learning how SPH works in slope failure and post-failure process, also in th
 ### The spatial derivative operators in 3D
 $\nabla$ 算子的三个语义:
 $$\nabla=\boldsymbol{i}\frac{\partial}{\partial x}+\boldsymbol{j}\frac{\partial}{\partial y}+\boldsymbol{k}\frac{\partial}{\partial z}$$
+
 **梯度Gradient**：作用于**标量**$f(x, y, z)$得到**矢量**。$\mathbb{R}^1\rightarrow\mathbb{R}^3, \nabla$
 $$grad\ f=\nabla f=(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}, \frac{\partial f}{\partial z})$$
+
 **散度Divergence**：作用于**矢量**$(f_x, f_y, f_z)$得到**标量**。$\mathbb{R}^3\rightarrow\mathbb{R}^1, \nabla\cdot$
 $$div\ \boldsymbol{f}=\nabla\cdot \boldsymbol{f}=\frac{\partial f_x}{\partial x} + \frac{\partial f_y}{\partial y} + \frac{\partial f_z}{\partial z}$$
+
 **旋度Curl**：作用于**矢量**$(f_x, f_y, f_z)$得到**矢量**。$\mathbb{R}^3\rightarrow\mathbb{R}^3, \nabla\times$
 $$curl\ \boldsymbol{f}=\nabla\times\boldsymbol{f}=\begin{vmatrix} \boldsymbol{i} &\boldsymbol{j} &\boldsymbol{k}\\ \frac{\partial}{\partial x} &\frac{\partial}{\partial y} &\frac{\partial}{\partial z}\\ f_x &f_y &f_z \end{vmatrix}=(\frac{\partial f_z}{\partial y}-\frac{\partial f_y}{\partial z}, \frac{\partial f_x}{\partial z}-\frac{\partial f_z}{\partial x}, \frac{\partial f_y}{\partial x}-\frac{\partial f_x}{\partial y})$$
+
 **拉普拉斯Laplace**: 梯度的散度，作用于任意维度的变量。 $\mathbb{R}^n\rightarrow\mathbb{R}^n, \nabla \cdot \nabla=\nabla^2$
 $$laplace\ f=div(grad\ f)=\nabla^2f=\frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2} + \frac{\partial^2 f}{\partial z^2}$$
 
@@ -54,27 +62,31 @@ $\frac{{\rm D}f}{{\rm D}t}=\frac{\partial f}{\partial t}+\boldsymbol{u}\cdot\nab
 中科院的李新亮研究员给出了一个更加形象的例子：高铁的电子显示屏上会实时显示车外的温度，如果我们将高铁看作是一个流体微元，它早上从北京出发，中午到达上海，显示屏上记录的室外温度的变化就是物质导数，它包含了两个部分，一是从北京到上海的地理位置的变化所带来的温度变化，即对流导数；二是由于早上到中午由于时间不同而引起的温度变化，即当地导数。)
 The final form in Lagrangian method: (等号左侧，第一项为微团密度的变化，第二项为微团体积的变化。)
 $$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
+
 对于不可压缩流动，质点的密度在运动过程中保持不变，故$\frac{{\rm D}\rho}{{\rm D}t}=0$
 
 ## Governing equations and constitutive model of soil
 Conservation of mass:
 $$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{u}$$
+
 Conservation of momentum:
 $$\frac{{\rm D} \boldsymbol{u}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{b}$$
+
 Constitutive equation:
 $$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\varepsilon^p}$$
+
 where:
 $$\begin{aligned}
 \boldsymbol{x}=
   \left (\begin{array}{c}
-    x\\y
+    x\\ y
   \end{array}\right)
 \end{aligned}
 ,
 \begin{aligned}
 \boldsymbol{u}=
   \left (\begin{array}{c}
-    u_x\\u_y
+    u_x\\ u_y
   \end{array}\right)
 \end{aligned}
 ,
@@ -88,39 +100,36 @@ $$\begin{aligned}
 \begin{aligned}
 \boldsymbol{b}=
   \left (\begin{array}{c}
-    b_x\\b_y
+    b_x\\ b_y
   \end{array}\right)
 \end{aligned}$$
 
 $$\begin{aligned}
 \boldsymbol{\sigma}=
   \left (\begin{array}{c}
-    \sigma_{xx}\\
-    \sigma_{yy}\\
-    \sigma_{xy}\\
-    \sigma_{zz}
+    \sigma_{xx}\\ \sigma_{yy}\\ \sigma_{xy}\\ \sigma_{zz}
   \end{array} \right)
 \end{aligned}
 ,
 \begin{aligned}
   \boldsymbol{\tilde{\sigma}}=
     \left(\begin{array}{c}
-      2\sigma_{xy}\omega_{xy}\\
-      2\sigma_{xy}\omega_{yx}\\
-      \sigma_{xx}\omega_{yx}+\sigma_{yy}\omega_{xy}\\
-      0
+      2\sigma_{xy}\omega_{xy}\\ 2\sigma_{xy}\omega_{yx}\\
+      \sigma_{xx}\omega_{yx}+\sigma_{yy}\omega_{xy}\\ 0
+    \end{array} \right)
+    =\left(\begin{array}{c}
+      2\sigma_{xy}\omega_{xy}\\ -2\sigma_{xy}\omega_{xy}\\
+      (\sigma_{yy}-\sigma_{xx})\omega_{xy}\\ 0
     \end{array} \right)
 \end{aligned}$$
 
-$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}-\frac{\partial u_{\beta}}{\partial x_{\alpha}})$$
+$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}-\frac{\partial u_{\beta}}{\partial x_{\alpha}})\ ,\ \omega_{xy} = \frac{1}{2}(\frac{\partial u_y}{\partial x_x}-\frac{\partial u_x}{\partial x_y})$$
 
 $$\begin{aligned}
 \boldsymbol{f}^u=
   \left (\begin{array}{cc}
-    D^e_{11}u_x    &D^e_{12}u_y\\
-    D^e_{21}u_x    &D^e_{22}u_y\\
-    D^e_{33}u_y    &D^e_{33}u_x\\
-    D^e_{41}u_x    &D^e_{42}u_y
+    D^e_{11}u_x    &D^e_{12}u_y\\ D^e_{21}u_x    &D^e_{22}u_y\\
+    D^e_{33}u_y    &D^e_{33}u_x\\ D^e_{41}u_x    &D^e_{42}u_y
   \end{array}\right)
 \end{aligned}
 ,
@@ -137,31 +146,35 @@ $$\begin{aligned}
 \begin{aligned}
   \boldsymbol{\dot \varepsilon}^p=
     \left(\begin{array}{c}
-      \dot \varepsilon^p_{xx}\\
-      \dot \varepsilon^p_{yy}\\
-      \dot \varepsilon^p_{xy}\\
-      0
+      \dot \varepsilon^p_{xx}\\ \dot \varepsilon^p_{yy}\\
+      \dot \varepsilon^p_{xy}\\ 0
     \end{array} \right)
 \end{aligned}$$
 
 $$\begin{aligned}
 D^e_{pq}=\frac{E}{(1+\nu)(1-\nu)}
   \left (\begin{array}{cccc}
-    1-\nu  &\nu  &0  &\nu\\
-    \nu  &1-\nu  &0  &\nu\\
-    0  &0  &(1-2\nu)/2  &0\\
-    \nu  &\nu  &0  &1-\nu\\
+    1-\nu  &\nu  &0  &\nu\\ \nu  &1-\nu  &0  &\nu\\
+    0  &0  &(1-2\nu)/2  &0\\ \nu  &\nu  &0  &1-\nu\\
   \end{array}\right)
 \end{aligned}$$
 
-and in soil mechanics, the soil pressure $p$ is obtained directly from the equation for hydrostatic pressure:
+and in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
 $$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
+
+We define the **elastic strains** according to the **generalised Hooke's law**:
+$$\dot{\boldsymbol{\varepsilon_e}} = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma_{kk}}\boldsymbol{I}$$
+
+where $\dot{\sigma_{kk}} = \dot{\sigma_{xx}}+\dot{\sigma_{yy}}+\dot{\sigma_{zz}}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}-p\boldsymbol{I}$ and $\boldsymbol{I}$ is the **identity matrix**.
 
 ### Conservation of mass
 The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
 $$-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm d}y{\rm d}z=[\frac{\partial (\rho u_x)}{\partial x}+\frac{\partial (\rho u_y)}{\partial y}+\frac{\partial (\rho u_z)}{\partial z}]{\rm d}x{\rm d}y{\rm d}z$$
+
 $$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho \boldsymbol{u})=0$$
+
 $$\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{u}=0, ~ \frac{{\rm D}\rho}{{\rm D}t}=\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho$$
+
 $$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
 
 > **QUESTIONS**
@@ -171,6 +184,7 @@ $$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
 根据牛顿流体的本构方程，推导获得流体的动量方程。
 无粘流动的动量方程即欧拉方程（惯性力$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}$，体积力$\boldsymbol{f}$，压差力$-\frac{1}{\rho}\nabla p$，普通动量方程中的粘性力$\frac{\mu}{\rho}\nabla^2\boldsymbol{u}+\frac{1}{3}\frac{\mu}{\rho}\nabla(\nabla\cdot\boldsymbol{u})=0$）：
 $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
+
 流体静止时，粘性力项自然为0，惯性力项也为0，即退化为欧拉静平衡方程$\nabla p=\rho\boldsymbol{f}$。
 
 > **QUESTIONS**
@@ -178,21 +192,38 @@ $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 
 ### Constitutive model
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
-For Drucker-Prager yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
+For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
 $$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
 And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis$\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$.
+And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
+The Von Mises and D-P yield criteria are illustrated in two dimensions:
+<div align="center">
+  <img width="400px" src=".\Yield_criterias.png">
+</div>
+
+Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
+$$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
 
 > **QUESTIONS**
 > 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
-> 2. How does $\dot\omega_{\alpha\beta}$ calculated? Is it equal to $\omega_{\alpha\beta}$ in $\boldsymbol{\tilde{\sigma}}$ ?
+> 2. How does the operator : calculated?
+
+The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
+$$\boldsymbol{\dot\varepsilon} = \boldsymbol{\dot\varepsilon}^e+\boldsymbol{\dot\varepsilon}^p$$
+
+With an assumption of a kinematic condition between the *total strain rate* and the *velocity gradients*. Consider both a **Von Mises** and a **D-P** yield criterion to distinguish between elastic and plastic material behaviour.
+
 
 ### Discretization
 > @chalk2020 Section 3.1
 
 The discrete governing equations of soil motion in the framework of standard SPH are therefore:
 $$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}_i)\nabla W_{ij}$$
+
 $$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\nabla W_{ij}+\boldsymbol{b}_i$$
+
 $$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p}$$
+
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
 
 
@@ -207,9 +238,13 @@ $$f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j)W(r-r_j, h) $$
 
 * SPH spatial derivatives:
 $${\color{Salmon} \nabla} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla}W(r-r_j, h)  $$
+
 $${\color{Salmon} \nabla\cdot} \boldsymbol{F}(r) \approx \sum_j \frac{m_j}{\rho_j}\boldsymbol{F}(r_j){\color{Salmon} \cdot\nabla}W(r-r_j, h)  $$
+
 $${\color{Salmon} \nabla\times} \boldsymbol{F}(r) \approx -\sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \times\nabla}W(r-r_j, h)  $$
+
 $${\color{Salmon} \nabla^2} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla^2}W(r-r_j, h)  $$
+
 with $W(r_i-r_j, h) = W_{ij}$ in discrete view.
 
 > **QUESTIONS**
@@ -229,21 +264,27 @@ with $W(r_i-r_j, h) = W_{ij}$ in discrete view.
   * $\nabla f(r) \approx \sum_j m_j\frac{f(r_j)-f(r)}{\rho_j}\nabla W(r-r_j, h)$, we call it the **anti-symmetric form**
 * A more general case:
   $$\nabla f(r) \approx \sum_j m_j(\frac{f(r_j)\rho_j^{n-1}}{\rho^n}-\frac{nf(r)}{\rho})\nabla W(r-r_j, h)$$
+
   * When $n=-1$: $\nabla f(r) \approx \rho\sum_j m_j(\frac{f(r_j)}{\rho_j^2}+\frac{f(r)}{\rho^2})\nabla W(r-r_j, h)$, we call it the **symmetric form**
 * 通常会使用一些反对称(**anti-sym**)或对称型(**sym**)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当$f(r)$是一个力的时候，从动量守恒的角度去推导，使用**sym**更好；当做散度、需要投影的时候，使用**anti-sym**更好。
 
 
+## WCSPH
 ### Forces for incompressible fluids
 > taichiCourse01-10 PPT p8-13
 
 $$f = ma = {\color{Green} f_{ext}} + {\color{RoyalBlue} f_{pres}} + {\color{Orange} f_{visc}}$$
+
+
 ### Incompressible Navier-Stokes equation
 > taichiCourse01-10 PPT p16-28
 
 The momentum equation
 $$\rho\frac{{\rm D}v}{{\rm D}t}={\color{Green} \rho g} {\color{RoyalBlue} -\nabla p} + {\color{Orange} \mu\nabla^2v}$$
+
 The mass conserving condition
 $${\color{RoyalBlue} \nabla\cdot v=0} $$
+
 $\rho\frac{{\rm D}v}{{\rm D}t}$: This is simply "mass" times "acceleration" divided by "volume".
 ${\color{Green} \rho g}$: External force term, gravitational force divided by "volume".
 ${\color{Orange} \mu\nabla^2v}$: Viscosity term, how fluids want to move together. 表示扩散有多快，液体尽可能地往相同的方向运动。$\mu$: some fluids are more viscous than others.
@@ -261,6 +302,7 @@ Integrate the incompressible N-S equation in steps (also reffered as "Operator s
 > taichiCourse01-10 PPT p33
 
 $$\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2v},\ \nu=\frac{\mu}{\rho_0}$$
+
 * Given $x_n$, $v_n$:
 * Step 1: Advection / external and viscosity force integration
   * Solve: ${\color{Purple} dv} = {\color{Green} g} + {\color{Orange} \nu\nabla^2v_n}$
@@ -289,6 +331,7 @@ And step 2 and 1 can be merged. This is nothing but Symplectic Euler integration
 
 Continuous view:
 $$\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2v}$$
+
 Discrete view (using particle):
 $$\frac{{\rm d}v_i}{{\rm d}t}=a_i={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p(x_i)} + {\color{Orange} \nu\nabla^2v(x_i)}$$
 
@@ -300,16 +343,20 @@ In WCSPH:
   * for i in particles:
     * Step 1: Evaluate density
       $$\rho_i = \sum_j \frac{m_j}{\rho_j}\rho_jW(r_i-r_j, h) = \sum_j m_jW_{ij}$$
+
     * Step 2: Evaluate viscosity (**anti-sym**)
       $$\nu\nabla^2v_i = \nu\sum_j m_j \frac{v_j-v_i}{\rho_j}\nabla^2W_{ij}$$
       in taichiWCSPH code it's a approximation from @monaghan2005 :
       $$\nu\nabla^2v_i = 2\nu(dimension+2)\sum_j \frac{m_j}{\rho_j}(\frac{v_{ij}\cdot r_{ij}}{\|r_{ij}\|^2+0.01h^2})\nabla W_{ij}$$
+
     * Evaluate pressure gradient (**sym**), where $p = k(\rho-\rho_0)$
       $$-\frac{1}{\rho_i}\nabla p_i = -\frac{\rho_i}{\rho_i}\sum_j m_j(\frac{p_j}{\rho_j^2}+\frac{p_i}{\rho_i^2})\nabla W_{ij} = -\sum_j m_j(\frac{p_j}{\rho_j^2}+\frac{p_i}{\rho_i^2})\nabla W_{ij}$$
+
       in taichiWCSPH code, $p = k_1((\rho/\rho_0)^{k_2}-1)$, where $k_1$ is a para about stiffness and $k_2$ is just an exponent.
     * Calculate the acceleration
     * Then do time integration using Symplectic Euler method:
       $$v_{i+1} = v_i+\Delta t*\frac{{\rm d}v_i}{{\rm d}t},\ \ x_{i+1} = x_i+\Delta t*v_{i+1}$$
+
 
 ### Boundary conditions
 > taichiCourse01-10 PPT p43 and 79-85
@@ -338,56 +385,53 @@ In WCSPH:
 ## Nearest neighbouring search
 
 ## Time discretisation
+> @Chalk2020, Appendix B.
+
+### RK4 time integration
+The considered governing SPH equations are summarised as:
+$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{b}_i = F_1(\boldsymbol{\sigma})$$
+
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p} = F_2(\boldsymbol{u},\boldsymbol{\sigma})$$
+
+Using the fourth order Runge-Kutta (RK4) method:
+$$\boldsymbol{u}_i^{t+\Delta t} = \boldsymbol{u}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}_1)+2F_1(\boldsymbol{\sigma}_2)+2F_1(\boldsymbol{\sigma}_3)+F_1(\boldsymbol{\sigma}_4))$$
+
+$$\boldsymbol{\sigma}_i^{t+\Delta t} = \boldsymbol{\sigma}_i^t + \frac{\Delta t}{6}(F_2(\boldsymbol{u}_1,\boldsymbol{\sigma}_1)+2F_2(\boldsymbol{u}_2,\boldsymbol{\sigma}_2)+2F_2(\boldsymbol{u}_3,\boldsymbol{\sigma}_3)+F_2(\boldsymbol{u}_4,\boldsymbol{\sigma}_4))$$
+
+where:
+$$\begin{aligned}
+    \begin{array}{ll}
+      \boldsymbol{u}_1 = \boldsymbol{u}^t &\boldsymbol{\sigma}_1 = \boldsymbol{\sigma}^t\\
+      \boldsymbol{u}_2 = \boldsymbol{u}^t+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}_1)) &\boldsymbol{\sigma}_2 = \boldsymbol{\sigma}^t+\frac{\Delta t}{2}(F_2(\boldsymbol{u}_1, \boldsymbol{\sigma}_1))\\
+      \boldsymbol{u}_3 = \boldsymbol{u}^t+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}_2)) &\boldsymbol{\sigma}_3 = \boldsymbol{\sigma}^t+\frac{\Delta t}{2}(F_2(\boldsymbol{u}_2, \boldsymbol{\sigma}_2))\\
+      \boldsymbol{u}_4 = \boldsymbol{u}^t+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}_3)) &\boldsymbol{\sigma}_4 = \boldsymbol{\sigma}^t+\frac{\Delta t}{2}(F_2(\boldsymbol{u}_3, \boldsymbol{\sigma}_3))
+    \end{array}
+\end{aligned}$$
+
+In standard SPH, these eight eqs are spatially resolved at each calculation step by calculating $\boldsymbol{u}_i^{t+\Delta t}$ and $\boldsymbol{\sigma}_i^{t+\Delta t}$ at each particle.
+
+### XSPH and simplest position update
+In addition to the velocity and stress, the position vectors of each particle $\boldsymbol{x}_i$ are updated via the XSPH method at the end of each time step as:
+$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{u}_i + \varepsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij}$$
+
+Alternatively, the discretised XSPH equation is:
+$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + \Delta t\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{x}_i^t + \Delta t(\boldsymbol{u}_i^{t+\Delta t} + \varepsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij})$$
+
+where $\varepsilon_x$ is a tuning para, $0\leq\varepsilon_x\leq1$.
+
+While, in standard SPH, the simplest way is:
+$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{u}_i$$
+
+And for the particle position update:
+$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_i^{t+\frac{\Delta t}{2}}\ and\ \boldsymbol{u}_i^{t+\frac{\Delta t}{2}} = \frac{1}{2}(\boldsymbol{u}_i^{t+\Delta t}+\boldsymbol{u}_i^t)$$
+
+### Steps
+* Known $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{b} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
+* Given $\boldsymbol{x}_i$, $\boldsymbol{v}_i$, $\boldsymbol{\sigma}_i$
+* Step 1: judge stress state by comparing the yield function and critical value: elastic or plastic strains.
+* Step 2: calculate $\omega_{xy}\rightarrow\boldsymbol{\tilde{\sigma}}_i$, $\boldsymbol{g}_i^{\varepsilon^p}$
+
+
 
 ## Stress-Particle SPH
 
-
-
-# Test MD
-这是一段测试文字
-
-**行内公式**
-这是$\lambda=\frac{\alpha}{\beta}$一段测试文字
-
-**单行公式**
-这是一段测试文字
-$\lambda=\frac{\alpha\times\beta}{\Gamma}$
-$$\Gamma = \sqrt{\int{x^{\varphi}\,{\rm D}x}}$$
-$$\boldsymbol{a}\cdot\boldsymbol{b}=0$$
-
-$$ a^2+b^2=c_0^2 \tag{1.2}$$
-这是一段$(1.2)$测试(1.2)文字
-
-
-$$\begin{align}
-\sqrt{37} & = \sqrt{\frac{73^2-1}{12^2}} \\
- & = \sqrt{\frac{73^2}{12^2}\cdot\frac{73^2-1}{73^2}} \\
- & = \sqrt{\frac{73^2}{12^2}}\sqrt{\frac{73^2-1}{73^2}} \\
- & = \frac{73}{12}\sqrt{1 - \frac{1}{73^2}} \\
- & \approx \frac{73}{12}\left(1 - \frac{1}{2\cdot73^2}\right)
-\end{align}$$
-
-这是一行测试文字
-$$\begin{equation}
-\lambda = 1\\
-\end{equation}$$
-
-**图片**
-<div align="center">
-  <img width="200px"  src="../img/tiSPHi_logo.jpg">
-</div>
-
-**链接**
-这是一段测试文字<zhibinlei@outlook.com>
-[baidu](www.baidu.com "链接测试显示文字")
-
-**表格**
-这是一段测试文字
-
-
-**代码段**
-这是一段测试文字
-
-
-**行内代码**
-这是一段测试文字
