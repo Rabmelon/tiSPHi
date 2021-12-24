@@ -9,9 +9,8 @@ class ParticleSystem:
 
         # Basic information of the simulation
         self.dim = len(world)
-        assert self.dim > 1 & self.dim < 4
+        assert self.dim in (2, 3), "SPH solver supports only 2D simulations."
         self.bound = np.array(world)
-        # print('bound =', self.bound)
 
         # Material 材料类型定义
         self.material_boundary = 0

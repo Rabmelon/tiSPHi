@@ -3,7 +3,8 @@ import numpy as np
 from eng.particle_system import *
 from eng.wcsph import *
 
-# TODO: Change the boundary conditions
+# TODO: Change the rule from N-S to DP, material from water to sand.
+# TODO: Or add DFSPH solver first? Don't sure if there is enough time remains for a real physical experiment of sand flow.
 
 # ti.init(arch=ti.cpu, debug=True)
 ti.init(arch=ti.gpu, packed=True, device_memory_GB=4)
@@ -12,8 +13,8 @@ if __name__ == "__main__":
     # init particle system paras, world unit is cm
     screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = (150, 100)
-    particle_radius = 0.1
-    kh = 4.0
+    particle_radius = 0.5
+    kh = 6.0
     cube_size = [20, 40]
 
     case1 = ParticleSystem(world, particle_radius, kh)
@@ -40,7 +41,7 @@ if __name__ == "__main__":
         particle_info = case1.dump()
 
         # draw particles
-        draw_radius = case1.particle_radius * screen_to_world_ratio * 1.5
+        draw_radius = case1.particle_radius * screen_to_world_ratio * 1.0
         gui.circles(particle_info['position'] * screen_to_world_ratio / max(res),
                     radius=draw_radius, color=particle_info['color'])
 
