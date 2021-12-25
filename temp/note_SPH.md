@@ -8,9 +8,9 @@
   - [The spatial derivative operators in 3D](#the-spatial-derivative-operators-in-3d)
   - [Material derivative](#material-derivative)
 - [Governing equations and constitutive model of soil](#governing-equations-and-constitutive-model-of-soil)
+  - [Constitutive model](#constitutive-model)
   - [Conservation of mass](#conservation-of-mass)
   - [Conservation of momentum](#conservation-of-momentum)
-  - [Constitutive model](#constitutive-model)
   - [Discretization](#discretization)
 - [Standard SPH](#standard-sph)
   - [SPH basic fomulations](#sph-basic-fomulations)
@@ -24,6 +24,8 @@
   - [Fluid dynamics with particles (weakly compressible)](#fluid-dynamics-with-particles-weakly-compressible)
   - [Boundary conditions](#boundary-conditions)
 - [Complex boundary treatment](#complex-boundary-treatment)
+  - [For straight, stationary walls](#for-straight-stationary-walls)
+  - [For free surface problems](#for-free-surface-problems)
 - [SPH improvement techniques](#sph-improvement-techniques)
 - [Nearest neighbouring search](#nearest-neighbouring-search)
 - [Time discretisation](#time-discretisation)
@@ -159,13 +161,47 @@ D^e_{pq}=\frac{E}{(1+\nu)(1-\nu)}
   \end{array}\right)
 \end{aligned}$$
 
-and in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
+$D^e_{pq}$ is the **elastic constitutive tensor**, $\dot{\omega}_{\alpha\beta}$ is the **spin rate tensor**.
+
+And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
 $$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
 
 We define the **elastic strains** according to the **generalised Hooke's law**:
-$$\dot{\boldsymbol{\varepsilon_e}} = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma_{kk}}\boldsymbol{I}$$
+$$\dot{\boldsymbol{\varepsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
 
-where $\dot{\sigma_{kk}} = \dot{\sigma_{xx}}+\dot{\sigma_{yy}}+\dot{\sigma_{zz}}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}-p\boldsymbol{I}$ and $\boldsymbol{I}$ is the **identity matrix**.
+where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}-p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
+
+> **QUESTIONS**
+> 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive.
+
+### Constitutive model
+Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
+For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
+$$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
+And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis$\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$.
+And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
+The Von Mises and D-P yield criteria are illustrated in two dimensions:
+<div align="center">
+  <img width="400px" src=".\Yield_criterias.png">
+</div>
+
+Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
+$$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
+
+> **QUESTIONS**
+> 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
+> 2. How does the operator : calculated?
+
+The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
+$$\boldsymbol{\dot\varepsilon} = \boldsymbol{\dot\varepsilon}^e+\boldsymbol{\dot\varepsilon}^p$$
+
+With an assumption of a kinematic condition between the *total strain rate* and the *velocity gradients*.
+$$\dot{\varepsilon}_{\alpha\beta} = \frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}})$$
+
+Consider both a **Von Mises** and a **D-P** yield criterion to distinguish between elastic and plastic material behaviour.
+
+In the elastoplastic model, the stress state is not allowed to exceed the yield surface and I should apply a stress adaptation to particles, after every calculation step. And the elastic and plastic behaviour are distinguished via a stress-dependent yield criterion.
+
 
 ### Conservation of mass
 The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
@@ -189,30 +225,6 @@ $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 
 > **QUESTIONS**
 > 1. The momentum considered here is not the same as Navier-Stokes equation but what???
-
-### Constitutive model
-Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
-For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
-$$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
-And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis$\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$.
-And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
-The Von Mises and D-P yield criteria are illustrated in two dimensions:
-<div align="center">
-  <img width="400px" src=".\Yield_criterias.png">
-</div>
-
-Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
-$$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
-
-> **QUESTIONS**
-> 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
-> 2. How does the operator : calculated?
-
-The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
-$$\boldsymbol{\dot\varepsilon} = \boldsymbol{\dot\varepsilon}^e+\boldsymbol{\dot\varepsilon}^p$$
-
-With an assumption of a kinematic condition between the *total strain rate* and the *velocity gradients*. Consider both a **Von Mises** and a **D-P** yield criterion to distinguish between elastic and plastic material behaviour.
-
 
 ### Discretization
 > @chalk2020 Section 3.1
@@ -379,6 +391,60 @@ In WCSPH:
 
 
 ## Complex boundary treatment
+> @Chalk2020
+
+虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。
+
+### For straight, stationary walls
+First, choose the method to solve boundary problems. I want to update the behaviour of particles without just invert the operator but with some rules that are suitable for soil dynamics problems.
+
+The dummy particle method is used to represent the wall boundary. For dummy and repulsive particles at the wall boundary, they are spaced apart by $\Delta x/2$. For other dummy particles, are $\Delta x$.
+<div align="center">
+  <img width="300px" src=".\Dummy_particles.png">
+</div>
+
+The repulsive particles are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force $\hat{\boldsymbol{F}}_{ij}$ is applied to all particles that interact with the repulsive boundary particles, and is included in the SPH momentum equation:
+$$\hat{\boldsymbol{F}}_{ij} = \sum_j 0.01c^2\chi\cdot\hat{f}(\gamma)\frac{\boldsymbol{x}_{ij}}{r^2}$$
+
+where:
+$$\chi = \left\{
+\begin{array}{ll}
+  1-\frac{r}{1.5\Delta x}, &0\leq r<1.5\Delta x \\0, &r\geq 1.5\Delta x
+\end{array}
+\right.$$
+
+$$\gamma = \frac{r}{0.75h_{ij}}$$
+
+$$\hat{f}(\gamma) = \left\{
+  \begin{array}{ll}
+    \frac{2}{3}, &0<\gamma\leq\frac{2}{3}\\
+    2\gamma-1.5\gamma^2, &\frac{2}{3}<\gamma\leq 1\\
+    0.5(2-\gamma)^2, &1<\gamma<2\\
+    0, &\gamma\geq 2
+  \end{array}
+\right.$$
+
+And this soft repulsive force has been applied to simulations of water flow and the propagation of a Bingham material.
+
+For an interior particle A (circle) that contains a dummy particle B (square and triangle) within its neighbourhood, the normal distances $d_A$ and $d_B$ to the wall are calculated. An artificial velocity $\boldsymbol{u}_B$ is then assigned to the dummy particle:
+$$\boldsymbol{u}_B = -\frac{d_B}{d_A}\boldsymbol{u}_A$$
+
+To account for extremely large values of the dummy particle velocity when an interior particle approaches the boundary (and $d_A$ approaches 0), a parameter $\beta$ is introduced:
+$$\boldsymbol{u}_B = (1-\beta)\boldsymbol{u}_A+\beta\boldsymbol{u}_{wall}\ ,\ \beta = min(\beta_{max}, 1+\frac{d_B}{d_A})$$
+
+$\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $\beta_{max}=1.5$.
+
+And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the $\boldsymbol{f}^{\sigma}$ term) on the interior particles in the equation of momentum through the particle-dummy interaction.
+
+> **QUESTIONS**
+> 1. How about the mass of repulsive particles?
+
+### For free surface problems
+The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.
+
+> **QUESTIONS**
+> BUT how does the free surface condition implement?
+
 
 ## SPH improvement techniques
 
@@ -426,11 +492,21 @@ And for the particle position update:
 $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_i^{t+\frac{\Delta t}{2}}\ and\ \boldsymbol{u}_i^{t+\frac{\Delta t}{2}} = \frac{1}{2}(\boldsymbol{u}_i^{t+\Delta t}+\boldsymbol{u}_i^t)$$
 
 ### Steps
-* Known $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{b} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
-* Given $\boldsymbol{x}_i$, $\boldsymbol{v}_i$, $\boldsymbol{\sigma}_i$
-* Step 1: judge stress state by comparing the yield function and critical value: elastic or plastic strains.
-* Step 2: calculate $\omega_{xy}\rightarrow\boldsymbol{\tilde{\sigma}}_i$, $\boldsymbol{g}_i^{\varepsilon^p}$
-
+* Key point and aim: update the position, velocity and stress.
+* Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{b} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
+* Given $\boldsymbol{x}_i^1$, $\boldsymbol{u}_i^1$, $\boldsymbol{\sigma}_i^1$.
+* Step 1: calculate terms $\boldsymbol{f}^{\sigma}$ and $\boldsymbol{f}^u$.
+* Step 2: update boundary consitions and adapt the stress.
+* Step 3: calculate the gradient terms.
+* Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{b}$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
+* Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}$.
+  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range, then $\boldsymbol{g}^{\varepsilon^p} = 0$. Otherwise, the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p} = 0$ is non-zero.
+  * The plastic term is a function of stress and velocity gradients.
+  * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}$ is also updated. This involves gradients of the velocity.
+* Step 6: compute $F_1$ and $F_2$ on particles to update $\boldsymbol{u}$ and $\boldsymbol{\sigma}$
+* Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
+* Step 8: if necessary, the boundary conditions and stress state are again updated.
+* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{u}_i^4$, $\boldsymbol{\sigma}_i^3$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity and the stress at the subsequent time step, also the positions of the particles.
 
 
 ## Stress-Particle SPH
