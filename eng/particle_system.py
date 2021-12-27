@@ -25,7 +25,7 @@ class ParticleSystem:
         self.particle_radius = radius
         self.particle_diameter = 2.0 * self.particle_radius
         self.support_radius = kh * self.particle_radius
-        self.m_V = self.particle_diameter**self.dim
+        self.m_V = self.particle_diameter**self.dim        # m2 or m3
         # self.m_V = (np.pi / 4.0 if self.dim == 2 else 3 * np.pi / 32) * self.particle_diameter**self.dim  # 2d为pi/4≈0.8，3d为3π/32≈0.3     然而这会导致体积丧失？？？
         self.particle_max_num = 2**16  # 粒子上限数目，65536
         self.particle_max_num_per_cell = 100  # 每格网最多100个
@@ -224,34 +224,27 @@ class ParticleSystem:
         Bound_cube_d_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.padding])
         self.add_cube(lower_corner=Bound_cube_d_dl,
                       cube_size=Bound_cube_d_tr - Bound_cube_d_dl,
-                      velocity=[.0, .0],
-                      density=1000.0,
                       color=Bound_color,
-                      material=0)
+                      material=0,flag_print=False)
         Bound_cube_u_dl = np.array([self.padding - self.support_radius, self.bound[1] - self.padding])
         Bound_cube_u_tr = self.bound - self.padding + self.support_radius
         self.add_cube(lower_corner=Bound_cube_u_dl,
                       cube_size=Bound_cube_u_tr - Bound_cube_u_dl,
-                      velocity=[.0, .0],
-                      density=1000.0,
                       color=Bound_color,
-                      material=0)
+                      material=0,flag_print=False)
         Bound_cube_l_dl = np.array([self.padding - self.support_radius, self.padding])
         Bound_cube_l_tr = np.array([self.padding, self.bound[1] - self.padding])
         self.add_cube(lower_corner=Bound_cube_l_dl,
                       cube_size=Bound_cube_l_tr - Bound_cube_l_dl,
-                      velocity=[.0, .0],
-                      density=1000.0,
                       color=Bound_color,
-                      material=0)
+                      material=0,flag_print=False)
         Bound_cube_r_dl = np.array([self.bound[0] - self.padding, self.padding])
         Bound_cube_r_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.bound[1] - self.padding])
         self.add_cube(lower_corner=Bound_cube_r_dl,
                       cube_size=Bound_cube_r_tr - Bound_cube_r_dl,
-                      velocity=[.0, .0],
-                      density=1000.0,
                       color=Bound_color,
-                      material=0)
+                      material=0,flag_print=False)
+        print("Boundary particles' number: ", self.particle_num)
 
 
     # 增加一个cube区域的粒子，2/3d通用。
@@ -266,7 +259,8 @@ class ParticleSystem:
                  strain_p=None,
                  density=None,
                  pressure=None,
-                 velocity=None):
+                 velocity=None,
+                 flag_print=True):
 
         num_dim = []
         for i in range(self.dim):
@@ -285,7 +279,8 @@ class ParticleSystem:
         new_positions = new_positions.reshape(
             -1, reduce(lambda x, y: x * y,
                        list(new_positions.shape[1:]))).transpose()
-        print("new cube's number and dim: ", new_positions.shape)
+        if flag_print:
+            print("New cube's number and dim: ", new_positions.shape)
         if velocity is None:
             velocity = np.full_like(new_positions, 0)
         else:

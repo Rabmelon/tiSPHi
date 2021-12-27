@@ -8,8 +8,6 @@ class SPHSolver:
         print("Hallo, class SPH Solver starts to serve!")
         self.ps = particle_system
         self.g = -9.81  # Gravity
-        self.density_0 = 1000.0  # reference density
-        self.mass = self.ps.m_V * self.density_0
         self.dt = ti.field(float, shape=())
         self.dt[None] = 5e-4
 

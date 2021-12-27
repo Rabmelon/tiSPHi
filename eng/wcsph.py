@@ -6,14 +6,18 @@ class WCSPHSolver(SPHSolver):
         super().__init__(particle_system)
         print("Hallo, class WCSPH Solver starts to serve!")
 
-        # Two paras in taichiWCSPH code
-        self.stiffness = 50000.0   # k1
-        self.exponent = 7.0     # k2
-
+        # Basic paras
+        self.density_0 = 1000.0  # reference density
+        self.mass = self.ps.m_V * self.density_0
         self.viscosity = 0.05  # viscosity
+
         self.d_velocity = ti.Vector.field(self.ps.dim, dtype=float)
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
         particle_node.place(self.d_velocity)
+
+        # Two paras in taichiWCSPH code
+        self.stiffness = 50000.0   # k1
+        self.exponent = 7.0     # k2
 
 
     # Compute the viscosity force contribution, Anti-symmetric formula
