@@ -7,8 +7,7 @@ class SPHSolver:
     def __init__(self, particle_system):
         print("Hallo, class SPH Solver starts to serve!")
         self.ps = particle_system
-        self.g = -9.80  # Gravity
-        self.viscosity = 0.05  # viscosity
+        self.g = -9.81  # Gravity
         self.density_0 = 1000.0  # reference density
         self.mass = self.ps.m_V * self.density_0
         self.dt = ti.field(float, shape=())
@@ -60,25 +59,6 @@ class SPHSolver:
             else:
                 factor = 1.0 - q
                 res = k * (-factor * factor) * grad_q
-        return res
-
-
-    # Compute the viscosity force contribution, Anti-symmetric formula
-    @ti.func
-    def viscosity_force(self, p_i, p_j, r):
-        v_xy = (self.ps.v[p_i] - self.ps.v[p_j]).dot(r)
-        res = 2 * (self.ps.dim + 2) * self.viscosity * (
-            self.mass / (self.ps.density[p_j])) * v_xy / (
-                r.norm()**2 + 0.01 *
-                self.ps.support_radius**2) * self.cubic_kernel_derivative(r)
-        return res
-
-    # Compute the pressure force contribution, Symmetric formula
-    @ti.func
-    def pressure_force(self, p_i, p_j, r):
-        res = -self.mass * (self.ps.pressure[p_i] / self.ps.density[p_i]**2 +
-                            self.ps.pressure[p_j] / self.ps.density[p_j]**2
-                            ) * self.cubic_kernel_derivative(r)
         return res
 
     # Collision factor, assume roughly (1-c_f)*velocity loss after collision

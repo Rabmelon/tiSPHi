@@ -178,6 +178,7 @@ where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
 For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
 $$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
+
 And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis$\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$.
 And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
 The Von Mises and D-P yield criteria are illustrated in two dimensions:
@@ -190,7 +191,8 @@ $$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:
 
 > **QUESTIONS**
 > 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
-> 2. How does the operator : calculated?
+> 2. How does the operator : calculated? ----**Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" a tensor and "spits out" a scalar.
+
 
 The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
 $$\boldsymbol{\dot\varepsilon} = \boldsymbol{\dot\varepsilon}^e+\boldsymbol{\dot\varepsilon}^p$$
@@ -503,11 +505,13 @@ $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_
   * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range, then $\boldsymbol{g}^{\varepsilon^p} = 0$. Otherwise, the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p} = 0$ is non-zero.
   * The plastic term is a function of stress and velocity gradients.
   * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}$ is also updated. This involves gradients of the velocity.
-* Step 6: compute $F_1$ and $F_2$ on particles to update $\boldsymbol{u}$ and $\boldsymbol{\sigma}$
+* Step 6: compute $F_1$ and $F_2$ on particles.
 * Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
 * Step 8: if necessary, the boundary conditions and stress state are again updated.
 * Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{u}_i^4$, $\boldsymbol{\sigma}_i^3$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity and the stress at the subsequent time step, also the positions of the particles.
 
+> **QUESTIONS**
+> 1. Just remaining one question: how does $\boldsymbol{g}^{\varepsilon^p}$ calculated through D-P criterion?
 
 ## Stress-Particle SPH
 

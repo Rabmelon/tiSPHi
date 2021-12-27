@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # init particle system paras, world unit is cm
     screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = (150, 100)
-    particle_radius = 0.5
+    particle_radius = 0.1
     kh = 6.0
     cube_size = [20, 40]
 
