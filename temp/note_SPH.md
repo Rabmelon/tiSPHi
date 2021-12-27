@@ -1,3 +1,7 @@
+---
+html:
+  toc: true
+---
 **Smoothed Particle Hydrodynamics Learning Notes**
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=5 orderedList=false} -->
@@ -457,22 +461,22 @@ The particles that comprise the free surface should satisfy a stress-free condit
 
 ### RK4 time integration
 The considered governing SPH equations are summarised as:
-$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{b}_i = F_1(\boldsymbol{\sigma})$$
+$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{b}_i = F_1(\boldsymbol{\sigma}_i)$$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p} = F_2(\boldsymbol{u},\boldsymbol{\sigma})$$
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p} = F_2(\boldsymbol{u}_i,\boldsymbol{\sigma}_i)$$
 
 Using the fourth order Runge-Kutta (RK4) method:
-$$\boldsymbol{u}_i^{t+\Delta t} = \boldsymbol{u}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}_1)+2F_1(\boldsymbol{\sigma}_2)+2F_1(\boldsymbol{\sigma}_3)+F_1(\boldsymbol{\sigma}_4))$$
+$$\boldsymbol{u}_i^{t+\Delta t} = \boldsymbol{u}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}^1_i)+2F_1(\boldsymbol{\sigma}^2_i)+2F_1(\boldsymbol{\sigma}^3_i)+F_1(\boldsymbol{\sigma}^4_i))$$
 
-$$\boldsymbol{\sigma}_i^{t+\Delta t} = \boldsymbol{\sigma}_i^t + \frac{\Delta t}{6}(F_2(\boldsymbol{u}_1,\boldsymbol{\sigma}_1)+2F_2(\boldsymbol{u}_2,\boldsymbol{\sigma}_2)+2F_2(\boldsymbol{u}_3,\boldsymbol{\sigma}_3)+F_2(\boldsymbol{u}_4,\boldsymbol{\sigma}_4))$$
+$$\boldsymbol{\sigma}_i^{t+\Delta t} = \boldsymbol{\sigma}_i^t + \frac{\Delta t}{6}(F_2(\boldsymbol{u}^1_i,\boldsymbol{\sigma}^1_i)+2F_2(\boldsymbol{u}^2_i,\boldsymbol{\sigma}^2_i)+2F_2(\boldsymbol{u}^3_i,\boldsymbol{\sigma}^3_i)+F_2(\boldsymbol{u}^4_i,\boldsymbol{\sigma}^4_i))$$
 
 where:
 $$\begin{aligned}
     \begin{array}{ll}
-      \boldsymbol{u}_1 = \boldsymbol{u}^t &\boldsymbol{\sigma}_1 = \boldsymbol{\sigma}^t\\
-      \boldsymbol{u}_2 = \boldsymbol{u}^t+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}_1)) &\boldsymbol{\sigma}_2 = \boldsymbol{\sigma}^t+\frac{\Delta t}{2}(F_2(\boldsymbol{u}_1, \boldsymbol{\sigma}_1))\\
-      \boldsymbol{u}_3 = \boldsymbol{u}^t+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}_2)) &\boldsymbol{\sigma}_3 = \boldsymbol{\sigma}^t+\frac{\Delta t}{2}(F_2(\boldsymbol{u}_2, \boldsymbol{\sigma}_2))\\
-      \boldsymbol{u}_4 = \boldsymbol{u}^t+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}_3)) &\boldsymbol{\sigma}_4 = \boldsymbol{\sigma}^t+\frac{\Delta t}{2}(F_2(\boldsymbol{u}_3, \boldsymbol{\sigma}_3))
+      \boldsymbol{u}^1_i = \boldsymbol{u}^t_i &\boldsymbol{\sigma}^1_i = \boldsymbol{\sigma}^t_i\\
+      \boldsymbol{u}^2_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &\boldsymbol{\sigma}^2_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^1_i, \boldsymbol{\sigma}^1_i))\\
+      \boldsymbol{u}^3_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &\boldsymbol{\sigma}^3_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^2_i, \boldsymbol{\sigma}^2_i))\\
+      \boldsymbol{u}^4_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{\sigma}^4_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^3_i, \boldsymbol{\sigma}^3_i))
     \end{array}
 \end{aligned}$$
 
@@ -499,19 +503,19 @@ $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_
 * Given $\boldsymbol{x}_i^1$, $\boldsymbol{u}_i^1$, $\boldsymbol{\sigma}_i^1$.
 * Step 1: calculate terms $\boldsymbol{f}^{\sigma}$ and $\boldsymbol{f}^u$.
 * Step 2: update boundary consitions and adapt the stress.
-* Step 3: calculate the gradient terms.
-* Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{b}$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
-* Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}$.
-  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range, then $\boldsymbol{g}^{\varepsilon^p} = 0$. Otherwise, the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p} = 0$ is non-zero.
+* Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
+* Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{b}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
+* Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}_i$.
+  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range, then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise, the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
   * The plastic term is a function of stress and velocity gradients.
-  * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}$ is also updated. This involves gradients of the velocity.
+  * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity.
 * Step 6: compute $F_1$ and $F_2$ on particles.
 * Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
 * Step 8: if necessary, the boundary conditions and stress state are again updated.
-* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{u}_i^4$, $\boldsymbol{\sigma}_i^3$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity and the stress at the subsequent time step, also the positions of the particles.
+* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{u}_i^4$, $\boldsymbol{\sigma}_i^3$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{u}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
 
 > **QUESTIONS**
-> 1. Just remaining one question: how does $\boldsymbol{g}^{\varepsilon^p}$ calculated through D-P criterion?
+> 1. Just remaining one question: how does $\boldsymbol{g}^{\varepsilon^p}$ calculated through D-P criterion? **It may relates to an adaptation process in the Section 4.3.1 in Chalk's thesis!**
 
 ## Stress-Particle SPH
 

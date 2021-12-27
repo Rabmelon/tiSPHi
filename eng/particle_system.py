@@ -10,12 +10,13 @@ class ParticleSystem:
         # Basic information of the simulation
         self.dim = len(world)
         assert self.dim in (2, 3), "SPH solver supports only 2D simulations."
+        self.dim_stress = 4 if self.dim == 2 else 9
         self.bound = np.array(world)
 
         # Material 材料类型定义
         self.material_boundary = 0
         self.material_water = 1
-        self.material_sand = 2
+        self.material_soil = 2
         self.material_rigid = 3
         self.material_solid_e = 4
         self.material_solid_p = 5
@@ -24,8 +25,9 @@ class ParticleSystem:
         self.particle_radius = radius
         self.particle_diameter = 2.0 * self.particle_radius
         self.support_radius = kh * self.particle_radius
-        self.m_V = (np.pi / 4.0 if self.dim == 2 else 3 * np.pi / 32) * self.particle_diameter**self.dim  # 2d为pi/4≈0.8，3d为3π/32≈0.3     然而这会导致体积丧失？？？？？？
-        self.particle_max_num = 2**16  # 粒子上限数目
+        self.m_V = self.particle_diameter**self.dim
+        # self.m_V = (np.pi / 4.0 if self.dim == 2 else 3 * np.pi / 32) * self.particle_diameter**self.dim  # 2d为pi/4≈0.8，3d为3π/32≈0.3     然而这会导致体积丧失？？？
+        self.particle_max_num = 2**16  # 粒子上限数目，65536
         self.particle_max_num_per_cell = 100  # 每格网最多100个
         self.particle_max_num_neighbor = 100  # 每个粒子的neighbour粒子最多100个
         self.particle_num = ti.field(int, shape=())  # 记录当前的粒子总数
@@ -42,6 +44,8 @@ class ParticleSystem:
         self.x = ti.Vector.field(self.dim, dtype=float)     # 粒子的位置
         self.v = ti.Vector.field(self.dim, dtype=float)     # 粒子的速度
         self.density = ti.field(dtype=float)                # 粒子的密度
+        self.stress = ti.Vector.field(self.dim_stress, dtype=float)       # 粒子的应力项
+        self.strain_p = ti.Vector.field(self.dim_stress, dtype=float)     # 粒子的应变项
         self.pressure = ti.field(dtype=float)               # 粒子的压力项
         self.material = ti.field(dtype=int)                 # 粒子的材料类型
         self.color = ti.field(dtype=int)                    # 粒子的绘制颜色
@@ -49,10 +53,10 @@ class ParticleSystem:
         self.particle_neighbors_num = ti.field(int)         # 粒子的邻域粒子总数目
 
         # New memory space?
-        self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟粒子存储空间？？？？？
-        self.particles_node.place(self.x, self.v, self.density, self.pressure, self.material, self.color)
+        self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟粒子中每个数据的存储空间？？？？？
+        self.particles_node.place(self.x, self.v, self.density, self.stress, self.strain_p, self.pressure, self.material, self.color)
         self.particles_node.place(self.particle_neighbors_num)
-        self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbor)    # 使用稠密数据结构开辟每个粒子的邻域粒子编号的存储空间？？？？？
+        self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbor)    # 使用稠密数据结构开辟每个粒子的存储空间？？？？？是否相当于挂一列粒子，每一个粒子的各项数据用行存储？
         self.particle_node.place(self.particle_neighbors)
 
         index = ti.ij if self.dim == 2 else ti.ijk          # 建立格网维度索引变量，xy or xyz
@@ -68,10 +72,12 @@ class ParticleSystem:
 
     # 增加单个粒子，或者说第p个粒子，2/3d通用
     @ti.func
-    def add_particle(self, p, x, v, density, pressure, material, color):
+    def add_particle(self, p, x, v, density, stress, strain_p, pressure, material, color):
         self.x[p] = x
         self.v[p] = v
         self.density[p] = density
+        self.stress[p] = stress
+        self.strain_p[p] = strain_p
         self.pressure[p] = pressure
         self.material[p] = material
         self.color[p] = color
@@ -82,6 +88,8 @@ class ParticleSystem:
                       new_particles_positions: ti.ext_arr(),
                       new_particles_velocity: ti.ext_arr(),
                       new_particles_density: ti.ext_arr(),
+                      new_particles_stress: ti.ext_arr(),
+                      new_particles_strain_p: ti.ext_arr(),
                       new_particles_pressure: ti.ext_arr(),
                       new_particles_material: ti.ext_arr(),
                       new_particles_color: ti.ext_arr()):
@@ -89,11 +97,16 @@ class ParticleSystem:
                        self.particle_num[None] + new_particles_num):
             x = ti.Vector.zero(float, self.dim)
             v = ti.Vector.zero(float, self.dim)
+            stress = ti.Vector.zero(float, self.dim_stress)
+            strain_p = ti.Vector.zero(float, self.dim_stress)
             for d in ti.static(range(self.dim)):
                 x[d] = new_particles_positions[p - self.particle_num[None], d]
                 v[d] = new_particles_velocity[p - self.particle_num[None], d]
+            for d in ti.static(range(self.dim_stress)):
+                stress[d] = new_particles_stress[p - self.particle_num[None], d]
+                strain_p[d] = new_particles_strain_p[p - self.particle_num[None], d]
             self.add_particle(
-                p, x, v, new_particles_density[p - self.particle_num[None]],
+                p, x, v, new_particles_density[p - self.particle_num[None]], stress, strain_p,
                 new_particles_pressure[p - self.particle_num[None]],
                 new_particles_material[p - self.particle_num[None]],
                 new_particles_color[p - self.particle_num[None]])
@@ -183,6 +196,12 @@ class ParticleSystem:
         np_v = np.ndarray((self.particle_num[None], self.dim), dtype=np.float32)
         self.copy_to_numpy_nd(np_v, self.v)
 
+        np_stress = np.ndarray((self.particle_num[None], self.dim_stress), dtype=np.float32)
+        self.copy_to_numpy_nd(np_stress, self.stress)
+
+        np_strain_p = np.ndarray((self.particle_num[None], self.dim_stress), dtype=np.float32)
+        self.copy_to_numpy_nd(np_strain_p, self.strain_p)
+
         np_material = np.ndarray((self.particle_num[None],), dtype=np.int32)
         self.copy_to_numpy(np_material, self.material)
 
@@ -192,6 +211,8 @@ class ParticleSystem:
         return {
             'position': np_x,
             'velocity': np_v,
+            'stress': np_stress,
+            'strain_p': np_strain_p,
             'material': np_material,
             'color': np_color
         }
@@ -241,6 +262,8 @@ class ParticleSystem:
                  cube_size,
                  material,
                  color=0xFFFFFF,
+                 stress=None,
+                 strain_p=None,
                  density=None,
                  pressure=None,
                  velocity=None):
@@ -266,17 +289,20 @@ class ParticleSystem:
         if velocity is None:
             velocity = np.full_like(new_positions, 0)
         else:
-            velocity = np.array([velocity for _ in range(num_new_particles)],
-                                dtype=np.float32)
+            velocity = np.array([velocity for _ in range(num_new_particles)], dtype=np.float32)
+
+        if stress is None:
+            stress = np.full_like(new_positions, 0)
+        else:
+            stress = np.array([stress for _ in range(num_new_particles)], dtype=np.float32)
+
+        if strain_p is None:
+            strain_p = np.full_like(new_positions, 0)
+        else:
+            strain_p = np.array([strain_p for _ in range(num_new_particles)], dtype=np.float32)
 
         material = np.full_like(np.zeros(num_new_particles), material)
         color = np.full_like(np.zeros(num_new_particles), color)
-        density = np.full_like(np.zeros(num_new_particles),
-                               density if density is not None else 1000.)
-        pressure = np.full_like(np.zeros(num_new_particles),
-                                pressure if pressure is not None else 0.)
-        self.add_particles(num_new_particles, new_positions, velocity, density,
-                           pressure, material, color)
-
-        # check_Volume = self.m_V * num_new_particles - cube_size[0] * cube_size[1]
-        # print('Error of volume:', check_Volume)
+        density = np.full_like(np.zeros(num_new_particles), density if density is not None else 1000.)
+        pressure = np.full_like(np.zeros(num_new_particles), pressure if pressure is not None else 0.)
+        self.add_particles(num_new_particles, new_positions, velocity, density, stress, strain_p, pressure, material, color)
