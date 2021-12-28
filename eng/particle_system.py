@@ -10,7 +10,7 @@ class ParticleSystem:
         # Basic information of the simulation
         self.dim = len(world)
         assert self.dim in (2, 3), "SPH solver supports only 2D simulations."
-        self.dim_stress = 4 if self.dim == 2 else 9
+        self.dim_stress = 4 if self.dim == 2 else 9     # Temporary 9 for 3d
         self.bound = np.array(world)
 
         # Material 材料类型定义

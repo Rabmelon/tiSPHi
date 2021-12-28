@@ -22,7 +22,7 @@ if __name__ == "__main__":
                    velocity=[.0, .0],
                    density=1850.0,
                    color=0x956333,
-                   material=1)
+                   material=2)
     case1.initialize_particle_system()
 
     soilsph_solver = SoilSPHSolver(case1)
