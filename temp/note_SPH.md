@@ -208,6 +208,26 @@ Consider both a **Von Mises** and a **D-P** yield criterion to distinguish betwe
 
 In the elastoplastic model, the stress state is not allowed to exceed the yield surface and I should apply a stress adaptation to particles, after every calculation step. And the elastic and plastic behaviour are distinguished via a stress-dependent yield criterion.
 
+> Bui2008 Section 3.3.1 and Chalk2019 Section 4.3.1
+
+But the stress state is not allowed to exceed the yield surfae. The stress must be checked at every step and adapted if it does not lie within a valid range.
+<div align="center">
+  <img width="800px" src=".\Adaptation_stress_states.png">
+</div>
+
+First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as **tension cracking**, in the movement of the stress state at point E to point F. Tension cracking occurss when: $-\alpha_{\varphi}I_1+k_c<0$. And in such circumstances, the hydrostatic stress $I_1$ must be shifted back to the apex of the yield surface by adapting the normal stress components:
+$$\hat{\sigma}_{\alpha\alpha} = \sigma_{\alpha\alpha}-\frac{1}{3}(I_1-\frac{k_c}{\alpha_{\varphi}})$$
+
+The second corrective stress treatment must be performed when the stress state exceeds the yield surface during plastic loading, as shown by the path A to B. For the D-P yield criterion, this occurs when: $-\alpha_{\varphi}I_1+k_c<\sqrt{J_2}$. And the stress state must be scaleld back appropriately. For this, a scaling factor $r_{\sigma}$ is introduced: $r_{\sigma} = (-\alpha_{\varphi}I_1+k_c) / \sqrt{J_2}$. The deviatoric shear stress is then reduced via this scaling factor for all components of the stress tensor:
+$$\hat{\sigma}_{\alpha\alpha} = r_{\sigma}s_{\alpha\alpha}+\frac{1}{3}I_1$$
+
+$$\hat{\sigma}_{\alpha\beta} = r_{\sigma}s_{\alpha\beta}$$
+
+The procedure of applying these two equations is referred to as the stress-scaling back procedure, or stress modification.
+In the SPH implementation of the elastoplastic model, the two corrective treatments described above are applied to the particles that have a stress state outside of the valid range.
+
+
+
 
 ### Conservation of mass
 The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
@@ -236,11 +256,11 @@ $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 > @chalk2020 Section 3.1
 
 The discrete governing equations of soil motion in the framework of standard SPH are therefore:
-$$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}_i)\nabla W_{ij}$$
+$$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}_i)\cdot\nabla W_{ij}$$
 
-$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\nabla W_{ij}+\boldsymbol{b}_i$$
+$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{b}_i$$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p}$$
 
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
 
@@ -514,8 +534,6 @@ $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_
 * Step 8: if necessary, the boundary conditions and stress state are again updated.
 * Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{u}_i^4$, $\boldsymbol{\sigma}_i^3$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{u}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
 
-> **QUESTIONS**
-> 1. Just remaining one question: how does $\boldsymbol{g}^{\varepsilon^p}$ calculated through D-P criterion? **It may relates to an adaptation process in the Section 4.3.1 in Chalk's thesis!**
 
 ## Stress-Particle SPH
 
