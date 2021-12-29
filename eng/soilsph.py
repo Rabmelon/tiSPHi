@@ -41,10 +41,15 @@ class SoilSPHSolver(SPHSolver):
         self.r_sigma = ti.field(dtype=float)            # the scaling factor
         self.spin = ti.field(dtype=float)               # the spin rate tensor
         self.Jaumann = ti.Vector.field(self.ps.dim_stress, dtype=float)     # the Jaumann stress rate, tilde σ
+        self.F1 = ti.Vector.field(4, dtype=float)
+        self.F2 = ti.Vector.field(4, dtype=float)
+        self.u1234 = ti.Vector.field(self.ps.dim, dtype=float)
+        self.stress1234 = ti.Vector.field(self.ps.dim_stress, dtype=float)
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.f_stress, self.f_u, self.f_stress_grad, self.f_u_grad, self.f_ext, self.g_p, self.g_DP, self.s, self.p, self.I1, self.sJ2, self.spin, self.Jaumann)
+        particle_node.place(self.f_stress, self.f_u, self.f_stress_grad, self.f_u_grad, self.f_ext, self.g_p, self.g_DP, self.s, self.p, self.I1, self.sJ2, self.spin, self.Jaumann, self.F1, self.F2)
+        particle_node.dense(ti.j, 4).place(self.u1234, self.stress1234)
 
-    # Assign density
+    # Assign constant density
     @ti.kernel
     def compute_densities(self):
         for p_i in range(self.ps.particle_num[None]):
@@ -63,7 +68,7 @@ class SoilSPHSolver(SPHSolver):
                  [self.Depq[3, 3] * self.ps.v[p_i][1], self.Depq[3, 3] * self.ps.v[p_i][0]],
                  [self.Depq[4, 1] * self.ps.v[p_i][0], self.Depq[4, 2] * self.ps.v[p_i][1]]])
 
-    # Check stress state and adaptation
+    # Check stress state and adapt
     @ti.kernel
     def compute_g_DP(self):
         for p_i in range(self.ps.particle_num[None]):
@@ -73,7 +78,7 @@ class SoilSPHSolver(SPHSolver):
             self.sJ2[p_i] = ti.sqrt(0.5 * (self.s[p_i][0]**2 + self.s[p_i][1]**2 + 2 * self.s[p_i][2]**2 + self.s[p_i][3]**2))
             self.g_DP[p_i] = self.sJ2[p_i] + self.alpha_fric * self.I1[p_i] - self.kc
 
-    @ti.fun
+    @ti.func
     def adapt_stress(self, p_i):
         flag_state = -self.alpha_fric * self.I1[p_i] + self.kc
         return flag_state
@@ -85,30 +90,22 @@ class SoilSPHSolver(SPHSolver):
     # Update boundary particles
     @ti.kernel
     def update_boundary(self):
-        for p_i in range(self.ps.particle_num[None]):
-            if self.ps.material[p_i] == self.ps.material_boundary:
-                pass
+        pass
 
 
     # Calculate gradients of fσ and fu
-    @ti.fun
+    @ti.func
     def compute_f_stress_grad(self, p_i, p_j, r):
         tmp = self.mass * (self.f_stress[p_i] / self.ps.density[p_i]**2 + self.f_stress[p_j] / self.ps.density[p_j]**2)
-        tmp_x = [tmp[0,0], tmp[0,1]]
-        tmp_y = [tmp[1,0], tmp[1,1]]
         tmp_ckd = self.cubic_kernel_derivative(r)
-        res = ti.Vector([tmp_x.dot(tmp_ckd), tmp_y.dot(tmp_ckd)])
+        res = tmp@tmp_ckd
         return res
 
-    @ti.fun
+    @ti.func
     def compute_f_u_grad(self, p_i, p_j, r):
         tmp = self.mass / self.ps.density[p_j] * (self.f_u[p_j] - self.f_u[p_i])
-        tmp_xx = [tmp[0,0], tmp[0,1]]
-        tmp_yy = [tmp[1,0], tmp[1,1]]
-        tmp_xy = [tmp[2,0], tmp[2,1]]
-        tmp_zz = [tmp[3,0], tmp[3,1]]
         tmp_ckd = self.cubic_kernel_derivative(r)
-        res = ti.Vector([tmp_xx.dot(tmp_ckd), tmp_yy.dot(tmp_ckd), tmp_xy.dot(tmp_ckd), tmp_zz.dot(tmp_ckd)])
+        res = tmp@tmp_ckd
         return res
 
     @ti.kernel
@@ -124,25 +121,58 @@ class SoilSPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 f_stress_grad_i += self.compute_f_stress_grad(p_i, p_j, x_i - x_j)
                 f_u_grad_i += self.compute_f_u_grad(p_i, p_j, x_i - x_j)
-            self.f_stress_grad[p_i] += f_stress_grad_i
-            self.f_u_grad[p_i] += f_u_grad_i
+            self.f_stress_grad[p_i] = f_stress_grad_i
+            self.f_u_grad[p_i] = f_u_grad_i
 
     # Assign external forces
-    @ti.kernel
-    def compute_f_ext(self):
-        for p_i in range(self.ps.particle_num[None]):
-            self.f_ext[p_i] = ti.Vector([0.0, self.g] if self.ps.dim == 2 else [0.0, 0.0, self.g])
+    @ti.func
+    def compute_f_ext(self, p_i):
+        self.f_ext[p_i] = ti.Vector([0.0, self.g] if self.ps.dim == 2 else [0.0, 0.0, self.g])
 
     # Calculate plastic strain
+    @ti.func
+    def compute_g_p(self, p_i):
+        self.g_p[p_i] = ti.Vector([0.0 for _ in range(self.ps.dim_stress)])
 
     # Calculate the Jaumann stress rate
+    @ti.func
+    def compute_Jaumann(self, p_i):
+        self.Jaumann[p_i] = ti.Vector([0.0 for _ in range(self.ps.dim_stress)])
 
     # Compute F1 and F2
+    @ti.kernel
+    def compute_F(self, m: int):
+        for p_i in range(self.ps.particle_num[None]):
+            self.F1[p_i][m] = self.f_stress_grad[p_i] + self.compute_f_ext(p_i)
+            self.F2[p_i][m] = self.compute_Jaumann(p_i) + self.f_u_grad[p_i] - self.compute_g_p(p_i)
 
     # Update u, σ, x through RK4
     @ti.kernel
+    def update_u_stress(self, m: int):
+        for p_i in range(self.ps.particle_num[None]):
+            if m == 0:
+                self.u1234[p_i][0] = self.ps.v[p_i]
+                self.stress1234[p_i][0] = self.ps.stress[p_i]
+            elif m < 4:
+                self.u1234[p_i][m] = self.u1234[p_i][0] + 0.5 * self.dt[None] * self.F1[p_i][m - 1]
+                self.stress1234[p_i][m] = self.stress1234[p_i][0] + 0.5 * self.dt[None] * self.F2[p_i][m - 1]
+
+    @ti.kernel
+    def update_particle(self):
+        for p_i in range(self.ps.particle_num[None]):
+            pass
+
+    def RK4_one_step(self, m):
+        self.update_boundary()
+        self.check_adapt_stress_DP()
+        self.compute_term_f()
+        self.compute_F(m)
+
     def advect_RK4(self):
-        pass
+        for m in range(4):
+            self.update_u_stress(m)
+            self.RK4_one_step(m)
+        self.update_particle()
 
     def substep(self):
         self.compute_densities()
