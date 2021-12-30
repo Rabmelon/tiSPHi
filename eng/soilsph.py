@@ -16,7 +16,7 @@ class SoilSPHSolver(SPHSolver):
         self.E = 8e7                # Young’s modulus, Pa
 
         # Paras based on basic paras
-        self.mass = self.ps.m_V * self.density_0            # the mass of each particle, kg
+        self.mass = self.ps.m_V * self.density_0            # the self.mass of each particle, kg
         self.friction = self.friction_deg / 180 * np.pi     # the angle of internal friction, RAD
         self.Depq = self.E / (1 + self.poisson) / (1 - self.poisson) * ti.Matrix(
                 [[1 - self.poisson, self.poisson, 0, self.poisson],
@@ -46,8 +46,7 @@ class SoilSPHSolver(SPHSolver):
         self.u1234 = ti.Vector.field(self.ps.dim, dtype=float)
         self.stress1234 = ti.Vector.field(self.ps.dim_stress, dtype=float)
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.f_stress, self.f_u, self.f_stress_grad, self.f_u_grad, self.f_ext, self.g_p, self.g_DP, self.s, self.p, self.I1, self.sJ2, self.spin, self.Jaumann, self.F1, self.F2)
-        particle_node.dense(ti.j, 4).place(self.u1234, self.stress1234)
+        particle_node.place(self.f_stress, self.f_u, self.f_stress_grad, self.f_u_grad, self.f_ext, self.g_p, self.g_DP, self.s, self.p, self.I1, self.sJ2, self.spin, self.Jaumann, self.F1, self.F2, self.u1234, self.stress1234)
 
     # Assign constant density
     @ti.kernel
@@ -60,21 +59,21 @@ class SoilSPHSolver(SPHSolver):
     def compute_term_f(self):
         for p_i in range(self.ps.particle_num[None]):
             self.f_stress[p_i] = ti.Matrix(
-                [[self.ps.stress[p_i][0], self.ps.stress[p_i][2]],
-                 [self.ps.stress[p_i][2], self.ps.stress[p_i][1]]])
+                [[self.stress1234[p_i][0], self.stress1234[p_i][2]],
+                 [self.stress1234[p_i][2], self.stress1234[p_i][1]]])
             self.f_u[p_i] = ti.Matrix(
-                [[self.Depq[1, 1] * self.ps.v[p_i][0], self.Depq[1, 2] * self.ps.v[p_i][1]],
-                 [self.Depq[2, 1] * self.ps.v[p_i][0], self.Depq[2, 2] * self.ps.v[p_i][1]],
-                 [self.Depq[3, 3] * self.ps.v[p_i][1], self.Depq[3, 3] * self.ps.v[p_i][0]],
-                 [self.Depq[4, 1] * self.ps.v[p_i][0], self.Depq[4, 2] * self.ps.v[p_i][1]]])
+                [[self.Depq[1, 1] * self.u1234[p_i][0], self.Depq[1, 2] * self.u1234[p_i][1]],
+                 [self.Depq[2, 1] * self.u1234[p_i][0], self.Depq[2, 2] * self.u1234[p_i][1]],
+                 [self.Depq[3, 3] * self.u1234[p_i][1], self.Depq[3, 3] * self.u1234[p_i][0]],
+                 [self.Depq[4, 1] * self.u1234[p_i][0], self.Depq[4, 2] * self.u1234[p_i][1]]])
 
     # Check stress state and adapt
     @ti.kernel
     def compute_g_DP(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.I1[p_i] = self.ps.stress[p_i][0] + self.ps.stress[p_i][1] + self.ps.stress[p_i][3]
+            self.I1[p_i] = self.stress1234[p_i][0] + self.stress1234[p_i][1] + self.stress1234[p_i][3]
             self.p[p_i] = -self.I1[p_i] / 3
-            self.s[p_i] = ti.Vector([self.ps.stress[p_i][0] - self.p[p_i], self.ps.stress[p_i][1] - self.p[p_i], self.ps.stress[p_i][2], self.ps.stress[p_i][3] - self.p[p_i]])
+            self.s[p_i] = ti.Vector([self.stress1234[p_i][0] - self.p[p_i], self.stress1234[p_i][1] - self.p[p_i], self.stress1234[p_i][2], self.stress1234[p_i][3] - self.p[p_i]])
             self.sJ2[p_i] = ti.sqrt(0.5 * (self.s[p_i][0]**2 + self.s[p_i][1]**2 + 2 * self.s[p_i][2]**2 + self.s[p_i][3]**2))
             self.g_DP[p_i] = self.sJ2[p_i] + self.alpha_fric * self.I1[p_i] - self.kc
 
@@ -151,25 +150,35 @@ class SoilSPHSolver(SPHSolver):
     def update_u_stress(self, m: int):
         for p_i in range(self.ps.particle_num[None]):
             if m == 0:
-                self.u1234[p_i][0] = self.ps.v[p_i]
-                self.stress1234[p_i][0] = self.ps.stress[p_i]
+                self.u1234[p_i] = self.ps.v[p_i]
+                self.stress1234[p_i] = self.ps.stress[p_i]
             elif m < 4:
-                self.u1234[p_i][m] = self.u1234[p_i][0] + 0.5 * self.dt[None] * self.F1[p_i][m - 1]
-                self.stress1234[p_i][m] = self.stress1234[p_i][0] + 0.5 * self.dt[None] * self.F2[p_i][m - 1]
+                assert m < 1, 'Error: m < 1 here!'
+                for n in ti.static(range(m-1, m)):
+                    self.u1234[p_i] = self.ps.v[p_i] + 0.5 * self.dt[None] * self.F1[p_i][n]
+                    self.stress1234[p_i] = self.ps.stress[p_i] + 0.5 * self.dt[None] * self.F2[p_i][n]
 
     @ti.kernel
     def update_particle(self):
         for p_i in range(self.ps.particle_num[None]):
-            pass
+            if self.ps.material[p_i] == self.ps.material_soil:
+                self.ps.v[p_i] += self.dt[None] / 6 * (
+                    self.F1[p_i][0] + 2 * self.F1[p_i][1] +
+                    2 * self.F1[p_i][2] + self.F1[p_i][3])
+                self.ps.stress[p_i] += self.dt[None] / 6 * (
+                    self.F2[p_i][0] + 2 * self.F2[p_i][1] +
+                    2 * self.F2[p_i][2] + self.F2[p_i][3])
+                self.ps.x[p_i] += self.dt[None] * self.ps.v[p_i]
 
     def RK4_one_step(self, m):
         self.update_boundary()
         self.check_adapt_stress_DP()
         self.compute_term_f()
+        self.compute_f_grad()
         self.compute_F(m)
 
     def advect_RK4(self):
-        for m in range(4):
+        for m in ti.static(range(4)):
             self.update_u_stress(m)
             self.RK4_one_step(m)
         self.update_particle()

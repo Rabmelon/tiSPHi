@@ -30,7 +30,7 @@ if __name__ == "__main__":
     res = (np.array(world) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)
     flag_step = 0
-    flag_pause = True
+    flag_pause = False
     while gui.running:
         if not flag_pause:
             for i in range(20):

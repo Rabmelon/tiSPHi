@@ -3,44 +3,66 @@ ti.init(arch=ti.cpu)
 
 # TODO: Test the RK4 procedure!!!
 
-a = ti.Matrix([[1, 2], [3, 4]])
-b = ti.Matrix([[1, 5], [2, 6], [3, 7], [4, 8]])
-# a = ti.Matrix.field(4, 2, dtype=ti.f32, shape=())
-# a = b * 2.0
+@ti.data_oriented
+class test:
+    def __init__(self):
+        self.N = 5
+        self.v = ti.Vector.field(2, dtype=float)
+        self.F = ti.Vector.field(4, dtype=float)
+        self.F1 = ti.Vector.field(4, dtype=float)
+        root_node = ti.root.dense(ti.i, self.N)
+        root_node.place(self.v, self.F, self.F1)
 
-c = ti.Vector([10, 20])
+        self.initdata()
 
-d = c.dot(c)
-da = a@c
-db = b@c
+    @ti.kernel
+    def initdata(self):
+        for i in range(self.N):
+            self.v[i] = ti.Vector([ti.random(float), ti.random(float)])
+            for j in ti.static(range(4)):
+                self.F[i][j] = i * 100 + j
 
-e = ti.Vector([b[1, 0], b[1, 1]])
-f = e.dot(c)
+    @ti.kernel
+    def foo(self, m: int):
+        for i in ti.static(range(self.N)):
+            if m == 0:
+                # self.v[None] = self.F[i][m]
+                self.F1[i] = self.F[i]
+                print('m1 =', m, end='; ')
+                print(self.F1[i][m])
+                # print(self.v[None])
+            elif m < 4:
+                # self.v[None] = self.F[i][m-1]
+                print('m2 =', m, end='; ')
+                print(self.F[i][m-1])
+                # print(self.v[None])
 
-g = ti.Vector.field(2, dtype=float)
-h = ti.Vector.field(5, dtype=float)
-N = 10
-# test_node = ti.root.dense(ti.i, N).dense(ti.j, 4)
-root_node = ti.root.dense(ti.i, N)
-root_node.place(h)
-root_node.dense(ti.j, 4).place(g)
-for i in range(N):
-    h[i] = ti.Vector([111, 222, 333, 444, 555]) + i*1000
+    def fooprint(self):
+        for m in ti.static(range(4)):
+            self.foo(m)
+
+# case = test()
+# print(case.F)
+# case.fooprint()
+
+N = 5
+F = ti.Vector.field(4, dtype=float)
+v = ti.Vector.field(2, dtype=float)
+ti.root.dense(ti.i, N).place(v, F)
+
+def initF(i):
     for j in range(4):
-        for k in range(2):
-            g[i, j][k] = i*100 + j*10 + k
+        F[i][j] = i*100 + j
 
-print(g)
-print(h)
 
-for m in (1,2,3,4):
-    print(m)
+@ti.kernel
+def initdata(N: int):
+    for i in range(N):
+        v[i] = ti.Vector([ti.random(float), ti.random(float)])
+        initF(i)
 
-# print('a =', a)
-# print('b =', b)
-# print('c =', c)
-# print('d =', d)
-# print('da =', da)
-# print('db =', db)
-# print('e =', e)
-# print('f =', f)
+initdata(N)
+print(v)
+print(F)
+
+print('Hallo!')
