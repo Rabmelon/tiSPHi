@@ -158,25 +158,34 @@ $$\begin{aligned}
 \end{aligned}$$
 
 $$\begin{aligned}
-D^e_{pq}=\frac{E}{(1+\nu)(1-\nu)}
+\boldsymbol{D}^e = D^e_{pq}=\frac{E}{(1+\nu)(1-\nu)}
   \left (\begin{array}{cccc}
     1-\nu  &\nu  &0  &\nu\\ \nu  &1-\nu  &0  &\nu\\
     0  &0  &(1-2\nu)/2  &0\\ \nu  &\nu  &0  &1-\nu\\
   \end{array}\right)
 \end{aligned}$$
 
-$D^e_{pq}$ is the **elastic constitutive tensor**, $\dot{\omega}_{\alpha\beta}$ is the **spin rate tensor**.
+$D^e_{pq}$ is the **elastic constitutive tensor**, also the ealstic constitutive matrix reduces in plane strain condition.
+$\dot{\omega}_{\alpha\beta}$ is the **spin rate tensor**.
+And $\boldsymbol{g}^{\varepsilon^p}$ is a vector containing the plastic terms which is the only difference responsible for plastic deformations between the **elastoplastic** and **Perzyna** constitutive models. In both models, the plastic terms are functions of the plastic strain rate, which is dependent on the state of stress and material parameters.
 
-And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
-$$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
+For the elastoplastic model,
+$$\boldsymbol{g}^{\varepsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s}}$$
 
-We define the **elastic strains** according to the **generalised Hooke's law**:
-$$\dot{\boldsymbol{\varepsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
+which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the D-P yield criterion, where:
+$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{G}$$
 
-where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}-p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
+and $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
+
+And for the Perzyna model,
+$$\boldsymbol{g}^{\varepsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\partial \boldsymbol{\sigma}}(\frac{\sqrt{3J_2}-f_c}{f_c})^{\hat{N}}$$
+
+which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion). And $\hat{N}$ is a model parameter.
 
 > **QUESTIONS**
-> 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive.
+> 1. How does $\dot{\lambda}$ calculated?
+> 2. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
+> 3. What number should $\hat{N}$ choose?
 
 ### Constitutive model
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
@@ -195,8 +204,18 @@ $$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:
 
 > **QUESTIONS**
 > 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
-> 2. How does the operator : calculated? ----**Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" a tensor and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
+> 2. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" a tensor and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
 
+And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
+$$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
+
+We define the **elastic strains** according to the **generalised Hooke's law**:
+$$\dot{\boldsymbol{\varepsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
+
+where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}-p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
+
+> **QUESTIONS**
+> 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive. **Answer**: Generally it's negtive. When it is positive, the meaning is the average normal stress $\sigma_m = -p$.
 
 The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
 $$\boldsymbol{\dot\varepsilon} = \boldsymbol{\dot\varepsilon}^e+\boldsymbol{\dot\varepsilon}^p$$
@@ -464,12 +483,13 @@ And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$. The simple definition
 
 > **QUESTIONS**
 > 1. How about the mass of repulsive particles?
+> 2. How to add repulsive forces in boundary particles?
 
 ### For free surface problems
 The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.
 
 > **QUESTIONS**
-> BUT how does the free surface condition implement?
+> 1. BUT how does the free surface condition implement?
 
 
 ## SPH improvement techniques
