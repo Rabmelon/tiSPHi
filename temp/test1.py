@@ -7,62 +7,44 @@ ti.init(arch=ti.cpu)
 class test:
     def __init__(self):
         self.N = 5
+        self.dt = ti.field(dtype=float, shape=())
         self.v = ti.Vector.field(2, dtype=float)
-        self.F = ti.Vector.field(4, dtype=float)
+        self.u1234 = ti.Vector.field(2, dtype=float)
         self.F1 = ti.Vector.field(4, dtype=float)
         root_node = ti.root.dense(ti.i, self.N)
-        root_node.place(self.v, self.F, self.F1)
+        root_node.place(self.v, self.u1234, self.F1)
 
         self.initdata()
 
     @ti.kernel
     def initdata(self):
+        self.dt[None] = 5e-4
         for i in range(self.N):
             self.v[i] = ti.Vector([ti.random(float), ti.random(float)])
-            for j in ti.static(range(4)):
-                self.F[i][j] = i * 100 + j
+            self.F1[i] = ti.Vector([0.0 for _ in range(4)])
 
     @ti.kernel
-    def foo(self, m: int):
-        for i in ti.static(range(self.N)):
+    def compute_F(self, m: int):
+        for p_i in range(self.N):
+            self.F1[p_i][m] = 1
+
+    @ti.kernel
+    def update_u(self, m: int):
+        for p_i in range(self.N):
             if m == 0:
-                # self.v[None] = self.F[i][m]
-                self.F1[i] = self.F[i]
-                print('m1 =', m, end='; ')
-                print(self.F1[i][m])
-                # print(self.v[None])
+                self.u1234[p_i] = self.v[p_i]
             elif m < 4:
-                # self.v[None] = self.F[i][m-1]
-                print('m2 =', m, end='; ')
-                print(self.F[i][m-1])
-                # print(self.v[None])
+                assert m < 1, 'Error: m < 1 here!'
+                self.u1234[p_i] = self.v[p_i] + 0.5 * self.dt[None] * self.F1[p_i][m-1]
 
     def fooprint(self):
         for m in ti.static(range(4)):
-            self.foo(m)
+            self.update_u(m)
 
-# case = test()
-# print(case.F)
-# case.fooprint()
-
-N = 5
-F = ti.Vector.field(4, dtype=float)
-v = ti.Vector.field(2, dtype=float)
-ti.root.dense(ti.i, N).place(v, F)
-
-def initF(i):
-    for j in range(4):
-        F[i][j] = i*100 + j
+case = test()
+print(case.F1)
+case.fooprint()
 
 
-@ti.kernel
-def initdata(N: int):
-    for i in range(N):
-        v[i] = ti.Vector([ti.random(float), ti.random(float)])
-        initF(i)
-
-initdata(N)
-print(v)
-print(F)
 
 print('Hallo!')
