@@ -1,3 +1,4 @@
+from numpy.core.arrayprint import DatetimeFormat
 from numpy.lib.function_base import piecewise
 import taichi as ti
 import numpy as np
@@ -62,7 +63,8 @@ class SoilSPHSolver(SPHSolver):
     @ti.kernel
     def compute_densities(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.ps.density[p_i] = self.density_0
+            if self.ps.material[p_i] == self.ps.material_soil:
+                self.ps.density[p_i] = self.density_0
 
     # Calculate term fσ and fu
     @ti.kernel
@@ -117,6 +119,16 @@ class SoilSPHSolver(SPHSolver):
         res = tmp@tmp_ckd
         return res
 
+    @ti.func
+    def update_boundary_particles(self, p_i, p_j):
+        d_A = 1
+        d_B = 1
+        beta_max = 1.5
+        beta = min(beta_max, 1 + d_B / d_A)
+        self.ps.v[p_j] = (1 - beta) * self.ps.v[p_i]
+        self.ps.stress[p_j] = self.ps.stress[p_i]
+        self.ps.density[p_j] = self.density_0
+
     @ti.kernel
     def compute_f_grad(self):
         for p_i in range(self.ps.particle_num[None]):
@@ -128,6 +140,8 @@ class SoilSPHSolver(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
+                if self.ps.material[p_j] == self.ps.material_boundary:
+                    self.update_boundary_particles(p_i, p_j)
                 f_stress_grad_i += self.compute_f_stress_grad(p_i, p_j, x_i - x_j)
                 f_u_grad_i += self.compute_f_u_grad(p_i, p_j, x_i - x_j)
             self.f_stress_grad[p_i] = f_stress_grad_i

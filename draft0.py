@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # init particle system paras, world unit is cm
     screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = (150, 100)
-    particle_radius = 0.1
+    particle_radius = 0.25
     kh = 6.0
     cube_size = [20, 40]
 
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     flag_pause = True
     while gui.running:
         if not flag_pause:
+            print('----WCSPH step:', flag_step)
             for i in range(20):
                 wcsph_solver.step()
                 flag_step += 1
