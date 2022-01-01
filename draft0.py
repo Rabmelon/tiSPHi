@@ -20,7 +20,6 @@ if __name__ == "__main__":
     case1 = ParticleSystem(world, particle_radius, kh)
     case1.add_cube(lower_corner=[case1.padding, case1.padding],
                    cube_size=cube_size,
-                   velocity=[.0, .0],
                    density=1000.0,
                    color=0x956333,
                    material=1)

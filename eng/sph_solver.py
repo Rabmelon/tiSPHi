@@ -65,13 +65,19 @@ class SPHSolver:
         c_f = 0.7
         self.ps.x[p_i] += vec * d
         self.ps.v[p_i] -= (1.0 + c_f) * (self.ps.v[p_i].dot(vec)) * vec
+        if self.ps.material[p_i] != self.ps.material_boundary:
+            if d > self.ps.padding:
+                print('----My Error: particle', p_i, end=', ')
+                print('d =', d, end=', ')
+                print('padding =', self.ps.padding)
+            assert d > self.ps.padding, 'My Error: particle goes out of the padding!'
 
     # Treat the boundary problems
     @ti.kernel
     def enforce_boundary(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.dim == 2:
-                if self.ps.material[p_i] == self.ps.material_water:
+                if self.ps.material[p_i] != self.ps.material_boundary:
                     pos = self.ps.x[p_i]
                     if pos[0] < self.ps.padding:
                         self.simulate_collisions(p_i, ti.Vector([1.0, 0.0]),

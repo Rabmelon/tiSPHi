@@ -143,22 +143,19 @@ class ParticleSystem:
             if self.material[p_i] == self.material_boundary:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
-            # print('p', p_i, end=', ')   # -------------------------
-            # print('center cell', center_cell, end=', ')   # -------------------------
-            # print('NS cell:', end='')   # -------------------------
             cnt = 0
             offset_check = 0
             for offset in ti.grouped(ti.ndrange(*((-1, 2),) * self.dim)):
-                if offset_check > 9:   # -------------------------
-                    # print('dieLoop!', end='')   # -------------------------
-                    break   # -------------------------
+                # assert offset_check > 9, 'My Error: offset loop die for endless in NS!'
+                if offset_check > 9:
+                    print('!!!!!My warning: offset loop die for endless in NS!')
+                    break
                 offset_check += 1   # -------------------------
                 if cnt >= self.particle_max_num_neighbor:
                     break
                 cell = center_cell + offset
-                # print(cell, end='; ')   # -------------------------
                 if not self.is_valid_cell(cell):
-                    continue        # still be a big problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    continue
                 for j in range(self.grid_particles_num[cell]):
                     p_j = self.grid_particles[cell, j]
                     distance = (self.x[p_i] - self.x[p_j]).norm()
@@ -166,7 +163,6 @@ class ParticleSystem:
                         self.particle_neighbors[p_i, cnt] = p_j
                         cnt += 1
             self.particle_neighbors_num[p_i] = cnt
-            # print('')   # -------------------------
 
     # 根据当前的粒子位置，初始化粒子系统
     def initialize_particle_system(self):

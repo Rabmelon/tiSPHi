@@ -13,7 +13,7 @@ if __name__ == "__main__":
     screen_to_world_ratio = 500   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = (1.5, 1.0)
     particle_radius = 0.025
-    kh = 6.0
+    kh = 4.0
     cube_size = [0.2, 0.4]
 
     case1 = ParticleSystem(world, particle_radius, kh)
@@ -25,15 +25,17 @@ if __name__ == "__main__":
                    material=2)
     case1.initialize_particle_system()
 
-    soilsph_solver = SoilSPHSolver(case1)
+    soilsph_solver = SoilSPHSolver(case1, gamma=1850.0, coh=0.0, fric=36.0)
+    # soilsph_solver = SoilSPHSolver(case1, gamma=1850.0, coh=32720.0, fric=36.0)
 
     res = (np.array(world) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)
     flag_step = 0
-    flag_pause = True
+    flag_pause = False
     while gui.running:
         if not flag_pause:
-            for i in range(20):
+            print('----SOILSPH step:', flag_step)
+            for i in range(1):
                 soilsph_solver.step()
                 flag_step += 1
 

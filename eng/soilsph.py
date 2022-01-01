@@ -4,14 +4,14 @@ import numpy as np
 from .sph_solver import SPHSolver
 
 class SoilSPHSolver(SPHSolver):
-    def __init__(self, particle_system):
+    def __init__(self, particle_system, gamma, coh, fric):
         super().__init__(particle_system)
-        print("Hallo, class soil SPH Solver 2D starts to serve!")
+        print("Hallo, class SOILSPH Solver 2D starts to serve!")
 
         # Basic paras
-        self.density_0 = 1850.0     # reference density of soil, kg/m3
-        self.cohesion = 32720       # the material cohesion, Pa
-        self.friction_deg = 36      # the angle of internal friction, DEG
+        self.density_0 = gamma     # reference density of soil, kg/m3
+        self.cohesion = coh       # the material cohesion, Pa
+        self.friction_deg = fric      # the angle of internal friction, DEG
         self.poisson = 0.3          # Poisson’s ratio
         self.E = 8e7                # Young’s modulus, Pa
 
@@ -72,10 +72,10 @@ class SoilSPHSolver(SPHSolver):
                 [[self.stress1234[p_i][0], self.stress1234[p_i][2]],
                  [self.stress1234[p_i][2], self.stress1234[p_i][1]]])
             self.f_u[p_i] = ti.Matrix(
-                [[self.Depq[0, 1] * self.u1234[p_i][0], self.Depq[0, 2] * self.u1234[p_i][1]],
-                 [self.Depq[1, 1] * self.u1234[p_i][0], self.Depq[1, 2] * self.u1234[p_i][1]],
-                 [self.Depq[2, 3] * self.u1234[p_i][1], self.Depq[2, 3] * self.u1234[p_i][0]],
-                 [self.Depq[3, 1] * self.u1234[p_i][0], self.Depq[3, 2] * self.u1234[p_i][1]]])
+                [[self.Depq[0, 0] * self.u1234[p_i][0], self.Depq[0, 1] * self.u1234[p_i][1]],
+                 [self.Depq[1, 0] * self.u1234[p_i][0], self.Depq[1, 1] * self.u1234[p_i][1]],
+                 [self.Depq[2, 2] * self.u1234[p_i][1], self.Depq[2, 2] * self.u1234[p_i][0]],
+                 [self.Depq[3, 0] * self.u1234[p_i][0], self.Depq[3, 1] * self.u1234[p_i][1]]])
 
     # Check stress state and adapt
     @ti.kernel
@@ -163,6 +163,8 @@ class SoilSPHSolver(SPHSolver):
     def update_u_stress_1(self, m: int):
         for p_i in range(self.ps.particle_num[None]):
             if m > 0:
+                print('m1 =', m, end='; ')
+                print('p_i =', p_i)
                 continue
             # assert m > 0, 'My Error: m > 0 when it should be 0!'
             self.u1234[p_i] = self.ps.v[p_i]
@@ -172,6 +174,8 @@ class SoilSPHSolver(SPHSolver):
     def update_u_stress_234(self, m: int):
         for p_i in range(self.ps.particle_num[None]):
             if m == 0 or m > 3:
+                print('m2 =', m, end='; ')
+                print('p_i =', p_i)
                 continue
             # assert m == 0, 'My Error: m = 0 when it should be 1, 2, 3!'
             # assert m > 3, 'My Error: m > 3 when it should be 1, 2, 3!'
@@ -191,6 +195,7 @@ class SoilSPHSolver(SPHSolver):
                 self.ps.x[p_i] += self.dt[None] * self.ps.v[p_i]
 
     def RK4_one_step(self, m):
+        # print('RK4 start to compute step', m)
         self.update_boundary()
         self.check_adapt_stress_DP()
         self.compute_term_f()
