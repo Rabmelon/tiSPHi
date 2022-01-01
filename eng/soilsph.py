@@ -59,6 +59,33 @@ class SoilSPHSolver(SPHSolver):
                 self.F1[p_i, m] = ti.Vector([0.0 for _ in range(self.ps.dim)])
                 self.F2[p_i, m] = ti.Vector([0.0 for _ in range(self.ps.dim_stress)])
 
+    @ti.kernel
+    def update_u_stress_1(self, m: int):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
+            if m > 0:
+                print('m1 =', m, end='; ')
+                print('p_i =', p_i)
+                continue
+            # assert m > 0, 'My Error: m > 0 when it should be 0!'
+            self.u1234[p_i] = self.ps.v[p_i]
+            self.stress1234[p_i] = self.ps.stress[p_i]
+
+    @ti.kernel
+    def update_u_stress_234(self, m: int):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
+            if m == 0 or m > 3:
+                print('m2 =', m, end='; ')
+                print('p_i =', p_i)
+                continue
+            # assert m == 0, 'My Error: m = 0 when it should be 1, 2, 3!'
+            # assert m > 3, 'My Error: m > 3 when it should be 1, 2, 3!'
+            self.u1234[p_i] = self.ps.v[p_i] + 0.5 * self.dt[None] * self.F1[p_i, m-1]
+            self.stress1234[p_i] = self.ps.stress[p_i] + 0.5 * self.dt[None] * self.F2[p_i, m-1]
+
     # Assign constant density
     @ti.kernel
     def compute_densities(self):
@@ -120,14 +147,48 @@ class SoilSPHSolver(SPHSolver):
         return res
 
     @ti.func
+    def cal_d_BA(self, p_i, p_j):
+        x_i = self.ps.x[p_i]
+        x_j = self.ps.x[p_j]
+        boundary = ti.Vector([
+            self.ps.bound[1] - self.ps.padding, self.ps.padding,
+            self.ps.bound[0] - self.ps.padding, self.ps.padding])
+        db_i = ti.Vector([x_i[1] - boundary[0], x_i[1] - boundary[1], x_i[0] - boundary[2], x_i[0] - boundary[3]])
+        db_j = ti.Vector([x_j[1] - boundary[0], x_j[1] - boundary[1], x_j[0] - boundary[2], x_j[0] - boundary[3]])
+
+        flag_b = db_i * db_j
+        flag_dir = flag_b < 0
+
+        if sum(flag_dir) > 1:
+            flag_choose = abs(flag_dir * db_i)
+            tmp_max = 0
+            for i in ti.static(range(4)):
+                tmp_max = max(tmp_max, flag_choose[i])
+            flag_choose -= tmp_max
+            flag_choose = flag_choose == 0.0
+            flag_dir -= flag_choose     # will cause a warning: Local store may lose precision & Atomic add (i32 to f32) may lose precision
+
+        d_A = abs(db_i.dot(flag_dir))
+        d_B = abs(db_j.dot(flag_dir))
+        return d_B / d_A
+
+    @ti.func
     def update_boundary_particles(self, p_i, p_j):
-        d_A = 1
-        d_B = 1
-        beta_max = 1.5
-        beta = min(beta_max, 1 + d_B / d_A)
-        self.ps.v[p_j] = (1 - beta) * self.ps.v[p_i]
-        self.ps.stress[p_j] = self.ps.stress[p_i]
         self.ps.density[p_j] = self.density_0
+
+        d_BA = self.cal_d_BA(p_i, p_j)
+        beta_max = 1.5
+        beta = min(beta_max, 1 + d_BA)
+        self.u1234[p_j] = (1 - beta) * self.u1234[p_i]
+
+        self.stress1234[p_j] = self.stress1234[p_i]
+
+        self.f_stress[p_j] = ti.Matrix([[self.stress1234[p_i][0], self.stress1234[p_i][2]],
+                                        [self.stress1234[p_i][2], self.stress1234[p_i][1]]])
+        self.f_u[p_j] = ti.Matrix([[self.Depq[0, 0] * self.u1234[p_i][0], self.Depq[0, 1] * self.u1234[p_i][1]],
+                                   [self.Depq[1, 0] * self.u1234[p_i][0], self.Depq[1, 1] * self.u1234[p_i][1]],
+                                   [self.Depq[2, 2] * self.u1234[p_i][1], self.Depq[2, 2] * self.u1234[p_i][0]],
+                                   [self.Depq[3, 0] * self.u1234[p_i][0], self.Depq[3, 1] * self.u1234[p_i][1]]])
 
     @ti.kernel
     def compute_f_grad(self):
@@ -166,6 +227,8 @@ class SoilSPHSolver(SPHSolver):
     @ti.kernel
     def compute_F(self, m: int):
         for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
             self.compute_f_ext(p_i)
             self.compute_Jaumann(p_i)
             self.compute_g_p(p_i)
@@ -174,31 +237,10 @@ class SoilSPHSolver(SPHSolver):
 
     # Update u, σ, x through RK4
     @ti.kernel
-    def update_u_stress_1(self, m: int):
-        for p_i in range(self.ps.particle_num[None]):
-            if m > 0:
-                print('m1 =', m, end='; ')
-                print('p_i =', p_i)
-                continue
-            # assert m > 0, 'My Error: m > 0 when it should be 0!'
-            self.u1234[p_i] = self.ps.v[p_i]
-            self.stress1234[p_i] = self.ps.stress[p_i]
-
-    @ti.kernel
-    def update_u_stress_234(self, m: int):
-        for p_i in range(self.ps.particle_num[None]):
-            if m == 0 or m > 3:
-                print('m2 =', m, end='; ')
-                print('p_i =', p_i)
-                continue
-            # assert m == 0, 'My Error: m = 0 when it should be 1, 2, 3!'
-            # assert m > 3, 'My Error: m > 3 when it should be 1, 2, 3!'
-            self.u1234[p_i] = self.ps.v[p_i] + 0.5 * self.dt[None] * self.F1[p_i, m-1]
-            self.stress1234[p_i] = self.ps.stress[p_i] + 0.5 * self.dt[None] * self.F2[p_i, m-1]
-
-    @ti.kernel
     def update_particle(self):
         for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
             if self.ps.material[p_i] == self.ps.material_soil:
                 self.ps.v[p_i] += self.dt[None] / 6 * (
                     self.F1[p_i, 0] + 2 * self.F1[p_i, 1] +

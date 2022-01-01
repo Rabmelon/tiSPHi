@@ -1,3 +1,5 @@
+22.01.02.
+1. Add test2.py as the test for calculation of dA and dB in boundary treatment.
 
 21.12.21.
 1. Sometimes the grid(1, 1) will eat particles! (before add boundary particles)
