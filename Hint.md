@@ -1,3 +1,7 @@
+22.01.03.
+1. Fail to implement SOILSPH on time!!!!!! :sob::sob::sob::sob::sob::sob::sob::sob: Mainly because of the lack of understanding of the constitutive model of soil
+2. Try to update the original WCSPH with new boundary treatment and RK4 method.
+
 22.01.02.
 1. Add test2.py as the test for calculation of dA and dB in boundary treatment.
 

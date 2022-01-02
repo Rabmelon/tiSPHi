@@ -2,6 +2,8 @@ import taichi as ti
 import numpy as np
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
+# TODO: still have something wrong in NS, producing endless loop in offset.
+
 @ti.data_oriented
 class ParticleSystem:
     def __init__(self, world, radius, kh):
@@ -148,7 +150,7 @@ class ParticleSystem:
             for offset in ti.grouped(ti.ndrange(*((-1, 2),) * self.dim)):
                 # assert offset_check > 9, 'My Error: offset loop die for endless in NS!'
                 if offset_check > 9:
-                    print('!!!!My warning: offset loop die for endless in NS!')
+                    # print('!!!!My warning: offset loop die for endless in NS!')
                     break
                 offset_check += 1   # -------------------------
                 if cnt >= self.particle_max_num_neighbor:
@@ -266,7 +268,7 @@ class ParticleSystem:
                           self.particle_diameter))
         num_new_particles = reduce(lambda x, y: x * y,
                                    [len(n) for n in num_dim])
-        assert self.particle_num[None] + num_new_particles <= self.particle_max_num
+        assert self.particle_num[None] + num_new_particles <= self.particle_max_num, 'My Error: exceed the maximum number of particles!'
 
         new_positions = np.array(np.meshgrid(*num_dim,
                                              sparse=False,

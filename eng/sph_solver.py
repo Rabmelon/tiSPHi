@@ -107,5 +107,5 @@ class SPHSolver:
     def step(self):
         self.ps.initialize_particle_system()
         self.substep()
-        self.print_max()
+        # self.print_max()
         self.enforce_boundary()

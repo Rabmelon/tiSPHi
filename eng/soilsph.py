@@ -106,7 +106,7 @@ class SoilSPHSolver(SPHSolver):
                  [self.Depq[2, 2] * self.u1234[p_i][1], self.Depq[2, 2] * self.u1234[p_i][0]],
                  [self.Depq[3, 0] * self.u1234[p_i][0], self.Depq[3, 1] * self.u1234[p_i][1]]])
 
-    # Check stress state and adapt
+    # TODO: Check stress state and adapt
     @ti.kernel
     def compute_g_DP(self):
         for p_i in range(self.ps.particle_num[None]):
@@ -213,12 +213,12 @@ class SoilSPHSolver(SPHSolver):
     def compute_f_ext(self, p_i):
         self.f_ext[p_i] = ti.Vector([0.0, self.g] if self.ps.dim == 2 else [0.0, 0.0, self.g])
 
-    # Calculate plastic strain
+    # TODO: Calculate plastic strain
     @ti.func
     def compute_g_p(self, p_i):
         self.g_p[p_i] = ti.Vector([0.0 for _ in range(self.ps.dim_stress)])
 
-    # Calculate the Jaumann stress rate
+    # TODO: Calculate the Jaumann stress rate
     @ti.func
     def compute_Jaumann(self, p_i):
         self.Jaumann[p_i] = ti.Vector([0.0 for _ in range(self.ps.dim_stress)])

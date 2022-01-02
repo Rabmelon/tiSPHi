@@ -40,7 +40,7 @@ html:
 
 <!-- /code_chunk_output -->
 
-For learning how SPH works in slope failure and post-failure process, also in the landslide and furthermore debris-flows through obstacles. [@buiLagrangianMeshfreeParticles2008; @chalkNumericalModellingLandslide2019; @chalkStressParticleSmoothedParticle2020; @taichiCourse01; ]
+For learning how SPH works in slope failure and post-failure process, also in the landslide and furthermore debris-flows through obstacles. [@buiLagrangianMeshfreeParticles2008; @chalkNumericalModellingLandslide2019; @chalkStressParticleSmoothedParticle2020; @taichiCourse01; @buiSmoothedParticleHydrodynamics2021]
 
 
 ## Basic mathematics
@@ -196,7 +196,7 @@ And for the elastoplastic constitutive equation of Drucker-Prager and *non-assoc
 And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
 The Von Mises and D-P yield criteria are illustrated in two dimensions:
 <div align="center">
-  <img width="400px" src=".\Yield_criterias.png">
+  <img width="400px" src="./temp/Yield_criterias.png">
 </div>
 
 Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
@@ -231,7 +231,7 @@ In the elastoplastic model, the stress state is not allowed to exceed the yield 
 
 But the stress state is not allowed to exceed the yield surfae. The stress must be checked at every step and adapted if it does not lie within a valid range.
 <div align="center">
-  <img width="800px" src=".\Adaptation_stress_states.png">
+  <img width="800px" src="./temp/Adaptation_stress_states.png">
 </div>
 
 First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as **tension cracking**, in the movement of the stress state at point E to point F. Tension cracking occurss when: $-\alpha_{\varphi}I_1+k_c<0$. And in such circumstances, the hydrostatic stress $I_1$ must be shifted back to the apex of the yield surface by adapting the normal stress components:
@@ -352,24 +352,24 @@ ${\color{RoyalBlue} \nabla\cdot v=0 \Leftrightarrow \frac{{\rm D} \rho}{{\rm D} 
 > taichiCourse01-10 PPT p32
 
 Integrate the incompressible N-S equation in steps (also reffered as "Operator splitting" or "Advection-Projection" in different contexts):
-* Step 1: input $v_n$, output $v_{n+0.5}$: $\rho\frac{{\rm D} v}{{\rm D} t}={\color{Green} \rho g} + {\color{Orange} \mu\nabla^2v}$
-* Step 2: input $v_{n+0.5}$, output$v_{n+1}$: $\rho\frac{{\rm D} v}{{\rm D} t}={\color{RoyalBlue} -\nabla p}\ and\ {\color{RoyalBlue} \nabla\cdot v=0}$ (构成了$\rho$和$v$的二元非线性方程组)
+* Step 1: input $v^t$, output $v^{t+0.5\Delta t}$: $\rho\frac{{\rm D} v}{{\rm D} t}={\color{Green} \rho g} + {\color{Orange} \mu\nabla^2v}$
+* Step 2: input $v^{t+0.5\Delta t}$, output $v^{t+\Delta t}$: $\rho\frac{{\rm D} v}{{\rm D} t}={\color{RoyalBlue} -\nabla p}\ and\ {\color{RoyalBlue} \nabla\cdot v=0}$ (构成了$\rho$和$v$的二元非线性方程组)
 
 ### Full time integration
 > taichiCourse01-10 PPT p33
 
 $$\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2v},\ \nu=\frac{\mu}{\rho_0}$$
 
-* Given $x_n$, $v_n$:
+* Given $x^t$, $v^t$:
 * Step 1: Advection / external and viscosity force integration
   * Solve: ${\color{Purple} dv} = {\color{Green} g} + {\color{Orange} \nu\nabla^2v_n}$
-  * Update: $v_{n+0.5} = v_n+\Delta t{\color{Purple} dv}$
+  * Update: $v^{t+0.5\Delta t} = v^t+\Delta t{\color{Purple} dv}$
 * Step 2: Projection / pressure solver
   * Solve: ${\color{red} dv} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}$ and ${\color{RoyalBlue} \frac{{\rm D} \rho}{{\rm D} t} = \nabla\cdot(v_{n+0.5}+{\color{red} dv})=0}$
-  * Update: $v_{n+1} = v_{n+0.5} + \Delta t {\color{red} dv}$
+  * Update: $v^{t+\Delta t} = v^{t+0.5\Delta t} + \Delta t {\color{red} dv}$
 * Step 3: Update position
-  * Update: $x_{n+1} = x_n+\Delta tv_{n+1}$
-* Return $x_{n+1}$, $v_{n+1}$
+  * Update: $x^{t+\Delta t} = x^t+\Delta tv^{t+\Delta t}$
+* Return $x^{t+\Delta t}$, $v^{t+\Delta t}$
 > **QUESTIONS**
 > 1. In step 1 and 2, maybe the $\Delta t$ should also multiple 0.5?
 
@@ -380,7 +380,7 @@ Storing the density $\rho$ as an individual variable that advect with the veloci
 
 * Change in Step 2:
   * Solve: ${\color{red} dv} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}$
-  * Update: $v_{n+1} = v_{n+0.5} + \Delta t {\color{red} dv}$
+  * Update: $v^{t+\Delta t} = v^{t+0.5\Delta t} + \Delta t {\color{red} dv}$
 And step 2 and 1 can be merged. This is nothing but Symplectic Euler integration.
 
 ### Fluid dynamics with particles (weakly compressible)
@@ -412,7 +412,7 @@ In WCSPH:
       in taichiWCSPH code, $p = k_1((\rho/\rho_0)^{k_2}-1)$, where $k_1$ is a para about stiffness and $k_2$ is just an exponent.
     * Calculate the acceleration
     * Then do time integration using Symplectic Euler method:
-      $$v_{i+1} = v_i+\Delta t*\frac{{\rm d}v_i}{{\rm d}t},\ \ x_{i+1} = x_i+\Delta t*v_{i+1}$$
+      $$v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*$$
 
 
 ### Boundary conditions
@@ -445,7 +445,7 @@ First, choose the method to solve boundary problems. I want to update the behavi
 
 The dummy particle method is used to represent the wall boundary. For dummy and repulsive particles at the wall boundary, they are spaced apart by $\Delta x/2$. For other dummy particles, are $\Delta x$.
 <div align="center">
-  <img width="300px" src=".\Dummy_particles.png">
+  <img width="300px" src="./temp/Dummy_particles.png">
 </div>
 
 The repulsive particles are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force $\hat{\boldsymbol{F}}_{ij}$ is applied to all particles that interact with the repulsive boundary particles, and is included in the SPH momentum equation:
@@ -470,6 +470,8 @@ $$\hat{f}(\gamma) = \left\{
 \right.$$
 
 And this soft repulsive force has been applied to simulations of water flow and the propagation of a Bingham material.
+
+> **HINT**: Not yet add the repulsive force
 
 For an interior particle A (circle) that contains a dummy particle B (square and triangle) within its neighbourhood, the normal distances $d_A$ and $d_B$ to the wall are calculated. An artificial velocity $\boldsymbol{u}_B$ is then assigned to the dummy particle:
 $$\boldsymbol{u}_B = -\frac{d_B}{d_A}\boldsymbol{u}_A$$
@@ -559,7 +561,7 @@ $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_
 
 As for the implementation of RK4:
 <div align="center">
-  <img width="500px" src=".\flowchart.svg">
+  <img width="500px" src="./temp/flowchart.svg">
 </div>
 
 ## Stress-Particle SPH

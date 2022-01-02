@@ -3,7 +3,7 @@ import numpy as np
 from eng.particle_system import *
 from eng.wcsph import *
 
-# TODO: Change the rule from N-S to DP, material from water to sand.
+# TODO: Change the rule from N-S to DP, material from water to sand. ----Failed temporary :sob:
 # TODO: Or add DFSPH solver first? Don't sure if there is enough time remains for a real physical experiment of sand flow.
 
 # ti.init(arch=ti.cpu, debug=True)
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # init particle system paras, world unit is cm
     screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = (150, 100)
-    particle_radius = 0.25
+    particle_radius = 0.1
     kh = 6.0
     cube_size = [20, 40]
 
