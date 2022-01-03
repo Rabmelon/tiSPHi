@@ -27,6 +27,7 @@ html:
   - [The weakly compressible assumption](#the-weakly-compressible-assumption)
   - [Fluid dynamics with particles (weakly compressible)](#fluid-dynamics-with-particles-weakly-compressible)
   - [Boundary conditions](#boundary-conditions)
+  - [RK4 for WCSPH](#rk4-for-wcsph)
 - [Complex boundary treatment](#complex-boundary-treatment)
   - [For straight, stationary walls](#for-straight-stationary-walls)
   - [For free surface problems](#for-free-surface-problems)
@@ -433,6 +434,29 @@ In WCSPH:
 
 > **QUESTIONS**
 > 1. 多介质的流体混合时，多介质的界面？？？
+
+### RK4 for WCSPH
+> By myself
+
+The momentum equation of WCSPH is as:
+$$\frac{{\rm D}v_i}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho_i}\nabla p_i} + {\color{Orange} \nu\nabla^2v_i} = F(v_i)$$
+
+and:
+$$v_i^{t+\Delta t} = v_i^t+\frac{\Delta t}{6}(F(v_i^1)+2F(v_i^2)+2F(v_i^3)+F(v_i^4))$$
+
+where:
+$$\begin{aligned}
+    \begin{array}{ll}
+      v^1_i = v^t_i\\
+      v^2_i = v^t_i+\frac{\Delta t}{2}(F(v^1_i))\\
+      v^3_i = v^t_i+\frac{\Delta t}{2}(F(v^2_i))\\
+      v^4_i = v^t_i+\frac{\Delta t}{2}(F(v^3_i))
+    \end{array}
+\end{aligned}$$
+
+
+
+
 
 
 ## Complex boundary treatment

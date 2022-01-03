@@ -223,7 +223,7 @@ class ParticleSystem:
                       density=0.0,
                       color=color,
                       material=type,
-                      offset=voff
+                      offset=voff,
                       flag_print=False)
 
     def gen_boundary_particles(self):
@@ -244,7 +244,7 @@ class ParticleSystem:
         self.gen_one_boundary_cube(Dummy_cube_r_dl, Dummy_cube_r_tr, Dummy_color, Dummy_type, Dummy_off)
         Repulsive_color = 0xff0000
         Repulsive_type = 11
-        Repulsive_off = self.particle_diameter
+        Repulsive_off = self.particle_radius
         Repulsive_cube_d_dl = np.array([self.padding, self.padding - self.particle_radius])
         Repulsive_cube_d_tr = np.array([self.bound[0] - self.padding, self.padding + self.particle_radius])
         Repulsive_cube_u_dl = np.array([self.padding, self.bound[1] - self.padding - self.particle_radius])
@@ -253,10 +253,10 @@ class ParticleSystem:
         Repulsive_cube_l_tr = np.array([self.padding + self.particle_radius, self.bound[1] - self.padding])
         Repulsive_cube_r_dl = np.array([self.bound[0] - self.padding - self.particle_radius, self.padding])
         Repulsive_cube_r_tr = np.array([self.bound[0] - self.padding + self.particle_radius, self.bound[1] - self.padding])
-        self.gen_one_boundary_cube(Repulsive_cube_d_dl, Repulsive_cube_d_tr, Repulsive_color, Repulsive_type, Repulsive_off)
-        self.gen_one_boundary_cube(Repulsive_cube_u_dl, Repulsive_cube_u_tr, Repulsive_color, Repulsive_type, Repulsive_off)
-        self.gen_one_boundary_cube(Repulsive_cube_l_dl, Repulsive_cube_l_tr, Repulsive_color, Repulsive_type, Repulsive_off)
-        self.gen_one_boundary_cube(Repulsive_cube_r_dl, Repulsive_cube_r_tr, Repulsive_color, Repulsive_type, Repulsive_off)
+        # self.gen_one_boundary_cube(Repulsive_cube_d_dl, Repulsive_cube_d_tr, Repulsive_color, Repulsive_type, Repulsive_off)
+        # self.gen_one_boundary_cube(Repulsive_cube_u_dl, Repulsive_cube_u_tr, Repulsive_color, Repulsive_type, Repulsive_off)
+        # self.gen_one_boundary_cube(Repulsive_cube_l_dl, Repulsive_cube_l_tr, Repulsive_color, Repulsive_type, Repulsive_off)
+        # self.gen_one_boundary_cube(Repulsive_cube_r_dl, Repulsive_cube_r_tr, Repulsive_color, Repulsive_type, Repulsive_off)
         print("Boundary dummy particles' number: ", self.particle_num)
 
 

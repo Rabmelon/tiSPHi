@@ -2,6 +2,8 @@ import taichi as ti
 import numpy as np
 from .particle_system import ParticleSystem
 
+# TODO: use repulsive particles to replace boundary collisions later!!!!!
+
 @ti.data_oriented
 class SPHSolver:
     def __init__(self, particle_system):
@@ -106,6 +108,7 @@ class SPHSolver:
 
     def step(self):
         self.ps.initialize_particle_system()
+        # self.substep_RK4()
         self.substep()
         # self.print_max()
-        # self.enforce_boundary()
+        self.enforce_boundary()

@@ -12,9 +12,9 @@ ti.init(arch=ti.gpu, packed=True, device_memory_GB=4)
 
 if __name__ == "__main__":
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
-    screen_to_world_ratio = 4   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = (150, 100)
-    particle_radius = 1.0
+    particle_radius = 0.1
     kh = 6.0
     cube_size = [20, 40]
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         particle_info = case1.dump()
 
         # draw particles
-        draw_radius = case1.particle_radius * screen_to_world_ratio * 1.0
+        draw_radius = case1.particle_radius * screen_to_world_ratio * 1.25
         gui.circles(particle_info['position'] * screen_to_world_ratio / max(res),
                     radius=draw_radius, color=particle_info['color'])
 

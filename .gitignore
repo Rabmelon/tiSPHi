@@ -1,6 +1,9 @@
 # office temp file
 ~$*
 
+# Frames
+sim*/*
+
 # AutoCAD
 *.dwl
 *.dwl2
