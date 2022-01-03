@@ -1,9 +1,12 @@
 22.01.03.
 1. Fail to implement SOILSPH on time!!!!!! :sob::sob::sob::sob::sob::sob::sob::sob: Mainly because of the lack of understanding of the constitutive model of soil
 2. Try to update the original WCSPH with new boundary treatment and RK4 method.
+3. Have some problems of wcsph!!!!! 22.01.03.02:48
+4. **FIND** that the size of simulation is very relative to the result!!!!! For example the water column, 150-15-1.5 with particle radius 0.1-0.01-0.001 will cause absolutly different result! **WHY**
 
 22.01.02.
 1. Add test2.py as the test for calculation of dA and dB in boundary treatment.
+2. Why the boundary enforcement doesn't work for soil particles?
 
 21.12.21.
 1. Sometimes the grid(1, 1) will eat particles! (before add boundary particles)

@@ -10,19 +10,19 @@ from eng.wcsph import *
 ti.init(arch=ti.gpu, packed=True, device_memory_GB=4)
 
 if __name__ == "__main__":
-    # init particle system paras, world unit is m
-    screen_to_world_ratio = 600   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    world = (1.50, 1.00)
-    particle_radius = 0.0025
+    # init particle system paras, world unit is cm
+    screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    world = (150, 100)
+    particle_radius = 0.1
     kh = 6.0
-    cube_size = [0.20, 0.40]
+    cube_size = [20, 40]
 
     case1 = ParticleSystem(world, particle_radius, kh)
     case1.add_cube(lower_corner=[case1.padding, case1.padding],
                    cube_size=cube_size,
                    velocity=[.0, .0],
                    density=1000.0,
-                   color=0x956333,
+                   color=0x555fff,
                    material=1)
     case1.initialize_particle_system()
 
@@ -31,11 +31,11 @@ if __name__ == "__main__":
     res = (np.array(world) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)
     flag_step = 0
-    flag_pause = True
+    flag_pause = False
     while gui.running:
         if not flag_pause:
             print('----WCSPH step:', flag_step)
-            for i in range(1):
+            for i in range(20):
                 wcsph_solver.step()
                 flag_step += 1
 
