@@ -18,6 +18,9 @@ if __name__ == "__main__":
     kh = 6.0
     cube_size = [20, 40]
 
+    flag_pause = True
+    write_to_disk = False
+
     case1 = ParticleSystem(world, particle_radius, kh)
     case1.add_cube(lower_corner=[case1.padding, case1.padding],
                    cube_size=cube_size,
@@ -31,7 +34,6 @@ if __name__ == "__main__":
     res = (np.array(world) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)
     flag_step = 0
-    flag_pause = False
     while gui.running:
         if not flag_pause:
             print('----WCSPH step:', flag_step)
@@ -57,4 +59,4 @@ if __name__ == "__main__":
             elif e.key == gui.SPACE:
                 flag_pause = not flag_pause
 
-        gui.show()
+        gui.show(f'{flag_step:06d}.png' if write_to_disk else None)

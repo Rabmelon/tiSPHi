@@ -224,6 +224,7 @@ class WCSPHSolver(SPHSolver):
         self.advect_RK4()
 
     def substep(self):
+        self.update_v_1(0)
         self.compute_densities()
         self.compute_non_pressure_forces()
         self.compute_pressure_forces()

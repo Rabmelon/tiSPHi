@@ -57,17 +57,20 @@
 ## 效果展示
 ### my WCSPH
 Advect with Symplectic Euler
-[Video of WCSPH with Symp Euler](./data/20220103_160035_SEuler_wcsph.mp4)
+[Video of WCSPH with Symp Euler](./data/20220103_174214_SEuler_wcsph.mp4)
 
 Advect with RK4
 [Video of WCSPH with RK4](./data/20220103_153121_RK4_wcsph.mp4)
 
 Compare the specific frames of these two result: (RK4 on the left and Symp Euler on the right)
-![frame 20000](./img/Compare_wcsph_SEuler_RK4_20000.png)
-![frame 26200](./img/Compare_wcsph_SEuler_RK4_26200.png)
-![frame 30000](./img/Compare_wcsph_SEuler_RK4_30000.png)
-![frame 35000](./img/Compare_wcsph_SEuler_RK4_35000.png)
-![frame 40000](./img/Compare_wcsph_SEuler_RK4_40000.png)
+![frame 05000](./img/Compare_wcsph_RK4_SEuler_05000.png)
+![frame 10000](./img/Compare_wcsph_RK4_SEuler_10000.png)
+![frame 15000](./img/Compare_wcsph_RK4_SEuler_15000.png)
+![frame 20000](./img/Compare_wcsph_RK4_SEuler_20000.png)
+![frame 26000](./img/Compare_wcsph_RK4_SEuler_26000.png)
+![frame 30000](./img/Compare_wcsph_RK4_SEuler_30000.png)
+![frame 35000](./img/Compare_wcsph_RK4_SEuler_35000.png)
+![frame 40000](./img/Compare_wcsph_RK4_SEuler_40000.png)
 
 (I think the RK4 advection represents a better result, :smile: **BUT** really it is very very very very very slow!!!)
 
