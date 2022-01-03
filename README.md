@@ -74,9 +74,11 @@ Compare the specific frames of these two result: (RK4 on the left and Symp Euler
 ### SPlisHSPlasH
 WCSPH in SPlisHSPlasH (also I think my wcsph simulation looks better than that in SPlisHSPlasH)
 [Video of WCSPH in SPlisHSPlasH](./data/20220103_141306_SPlisHSPlasH_wcsph.mp4)
+![Screenshot of WCSPH in SPlisHSPlasH](./img/SPlisHSPlasH_wcsph_13s.jpg)
 
 DFSPH in SPlisHSPlasH (but still not as good as DFSPH)
 [Video of DFSPH in SPlisHSPlasH](./data/20220103_141559_SPlisHSPlasH_dfsph.mp4)
+![Screenshot of DFSPH in SPlisHSPlasH](./img/SPlisHSPlasH_dfsph_13s.jpg)
 
 
 ## 整体结构
