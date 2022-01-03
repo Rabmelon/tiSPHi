@@ -12,7 +12,7 @@ class ParticleSystem:
         self.bound = np.array(res) / self.screen_to_world_ratio     # 这个应该是一个绘图用的边界？具体指代什么呢？
 
         # Material
-        self.material_boundary = 0
+        self.material_dummy = 0
         self.material_fluid = 1
 
         self.particle_radius = 0.05  # particle radius
@@ -108,7 +108,7 @@ class ParticleSystem:
     def search_neighbors(self):
         for p_i in range(self.particle_num[None]):
             # Skip boundary particles
-            if self.material[p_i] == self.material_boundary:
+            if self.material[p_i] == self.material_dummy:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
             cnt = 0

@@ -201,7 +201,7 @@ class SoilSPHSolver(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                if self.ps.material[p_j] == self.ps.material_boundary:
+                if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
                 f_stress_grad_i += self.compute_f_stress_grad(p_i, p_j, x_i - x_j)
                 f_u_grad_i += self.compute_f_u_grad(p_i, p_j, x_i - x_j)

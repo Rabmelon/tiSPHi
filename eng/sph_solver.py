@@ -65,7 +65,7 @@ class SPHSolver:
         c_f = 0.7
         self.ps.x[p_i] += vec * d
         self.ps.v[p_i] -= (1.0 + c_f) * (self.ps.v[p_i].dot(vec)) * vec
-        if self.ps.material[p_i] != self.ps.material_boundary:
+        if self.ps.material[p_i] != self.ps.material_dummy and self.ps.material[p_i] != self.ps.material_repulsive:
             if d > self.ps.padding:
                 print('!!!!My Error: particle', p_i, 'd =', d, 'padding =', self.ps.padding)
             assert d > self.ps.padding, 'My Error: particle goes out of the padding!'
@@ -75,7 +75,7 @@ class SPHSolver:
     def enforce_boundary(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.dim == 2:
-                if self.ps.material[p_i] != self.ps.material_boundary:
+                if self.ps.material[p_i] != self.ps.material_dummy and self.ps.material[p_i] != self.ps.material_repulsive:
                     pos = self.ps.x[p_i]
                     if pos[0] < self.ps.padding:
                         self.simulate_collisions(p_i, ti.Vector([1.0, 0.0]),
@@ -98,7 +98,7 @@ class SPHSolver:
             max_v = max(abs(self.ps.v[p_i]), max_v)
             max_stress = max(abs(self.ps.stress[p_i]), max_stress)
             max_pressure = max(abs(self.ps.pressure[p_i]), max_pressure)
-        print('--------Max volocity is:', max_v, '; Max stress is:', max_stress)
+        print('--------Max volocity is:', max_v, '; Max pressure is:', max_pressure)
 
     def substep(self):
         pass
@@ -106,5 +106,5 @@ class SPHSolver:
     def step(self):
         self.ps.initialize_particle_system()
         self.substep()
-        self.print_max()
+        # self.print_max()
         self.enforce_boundary()

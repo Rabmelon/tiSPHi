@@ -16,12 +16,13 @@ class ParticleSystem:
         self.bound = np.array(world)
 
         # Material 材料类型定义
-        self.material_boundary = 0
         self.material_water = 1
         self.material_soil = 2
         self.material_rigid = 3
         self.material_solid_e = 4
         self.material_solid_p = 5
+        self.material_dummy = 10
+        self.material_repulsive = 11
 
         # Basic particle property 粒子的基本属性
         self.particle_radius = radius
@@ -142,7 +143,7 @@ class ParticleSystem:
         for p_i in range(self.particle_num[None]):
             # Skip boundary particles
             # 若多介质混合，如何限制搜索条件？【查看一叶扁舟程序学习】
-            if self.material[p_i] == self.material_boundary:
+            if self.material[p_i] == self.material_dummy or self.material[p_i] == self.material_repulsive:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
             cnt = 0
@@ -216,33 +217,44 @@ class ParticleSystem:
         }
 
     # 增加 padding region 中所有方向上矩形边界的粒子，2d
+    def gen_one_boundary_cube(self, dl, tr, color, type):
+        self.add_cube(lower_corner=dl,
+                      cube_size=tr - dl,
+                      density=0.0,
+                      color=color,
+                      material=type,
+                      flag_print=False)
+
     def gen_boundary_particles(self):
-        Bound_color = 0x9999FF
-        Bound_cube_d_dl = np.zeros(2) + self.padding - self.support_radius
-        Bound_cube_d_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.padding])
-        self.add_cube(lower_corner=Bound_cube_d_dl,
-                      cube_size=Bound_cube_d_tr - Bound_cube_d_dl,
-                      color=Bound_color,
-                      material=0,flag_print=False)
-        Bound_cube_u_dl = np.array([self.padding - self.support_radius, self.bound[1] - self.padding])
-        Bound_cube_u_tr = self.bound - self.padding + self.support_radius
-        self.add_cube(lower_corner=Bound_cube_u_dl,
-                      cube_size=Bound_cube_u_tr - Bound_cube_u_dl,
-                      color=Bound_color,
-                      material=0,flag_print=False)
-        Bound_cube_l_dl = np.array([self.padding - self.support_radius, self.padding])
-        Bound_cube_l_tr = np.array([self.padding, self.bound[1] - self.padding])
-        self.add_cube(lower_corner=Bound_cube_l_dl,
-                      cube_size=Bound_cube_l_tr - Bound_cube_l_dl,
-                      color=Bound_color,
-                      material=0,flag_print=False)
-        Bound_cube_r_dl = np.array([self.bound[0] - self.padding, self.padding])
-        Bound_cube_r_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.bound[1] - self.padding])
-        self.add_cube(lower_corner=Bound_cube_r_dl,
-                      cube_size=Bound_cube_r_tr - Bound_cube_r_dl,
-                      color=Bound_color,
-                      material=0,flag_print=False)
-        print("Boundary particles' number: ", self.particle_num)
+        Dummy_color = 0x9999FF
+        Dummy_type = 10
+        Dummy_cube_d_dl = np.zeros(2) + self.padding - self.support_radius
+        Dummy_cube_d_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.padding])
+        Dummy_cube_u_dl = np.array([self.padding - self.support_radius, self.bound[1] - self.padding])
+        Dummy_cube_u_tr = self.bound - self.padding + self.support_radius
+        Dummy_cube_l_dl = np.array([self.padding - self.support_radius, self.padding])
+        Dummy_cube_l_tr = np.array([self.padding, self.bound[1] - self.padding])
+        Dummy_cube_r_dl = np.array([self.bound[0] - self.padding, self.padding])
+        Dummy_cube_r_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.bound[1] - self.padding])
+        self.gen_one_boundary_cube(Dummy_cube_d_dl, Dummy_cube_d_tr, Dummy_color, Dummy_type)
+        self.gen_one_boundary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type)
+        self.gen_one_boundary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type)
+        self.gen_one_boundary_cube(Dummy_cube_r_dl, Dummy_cube_r_tr, Dummy_color, Dummy_type)
+        Repulsive_color = 0xff0000
+        Repulsive_type = 11
+        Repulsive_cube_d_dl = np.array([self.padding, self.padding - self.particle_radius])
+        Repulsive_cube_d_tr = np.array([self.bound[0] - self.padding, self.padding + self.particle_radius])
+        Repulsive_cube_u_dl = np.array([self.padding, self.bound[1] - self.padding - self.particle_radius])
+        Repulsive_cube_u_tr = np.array([self.bound[0] - self.padding, self.bound[1] - self.padding + self.particle_radius])
+        Repulsive_cube_l_dl = np.array([self.padding - self.particle_radius, self.padding])
+        Repulsive_cube_l_tr = np.array([self.padding + self.particle_radius, self.bound[1] - self.padding])
+        Repulsive_cube_r_dl = np.array([self.bound[0] - self.padding - self.particle_radius, self.padding])
+        Repulsive_cube_r_tr = np.array([self.bound[0] - self.padding + self.particle_radius, self.bound[1] - self.padding])
+        self.gen_one_boundary_cube(Repulsive_cube_d_dl, Repulsive_cube_d_tr, Repulsive_color, Repulsive_type)
+        self.gen_one_boundary_cube(Repulsive_cube_u_dl, Repulsive_cube_u_tr, Repulsive_color, Repulsive_type)
+        self.gen_one_boundary_cube(Repulsive_cube_l_dl, Repulsive_cube_l_tr, Repulsive_color, Repulsive_type)
+        self.gen_one_boundary_cube(Repulsive_cube_r_dl, Repulsive_cube_r_tr, Repulsive_color, Repulsive_type)
+        print("Boundary dummy particles' number: ", self.particle_num)
 
 
     # 增加一个cube区域的粒子，2/3d通用。

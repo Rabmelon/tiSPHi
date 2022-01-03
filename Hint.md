@@ -3,6 +3,7 @@
 2. Try to update the original WCSPH with new boundary treatment and RK4 method.
 3. Have some problems of wcsph!!!!! 22.01.03.02:48
 4. **FIND** that the size of simulation is very relative to the result!!!!! For example the water column, 150-15-1.5 with particle radius 0.1-0.01-0.001 will cause absolutly different result! **WHY**
+5. After adding the repulsive particles, the bottom and left grids again start to eat particels!!!!!:sob:
 
 22.01.02.
 1. Add test2.py as the test for calculation of dA and dB in boundary treatment.
