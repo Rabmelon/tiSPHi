@@ -12,6 +12,15 @@
 
 > The logo is modified from a basic SPH logo by MichellLaurence on [DeviantArt](http://michelllaurence.deviantart.com/art/sph-logo-139673758)
 
+> **HINT**
+> 然而发现小目标的实现也很困难……
+> 两个星期的学习，tiSPHi from 0 to 0.1 and just 0.1
+> :satisfied:Know almost nothing of SPH → :satisfied:Learn basic SPH theory → :sweat_smile:Learn basic WCSPH codes → :grin:First try: adding dummy particles → :confused:Learn standard SPH theory for soil → :persevere:Try to implement SOILSPH code → :disappointed:**Failed** to understand D-P criterion for soil and also cannot implement it in SPH → :sob:**Failed** to adapt the stress and other paras of soil → :sob:**Failed** to add repulsive forces in repulsive particles, so cannot delete the collision code in `SPHBASE` → :sob:**Failed** to finally use RK4 to advect soil particles → :disappointed:Return to add repulsive forces in WCSPH to delete the collision code but again **Failed** → :smile:Try to use RK4 to update particles instead of Symp Euler method, and finally **succeed** → :scream:It comes to the deadline
+> 挺打击信心的，但更可能是之前太高估自己了。只能暂时提交一个仍旧是水的大作业了，悲痛欲绝。
+> 但是，好久没有这么酣畅淋漓（抓耳挠腮）地写过代码了！
+> 暂时休息，还有很久的时间发展我的tiSPHi！
+
+
 ## 作业来源
 ### 灵感来源
 实现未来的课题！
