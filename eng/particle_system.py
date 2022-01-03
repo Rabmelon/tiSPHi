@@ -217,17 +217,19 @@ class ParticleSystem:
         }
 
     # 增加 padding region 中所有方向上矩形边界的粒子，2d
-    def gen_one_boundary_cube(self, dl, tr, color, type):
+    def gen_one_boundary_cube(self, dl, tr, color, type, voff):
         self.add_cube(lower_corner=dl,
                       cube_size=tr - dl,
                       density=0.0,
                       color=color,
                       material=type,
+                      offset=voff
                       flag_print=False)
 
     def gen_boundary_particles(self):
         Dummy_color = 0x9999FF
         Dummy_type = 10
+        Dummy_off = self.particle_diameter
         Dummy_cube_d_dl = np.zeros(2) + self.padding - self.support_radius
         Dummy_cube_d_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.padding])
         Dummy_cube_u_dl = np.array([self.padding - self.support_radius, self.bound[1] - self.padding])
@@ -236,12 +238,13 @@ class ParticleSystem:
         Dummy_cube_l_tr = np.array([self.padding, self.bound[1] - self.padding])
         Dummy_cube_r_dl = np.array([self.bound[0] - self.padding, self.padding])
         Dummy_cube_r_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.bound[1] - self.padding])
-        self.gen_one_boundary_cube(Dummy_cube_d_dl, Dummy_cube_d_tr, Dummy_color, Dummy_type)
-        self.gen_one_boundary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type)
-        self.gen_one_boundary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type)
-        self.gen_one_boundary_cube(Dummy_cube_r_dl, Dummy_cube_r_tr, Dummy_color, Dummy_type)
+        self.gen_one_boundary_cube(Dummy_cube_d_dl, Dummy_cube_d_tr, Dummy_color, Dummy_type, Dummy_off)
+        self.gen_one_boundary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type, Dummy_off)
+        self.gen_one_boundary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type, Dummy_off)
+        self.gen_one_boundary_cube(Dummy_cube_r_dl, Dummy_cube_r_tr, Dummy_color, Dummy_type, Dummy_off)
         Repulsive_color = 0xff0000
         Repulsive_type = 11
+        Repulsive_off = self.particle_diameter
         Repulsive_cube_d_dl = np.array([self.padding, self.padding - self.particle_radius])
         Repulsive_cube_d_tr = np.array([self.bound[0] - self.padding, self.padding + self.particle_radius])
         Repulsive_cube_u_dl = np.array([self.padding, self.bound[1] - self.padding - self.particle_radius])
@@ -250,10 +253,10 @@ class ParticleSystem:
         Repulsive_cube_l_tr = np.array([self.padding + self.particle_radius, self.bound[1] - self.padding])
         Repulsive_cube_r_dl = np.array([self.bound[0] - self.padding - self.particle_radius, self.padding])
         Repulsive_cube_r_tr = np.array([self.bound[0] - self.padding + self.particle_radius, self.bound[1] - self.padding])
-        self.gen_one_boundary_cube(Repulsive_cube_d_dl, Repulsive_cube_d_tr, Repulsive_color, Repulsive_type)
-        self.gen_one_boundary_cube(Repulsive_cube_u_dl, Repulsive_cube_u_tr, Repulsive_color, Repulsive_type)
-        self.gen_one_boundary_cube(Repulsive_cube_l_dl, Repulsive_cube_l_tr, Repulsive_color, Repulsive_type)
-        self.gen_one_boundary_cube(Repulsive_cube_r_dl, Repulsive_cube_r_tr, Repulsive_color, Repulsive_type)
+        self.gen_one_boundary_cube(Repulsive_cube_d_dl, Repulsive_cube_d_tr, Repulsive_color, Repulsive_type, Repulsive_off)
+        self.gen_one_boundary_cube(Repulsive_cube_u_dl, Repulsive_cube_u_tr, Repulsive_color, Repulsive_type, Repulsive_off)
+        self.gen_one_boundary_cube(Repulsive_cube_l_dl, Repulsive_cube_l_tr, Repulsive_color, Repulsive_type, Repulsive_off)
+        self.gen_one_boundary_cube(Repulsive_cube_r_dl, Repulsive_cube_r_tr, Repulsive_color, Repulsive_type, Repulsive_off)
         print("Boundary dummy particles' number: ", self.particle_num)
 
 
@@ -270,14 +273,16 @@ class ParticleSystem:
                  density=None,
                  pressure=None,
                  velocity=None,
+                 offset=None,
                  flag_print=True):
 
         num_dim = []
+        range_offset = offset if offset is not None else self.particle_diameter
         for i in range(self.dim):
             num_dim.append(
                 np.arange(lower_corner[i] + self.particle_radius,
                           lower_corner[i] + cube_size[i] + 1e-5,
-                          self.particle_diameter))
+                          range_offset))
         num_new_particles = reduce(lambda x, y: x * y,
                                    [len(n) for n in num_dim])
         assert self.particle_num[None] + num_new_particles <= self.particle_max_num, 'My Error: exceed the maximum number of particles!'

@@ -11,10 +11,10 @@ from eng.wcsph import *
 ti.init(arch=ti.gpu, packed=True, device_memory_GB=4)
 
 if __name__ == "__main__":
-    # init particle system paras, world unit is cm
+    # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
     screen_to_world_ratio = 4   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = (150, 100)
-    particle_radius = 0.5
+    particle_radius = 1.0
     kh = 6.0
     cube_size = [20, 40]
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     res = (np.array(world) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)
     flag_step = 0
-    flag_pause = True
+    flag_pause = False
     while gui.running:
         if not flag_pause:
             print('----WCSPH step:', flag_step)

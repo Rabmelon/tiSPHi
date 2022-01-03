@@ -50,10 +50,7 @@ class WCSPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.ps.density[p_i]
-        d_BA = self.cal_d_BA(p_i, p_j)
-        beta_max = 1.5
-        beta = min(beta_max, 1 + d_BA)
-        self.ps.v[p_j] = (1 - beta) * self.ps.v[p_i]
+        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
         self.ps.pressure[p_j] = self.ps.pressure[p_i]
 
     # Evaluate density
@@ -80,6 +77,25 @@ class WCSPHSolver(SPHSolver):
         res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.support_radius**2) * self.cubic_kernel_derivative(r)
         return res
 
+    # Add repulsive forces
+    @ti.func
+    def compute_repulsive_force(self, r):
+        r_norm = r.norm()
+        chi = 1 if (r_norm >= 0 and r_norm < 1.5 * self.ps.particle_diameter) else 0
+        c = 60000
+        gamma = r_norm / (0.75 * self.ps.support_radius)
+        f = 0
+        if gamma > 0 and gamma <= 2 / 3:
+            f = 2 / 3
+        elif gamma > 2 / 3 and gamma <= 1:
+            f = 2 * gamma - 1.5 * gamma**2
+        elif gamma > 1 and gamma < 2:
+            f = 0.5 * (2 - gamma)**2
+        elif gamma >= 2:
+            f = 0
+        res = 0.01 * c**2 * chi * f / (r_norm**2) * r
+        return res
+
     # Evaluate viscosity and add gravity
     @ti.kernel
     def compute_non_pressure_forces(self):
@@ -94,6 +110,8 @@ class WCSPHSolver(SPHSolver):
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
                 d_v += self.viscosity_force(p_i, p_j, x_i - x_j)
+                if self.ps.material[p_j] == self.ps.material_repulsive or self.ps.material[p_j] == self.ps.material_dummy:
+                    d_v += self.compute_repulsive_force(x_i - x_j)
 
             # Add body force
             if self.ps.material[p_i] == self.ps.material_water:

@@ -484,7 +484,7 @@ $\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $
 And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the $\boldsymbol{f}^{\sigma}$ term) on the interior particles in the equation of momentum through the particle-dummy interaction.
 
 > **QUESTIONS**
-> 1. How about the mass of repulsive particles?
+> 1. How about the mass of repulsive particles? **ANSWER**: maybe the mass of repulsive particel = 0!
 > 2. How to add repulsive forces in boundary particles?
 
 ### For free surface problems

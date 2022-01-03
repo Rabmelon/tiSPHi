@@ -89,6 +89,7 @@ class SPHSolver:
                     if pos[1] < self.ps.padding:
                         self.simulate_collisions(p_i, ti.Vector([0.0, 1.0]),
                                                  self.ps.padding - pos[1])
+
     @ti.kernel
     def print_max(self):
         max_v = ti.Vector([0.0 for _ in range(self.ps.dim)])
@@ -107,4 +108,4 @@ class SPHSolver:
         self.ps.initialize_particle_system()
         self.substep()
         # self.print_max()
-        self.enforce_boundary()
+        # self.enforce_boundary()
