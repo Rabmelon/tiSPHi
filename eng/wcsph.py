@@ -2,8 +2,8 @@ import taichi as ti
 from .sph_solver import SPHSolver
 
 class WCSPHSolver(SPHSolver):
-    def __init__(self, particle_system):
-        super().__init__(particle_system)
+    def __init__(self, particle_system, TDmethod):
+        super().__init__(particle_system, TDmethod)
         print("Hallo, class WCSPH Solver starts to serve!")
 
         # Basic paras
@@ -223,7 +223,7 @@ class WCSPHSolver(SPHSolver):
         self.compute_densities()
         self.advect_RK4()
 
-    def substep(self):
+    def substep_SympEuler(self):
         self.update_v_1(0)
         self.compute_densities()
         self.compute_non_pressure_forces()

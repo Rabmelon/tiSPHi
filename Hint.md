@@ -1,3 +1,6 @@
+22.01.07.
+1. After retest, for water column with 20000 particles, RK4 is about 7 FPS and Symp Euler is about 14 FPS, not very slow.
+
 22.01.03.
 1. Fail to implement SOILSPH on time!!!!!! :sob::sob::sob::sob::sob::sob::sob::sob: Mainly because of the lack of understanding of the constitutive model of soil
 2. Try to update the original WCSPH with new boundary treatment and RK4 method.

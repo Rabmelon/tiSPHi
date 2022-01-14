@@ -5,8 +5,8 @@ import numpy as np
 from .sph_solver import SPHSolver
 
 class SoilSPHSolver(SPHSolver):
-    def __init__(self, particle_system, gamma, coh, fric):
-        super().__init__(particle_system)
+    def __init__(self, particle_system, TDmethod, gamma, coh, fric):
+        super().__init__(particle_system, TDmethod)
         print("Hallo, class SOILSPH Solver 2D starts to serve!")
 
         # Basic paras

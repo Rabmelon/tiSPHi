@@ -18,6 +18,7 @@ if __name__ == "__main__":
     kh = 6.0
     cube_size = [20, 40]
 
+    TDmethod = 1    # 1 Symp Euler; 2 RK4
     flag_pause = True
     write_to_disk = False
 
@@ -29,7 +30,7 @@ if __name__ == "__main__":
                    material=1)
     case1.initialize_particle_system()
 
-    wcsph_solver = WCSPHSolver(case1)
+    wcsph_solver = WCSPHSolver(case1, TDmethod)
 
     res = (np.array(world) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)

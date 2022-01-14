@@ -6,9 +6,10 @@ from .particle_system import ParticleSystem
 
 @ti.data_oriented
 class SPHSolver:
-    def __init__(self, particle_system):
+    def __init__(self, particle_system, TDmethod):
         print("Hallo, class SPH Solver starts to serve!")
         self.ps = particle_system
+        self.TDmethod = TDmethod    # 1 Symp Euler; 2 RK4
         self.g = -9.81  # Gravity
         self.dt = ti.field(float, shape=())
         self.dt[None] = 5e-4
@@ -103,12 +104,14 @@ class SPHSolver:
             max_pressure = max(abs(self.ps.pressure[p_i]), max_pressure)
         print('--------Max volocity is:', max_v, '; Max pressure is:', max_pressure)
 
-    def substep(self):
+    def substep_SympEuler(self):
         pass
 
     def step(self):
         self.ps.initialize_particle_system()
-        # self.substep_RK4()
-        self.substep()
+        if self.TDmethod == 1:
+            self.substep_SympEuler()
+        elif self.TDmethod == 2:
+            self.substep_RK4()
         # self.print_max()
         self.enforce_boundary()
