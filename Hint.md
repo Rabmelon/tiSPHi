@@ -1,3 +1,6 @@
+22.03.14.
+1. Reread my codes and prepare to start again.
+
 22.01.07.
 1. After retest, for water column with 20000 particles, RK4 is about 7 FPS and Symp Euler is about 14 FPS, not very slow.
 
