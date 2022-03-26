@@ -8,6 +8,7 @@ from eng.wcsph import *
 # TODO: Or add DFSPH solver first? Don't sure if there is enough time remains for a real physical experiment of sand flow.
 
 # ti.init(arch=ti.cpu, debug=True)
+# ti.init(arch=ti.cpu, packed=True, device_memory_GB=4)
 ti.init(arch=ti.gpu, packed=True, device_memory_GB=4)
 
 if __name__ == "__main__":

@@ -1,10 +1,10 @@
 # office temp file
 ~$*
 
-# Frames
+# Frames folders
 sim*/*
 
-# AutoCAD
+# AutoCAD temp file
 *.dwl
 *.dwl2
 *.bak
