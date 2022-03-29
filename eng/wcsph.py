@@ -148,7 +148,11 @@ class WCSPHSolver(SPHSolver):
 
             # Add body force
             if self.ps.material[p_i] == self.ps.material_water:
-                d_v += ti.Vector([0.0, self.g] if self.ps.dim == 2 else [0.0, 0.0, self.g])
+                # d_v += ti.Vector([0.0, self.g] if self.ps.dim == 2 else [0.0, 0.0, self.g])
+                if self.ps.dim == 2:
+                    d_v += ti.Vector([0.0, self.g])
+                else:
+                    print("!!!!!My Error: cannot used in 3D now!")
             self.d_velocity[p_i] = d_v
 
     # Compute the pressure force contribution, Symmetric formula

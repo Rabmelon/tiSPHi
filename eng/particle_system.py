@@ -134,7 +134,7 @@ class ParticleSystem:
     def allocate_particles_to_grid(self):
         for p in range(self.particle_num[None]):
             cell = self.pos_to_index(self.x[p])                     # 当前粒子位于哪个grid
-            offset = self.grid_particles_num[cell].atomic_add(1)    # 当前粒子是这个grid中的第几个粒子
+            offset = ti.atomic_add(self.grid_particles_num[cell], 1)    # 当前粒子是这个grid中的第几个粒子
             self.grid_particles[cell, offset] = p
 
     # 搜索邻域粒子，使用的应该是常规的基于格网的搜索方法
