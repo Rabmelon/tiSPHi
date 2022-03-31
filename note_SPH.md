@@ -15,7 +15,7 @@ html:
   - [SPH basic formulations](#sph-basic-formulations)
     - [Kernel estimation](#kernel-estimation)
     - [Spatial derivatives](#spatial-derivatives)
-    - [Improving approximations for spatial derivatives:](#improving-approximations-for-spatial-derivatives)
+    - [Improving approximations for spatial derivatives](#improving-approximations-for-spatial-derivatives)
     - [Particle approximations](#particle-approximations)
   - [Boundary treatment](#boundary-treatment)
     - [Basic methods](#basic-methods)
@@ -86,6 +86,8 @@ $$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
 
 对于不可压缩流动，质点的密度在运动过程中保持不变，故$\frac{{\rm D}\rho}{{\rm D}t}=0$
 
+> **QUESTIONS**
+> 1. Why does Bui use $\frac{{\rm d} \rho}{{\rm d} t}$ while Chalk uses $\frac{{\rm D} \rho}{{\rm D} t}$? Who is right? What's the difference? **GUESS** Maybe Chalk is right? There is no material derivative in Bui's formulations.
 
 ## SPH basic formulations
 
@@ -112,7 +114,7 @@ with $W(r_i-r_j, h) = W_{ij}$ in discrete view.
 > **QUESTIONS**
 > 1. How to calculate $\nabla W$ and $\nabla^2 W$?
 
-### Improving approximations for spatial derivatives:
+### Improving approximations for spatial derivatives
 > taichiCourse01-10 PPT p60-70
 
 * Let $f(r) \equiv 1$, we have:
@@ -123,7 +125,7 @@ with $W(r_i-r_j, h) = W_{ij}$ in discrete view.
   * Or equivalently: $\nabla f(r) = \nabla f(r)*1-f(r)*\nabla 1$
 * Then use ${\color{Salmon} \nabla} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla}W(r-r_j, h)$ to derivate $\nabla f(r)$ and $\nabla 1$, we have:
   * $\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j)\nabla W(r-r_j, h) - f(r)\sum_j \frac{m_j}{\rho_j}\nabla W(r-r_j, h)$
-  * $\nabla f(r) \approx \sum_j m_j\frac{f(r_j)-f(r)}{\rho_j}\nabla W(r-r_j, h)$, we call it the **anti-symmetric form**
+  * $\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}(f(r_j)-f(r))\nabla W(r-r_j, h)$, we call it the **anti-symmetric form**
 * A more general case:
   $$\nabla f(r) \approx \sum_j m_j(\frac{f(r_j)\rho_j^{n-1}}{\rho^n}-\frac{nf(r)}{\rho})\nabla W(r-r_j, h)$$
 
@@ -221,8 +223,18 @@ The particles that comprise the free surface should satisfy a stress-free condit
 $$v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*$$
 
 ### RK4 - 4th order Runge-Kutta
-> Chalk2020
+> Chalk2020 Appendix B.
 
+The RK4 scheme has fourth order accuracy and relatively simple implementation.
+Consider a general ordinary differential equation for a variable $\phi$ with an initial condition $\phi^0$ at an initial time $t^0$:
+$$\dot{\phi} = f(t, \phi),\ \phi(t^0) = \phi^0$$
+
+where $f$ is a function of $\phi$ and time $t$. The RK4 method is employed to increment $\phi$ by a time step $\Delta t$ to obtain the solution at time $t = t+\Delta t$:
+$$\phi^{t+\Delta t}=\phi^t+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4)$$
+
+$$k_1=f(\phi_1),\ k_2=f(\phi_2),\ k_3=f(\phi_3),\ k_4=f(\phi_4)$$
+
+$$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\Delta tk_3$$
 
 ### XSPH
 In addition to the velocity and stress, the position vectors of each particle $\boldsymbol{x}_i$ are updated via the XSPH method at the end of each time step as:
@@ -590,3 +602,4 @@ As for the implementation of RK4:
 ## Stress-Particle SPH
 
 # FEM-SPH
+

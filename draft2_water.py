@@ -4,11 +4,11 @@ from taichi.lang.ops import truediv
 from eng.particle_system import *
 from eng.wcsph import *
 
-# TODO: Change the rule from N-S to DP, material from water to sand. ----Failed temporary :sob:
-# TODO: Or add DFSPH solver first? Don't sure if there is enough time remains for a real physical experiment of sand flow.
+# TODO: Add DFSPH solver first? Don't sure if there is enough time remains for a real physical experiment of sand flow.
+# TODO: Try new methods of time integration and new kernel function.
 
 # ti.init(arch=ti.cpu, debug=True)
-ti.init(arch=ti.gpu, packed=True, device_memory_GB=4)
+ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
 
 if __name__ == "__main__":
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)

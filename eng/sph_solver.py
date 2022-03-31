@@ -3,6 +3,7 @@ import numpy as np
 from .particle_system import ParticleSystem
 
 # TODO: use repulsive particles to replace boundary collisions later!!!!!
+# 此类中应包含各种核函数及其导数、各种时间积分的框架、边界处理
 
 @ti.data_oriented
 class SPHSolver:

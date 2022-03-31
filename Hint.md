@@ -1,3 +1,10 @@
+
+
+22.03.31.
+1. Reread the basi knowledge and make a **new plan** for code:
+   1. Conduct a simple shear test, Bui2021 Section 3.2.4.
+   2. Conduct a granular column collapse test, Bui2021 Section 3.3.
+
 22.03.14.
 1. Reread my codes and prepare to start again.
 
