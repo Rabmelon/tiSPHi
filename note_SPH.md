@@ -361,7 +361,7 @@ $$\begin{aligned}
       v^1_i = v^t_i\\
       v^2_i = v^t_i+\frac{\Delta t}{2}(F(v^1_i))\\
       v^3_i = v^t_i+\frac{\Delta t}{2}(F(v^2_i))\\
-      v^4_i = v^t_i+\frac{\Delta t}{2}(F(v^3_i))
+      v^4_i = v^t_i+\Delta t(F(v^3_i))
     \end{array}
 \end{aligned}$$
 
@@ -467,7 +467,7 @@ $$\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{c}
       (\sigma_{yy}-\sigma_{xx})\omega_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
-$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}-\frac{\partial u_{\beta}}{\partial x_{\alpha}})\ ,\ \omega_{xy} = \frac{1}{2}(\frac{\partial u_y}{\partial x_x}-\frac{\partial u_x}{\partial x_y})$$
+$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}-\frac{\partial u_{\beta}}{\partial x_{\alpha}})\ ,\ \omega_{xy} = \frac{1}{2}(\frac{\partial u_x}{\partial x_y}-\frac{\partial u_y}{\partial x_x})$$
 
 $$\begin{aligned} \boldsymbol{f}^u = \left (\begin{array}{cc}
     D^e_{11}u_x    &D^e_{12}u_y\\ D^e_{21}u_x    &D^e_{22}u_y\\
@@ -570,7 +570,7 @@ $$\begin{aligned}
       \boldsymbol{u}^1_i = \boldsymbol{u}^t_i &\boldsymbol{\sigma}^1_i = \boldsymbol{\sigma}^t_i\\
       \boldsymbol{u}^2_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &\boldsymbol{\sigma}^2_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^1_i, \boldsymbol{\sigma}^1_i))\\
       \boldsymbol{u}^3_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &\boldsymbol{\sigma}^3_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^2_i, \boldsymbol{\sigma}^2_i))\\
-      \boldsymbol{u}^4_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{\sigma}^4_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^3_i, \boldsymbol{\sigma}^3_i))
+      \boldsymbol{u}^4_i = \boldsymbol{u}^t_i+\Delta t(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{\sigma}^4_i = \boldsymbol{\sigma}^t_i+\Delta t(F_2(\boldsymbol{u}^3_i, \boldsymbol{\sigma}^3_i))
     \end{array}
 \end{aligned}$$
 
