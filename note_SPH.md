@@ -392,7 +392,7 @@ $${\rm d}f=\frac{\partial f}{\partial \boldsymbol{\sigma}} {\rm d}\boldsymbol{\s
 The stress state is not allowed to exceed the yield surface, and the yield function increment cannot be greater than 0. ${\rm d}f=0$ ensures that the stress state remains on the yield surface during plastic loading.
 
 > **QUESTIONS**
-> 1. How to calculate ${\rm d}f$???
+> 1. How to calculate ${\rm d}f$? **ANSWER**: ${\rm d}f = f^*-f$ in advection.
 
 And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
 $$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
@@ -510,8 +510,12 @@ $$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\b
 
 $$\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij} = \boldsymbol{s}:\dot{\boldsymbol{\varepsilon}},\ \dot{\boldsymbol{\varepsilon}} = \begin{aligned} \left(\begin{array}{c}
       \dot \varepsilon_{xx}\\ \dot \varepsilon_{yy}\\
-      2 \dot \varepsilon_{xy}\\ 0
-\end{array} \right) \end{aligned}$$
+      \dot \varepsilon_{xy}\\ 0
+\end{array} \right) \end{aligned} = \begin{aligned} \left(\begin{array}{c}
+      \frac{\partial u_x}{\partial x}\\ \frac{\partial u_y}{\partial y}\\
+      \frac{1}{2}(\frac{\partial u_x}{\partial y}+\frac{\partial u_y}{\partial x})\\ 0
+\end{array} \right) \end{aligned}
+,\ \dot \varepsilon_{kk}=\dot \varepsilon_{xx}+\dot \varepsilon_{yy}+0$$
 
 and $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
 
@@ -521,11 +525,11 @@ $$\boldsymbol{g}^{\varepsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\
 which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion). And $\hat{N}$ is a model parameter.
 
 > **QUESTIONS**
-> 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
-> 2. How does $\dot{\lambda}$ calculated?
+> 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models. **ANSWER**: as it shows
+> 2. How does $\dot{\lambda}$ calculated? **ANSWER**: as it shows
 > 3. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
 > 4. What number should $\hat{N}$ choose?
-> 5. What's the difference between $\dot{\boldsymbol{\varepsilon}}$ and $\dot{\boldsymbol{\varepsilon}^p}$???
+> 5. What's the difference between $\dot{\boldsymbol{\varepsilon}}$ and $\dot{\boldsymbol{\varepsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{u}$.
 
 ### Conservation of mass
 The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
@@ -548,7 +552,7 @@ $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 流体静止时，粘性力项自然为0，惯性力项也为0，即退化为欧拉静平衡方程$\nabla p=\rho\boldsymbol{f}$。
 
 > **QUESTIONS**
-> 1. The momentum considered here is not the same as Navier-Stokes equation but what???
+> 1. The momentum considered here is not the same as Navier-Stokes equation but what?
 
 ## Standard soil SPH
 
@@ -599,7 +603,7 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 * Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
 * Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
 * Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}_i$.
-  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f<0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
+  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
   * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
   * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
 * Step 6: compute $F_1$ and $F_2$ on particles.
