@@ -220,7 +220,7 @@ The particles that comprise the free surface should satisfy a stress-free condit
 ### Symp Euler - Symplectic Euler
 > taichiCourse01-10 PPT p77
 
-$$v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*$$
+$$u_i^* = u_i+\Delta t\frac{{\rm d}u_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tu_i^*$$
 
 ### RK4 - 4th order Runge-Kutta
 > Chalk2020 Appendix B.
@@ -268,42 +268,42 @@ $$f = ma = {\color{Green} f_{ext}} + {\color{RoyalBlue} f_{pres}} + {\color{Oran
 > taichiCourse01-10 PPT p16-28
 
 The momentum equation
-$$\rho\frac{{\rm D}v}{{\rm D}t}={\color{Green} \rho g} {\color{RoyalBlue} -\nabla p} + {\color{Orange} \mu\nabla^2v}$$
+$$\rho\frac{{\rm D}u}{{\rm D}t}={\color{Green} \rho g} {\color{RoyalBlue} -\nabla p} + {\color{Orange} \mu\nabla^2u}$$
 
 The mass conserving condition
-$${\color{RoyalBlue} \nabla\cdot v=0} $$
+$${\color{RoyalBlue} \nabla\cdot u=0} $$
 
-$\rho\frac{{\rm D}v}{{\rm D}t}$: This is simply "mass" times "acceleration" divided by "volume".
+$\rho\frac{{\rm D}u}{{\rm D}t}$: This is simply "mass" times "acceleration" divided by "volume".
 ${\color{Green} \rho g}$: External force term, gravitational force divided by "volume".
-${\color{Orange} \mu\nabla^2v}$: Viscosity term, how fluids want to move together. 表示扩散有多快，液体尽可能地往相同的方向运动。$\mu$: some fluids are more viscous than others.
+${\color{Orange} \mu\nabla^2u}$: Viscosity term, how fluids want to move together. 表示扩散有多快，液体尽可能地往相同的方向运动。$\mu$: some fluids are more viscous than others.
 ${\color{RoyalBlue} -\nabla p}$: Pressure term, fluids do not want to change volume. $p=k(\rho-\rho_0)$ but $\rho$ is unknown.
-${\color{RoyalBlue} \nabla\cdot v=0 \Leftrightarrow \frac{{\rm D} \rho}{{\rm D} t} = \rho(\nabla\cdot v) = 0}$: Divergence free condition. Outbound flow equals to inbound flow. The mass conserving condition. 散度归零条件、不可压缩特性，也是质量守恒条件。
+${\color{RoyalBlue} \nabla\cdot u=0 \Leftrightarrow \frac{{\rm D} \rho}{{\rm D} t} = \rho(\nabla\cdot u) = 0}$: Divergence free condition. Outbound flow equals to inbound flow. The mass conserving condition. 散度归零条件、不可压缩特性，也是质量守恒条件。
 
 ### Temporal discretization
 > taichiCourse01-10 PPT p32
 
 Integrate the incompressible N-S equation in steps (also reffered as "Operator splitting" or "Advection-Projection" in different contexts):
-* Step 1: input $v^t$, output $v^{t+0.5\Delta t}$: $\rho\frac{{\rm D} v}{{\rm D} t}={\color{Green} \rho g} + {\color{Orange} \mu\nabla^2v}$
-* Step 2: input $v^{t+0.5\Delta t}$, output $v^{t+\Delta t}$: $\rho\frac{{\rm D} v}{{\rm D} t}={\color{RoyalBlue} -\nabla p}\ and\ {\color{RoyalBlue} \nabla\cdot v=0}$ (构成了$\rho$和$v$的二元非线性方程组)
+* Step 1: input $u^t$, output $u^{t+0.5\Delta t}$: $\rho\frac{{\rm D} u}{{\rm D} t}={\color{Green} \rho g} + {\color{Orange} \mu\nabla^2u}$
+* Step 2: input $u^{t+0.5\Delta t}$, output $u^{t+\Delta t}$: $\rho\frac{{\rm D} u}{{\rm D} t}={\color{RoyalBlue} -\nabla p}\ and\ {\color{RoyalBlue} \nabla\cdot u=0}$ (构成了$\rho$和$u$的二元非线性方程组)
 
 ## Full time integration
 > taichiCourse01-10 PPT p33
 
-$$\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2v},\ \nu=\frac{\mu}{\rho_0}$$
+$$\frac{{\rm D}u}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2u},\ \nu=\frac{\mu}{\rho_0}$$
 
-* Given $x^t$, $v^t$:
+* Given $x^t$, $u^t$:
 * Step 1: Advection / external and viscosity force integration
-  * Solve: ${\color{Purple} dv} = {\color{Green} g} + {\color{Orange} \nu\nabla^2v_n}$
-  * Update: $v^{t+0.5\Delta t} = v^t+\Delta t{\color{Purple} dv}$
+  * Solve: ${\color{Purple} {\rm d}u} = {\color{Green} g} + {\color{Orange} \nu\nabla^2u_n}$
+  * Update: $u^{t+0.5\Delta t} = u^t+0.5 \Delta t{\color{Purple} {\rm d}u}$
 * Step 2: Projection / pressure solver
-  * Solve: ${\color{red} dv} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}$ and ${\color{RoyalBlue} \frac{{\rm D} \rho}{{\rm D} t} = \nabla\cdot(v_{n+0.5}+{\color{red} dv})=0}$
-  * Update: $v^{t+\Delta t} = v^{t+0.5\Delta t} + \Delta t {\color{red} dv}$
+  * Solve: ${\color{red} {\rm d}u} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}$ and ${\color{RoyalBlue} \frac{{\rm D} \rho}{{\rm D} t} = \nabla\cdot(u_{n+0.5}+{\color{red} {\rm d}u})=0}$
+  * Update: $u^{t+\Delta t} = u^{t+0.5\Delta t} + 0.5 \Delta t {\color{red} {\rm d}u}$
 * Step 3: Update position
-  * Update: $x^{t+\Delta t} = x^t+\Delta tv^{t+\Delta t}$
-* Return $x^{t+\Delta t}$, $v^{t+\Delta t}$
+  * Update: $x^{t+\Delta t} = x^t+\Delta tu^{t+\Delta t}$
+* Return $x^{t+\Delta t}$, $u^{t+\Delta t}$
 
 > **QUESTIONS**
-> 1. In step 1 and 2, maybe the $\Delta t$ should also multiple 0.5?
+> 1. In step 1 and 2, maybe the $\Delta t$ should also multiple 0.5? **ANSWER**: I think yes!
 
 ## The weakly compressible assumption
 > taichiCourse01-10 PPT p34-35
@@ -311,20 +311,20 @@ $$\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}
 Storing the density $\rho$ as an individual variable that advect with the velocity field. Then the $p$ can be assumed as a variable related by time and the mass conserving equation is killed.
 
 * Change in Step 2:
-  * Solve: ${\color{red} dv} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}$
-  * Update: $v^{t+\Delta t} = v^{t+0.5\Delta t} + \Delta t {\color{red} dv}$
+  * Solve: ${\color{red} {\rm d}u} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}$
+  * Update: $u^{t+\Delta t} = u^{t+0.5\Delta t} + \Delta t {\color{red} {\rm d}u}$
 And step 2 and 1 can be merged. This is nothing but Symplectic Euler integration.
 
 ### Fluid dynamics with particles
 > taichiCourse01-10 PPT p43 and 75-78
 
 Continuous view:
-$$\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2v}$$
+$$\frac{{\rm D}u}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2u}$$
 
 Discrete view (using particle):
-$$\frac{{\rm d}v_i}{{\rm d}t}=a_i={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p(x_i)} + {\color{Orange} \nu\nabla^2v(x_i)}$$
+$$\frac{{\rm d}u_i}{{\rm d}t}=a_i={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p(x_i)} + {\color{Orange} \nu\nabla^2u(x_i)}$$
 
-Then the problem comes to: how to evaluate a funcion of ${\color{RoyalBlue} \rho(x_i)}$, ${\color{RoyalBlue} \nabla p(x_i)}$, ${\color{Orange} \nabla^2v(x_i)}$
+Then the problem comes to: how to evaluate a funcion of ${\color{RoyalBlue} \rho(x_i)}$, ${\color{RoyalBlue} \nabla p(x_i)}$, ${\color{Orange} \nabla^2u(x_i)}$
 
 In WCSPH:
 * Find a particle of interest ($i$) and its nerghbours ($j$) with its support radius $h$.
@@ -334,9 +334,9 @@ In WCSPH:
       $$\rho_i = \sum_j \frac{m_j}{\rho_j}\rho_jW(r_i-r_j, h) = \sum_j m_jW_{ij}$$
 
     * Step 2: Evaluate viscosity (**anti-sym**)
-      $$\nu\nabla^2v_i = \nu\sum_j m_j \frac{v_j-v_i}{\rho_j}\nabla^2W_{ij}$$
+      $$\nu\nabla^2u_i = \nu\sum_j m_j \frac{u_j-u_i}{\rho_j}\nabla^2W_{ij}$$
       in taichiWCSPH code it's a approximation from @monaghan2005 :
-      $$\nu\nabla^2v_i = 2\nu(dimension+2)\sum_j \frac{m_j}{\rho_j}(\frac{v_{ij}\cdot r_{ij}}{\|r_{ij}\|^2+0.01h^2})\nabla W_{ij}$$
+      $$\nu\nabla^2u_i = 2\nu(dimension+2)\sum_j \frac{m_j}{\rho_j}(\frac{u_{ij}\cdot r_{ij}}{\|r_{ij}\|^2+0.01h^2})\nabla W_{ij}$$
 
     * Evaluate pressure gradient (**sym**), where $p = k(\rho-\rho_0)$
       $$-\frac{1}{\rho_i}\nabla p_i = -\frac{\rho_i}{\rho_i}\sum_j m_j(\frac{p_j}{\rho_j^2}+\frac{p_i}{\rho_i^2})\nabla W_{ij} = -\sum_j m_j(\frac{p_j}{\rho_j^2}+\frac{p_i}{\rho_i^2})\nabla W_{ij}$$
@@ -344,24 +344,24 @@ In WCSPH:
       in taichiWCSPH code, $p = k_1((\rho/\rho_0)^{k_2}-1)$, where $k_1$ is a para about stiffness and $k_2$ is just an exponent.
     * Calculate the acceleration
     * Then do time integration using Symplectic Euler method:
-      $$v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*$$
+      $$u_i^* = u_i+\Delta t\frac{{\rm d}u_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tu_i^*$$
 
 ### RK4 for WCSPH
 > By myself
 
 The momentum equation of WCSPH is as:
-$$\frac{{\rm D}v_i}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho_i}\nabla p_i} + {\color{Orange} \nu\nabla^2v_i} = F(v_i)$$
+$$\frac{{\rm D}u_i}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho_i}\nabla p_i} + {\color{Orange} \nu\nabla^2u_i} = F(u_i)$$
 
 and:
-$$v_i^{t+\Delta t} = v_i^t+\frac{\Delta t}{6}(F(v_i^1)+2F(v_i^2)+2F(v_i^3)+F(v_i^4))$$
+$$u_i^{t+\Delta t} = u_i^t+\frac{\Delta t}{6}(F(u_i^1)+2F(u_i^2)+2F(u_i^3)+F(u_i^4))$$
 
 where:
 $$\begin{aligned}
     \begin{array}{ll}
-      v^1_i = v^t_i\\
-      v^2_i = v^t_i+\frac{\Delta t}{2}(F(v^1_i))\\
-      v^3_i = v^t_i+\frac{\Delta t}{2}(F(v^2_i))\\
-      v^4_i = v^t_i+\Delta t(F(v^3_i))
+      u^1_i = u^t_i\\
+      u^2_i = u^t_i+\frac{\Delta t}{2}(F(u^1_i))\\
+      u^3_i = u^t_i+\frac{\Delta t}{2}(F(u^2_i))\\
+      u^4_i = u^t_i+\Delta t(F(u^3_i))
     \end{array}
 \end{aligned}$$
 
@@ -373,7 +373,7 @@ Constitutive model is to relate the soil stresses to the strain rates in the pla
 For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
 $$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
 
-And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis $\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$.
+And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis $\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$. $g$ is the plastic potential function (塑性势函数).
 And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
 The Von Mises and D-P yield criteria are illustrated in two dimensions:
 <div align="center">
@@ -384,8 +384,15 @@ Here we difine the firse invariant of the stress tensor $I_1$ and the second inv
 $$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
 
 > **QUESTIONS**
-> 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
-> 2. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" a tensor and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
+> 1. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" a tensor and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
+
+The increment of the yield function after plastic loading or unloading:
+$${\rm d}f=\frac{\partial f}{\partial \boldsymbol{\sigma}} {\rm d}\boldsymbol{\sigma}$$
+
+The stress state is not allowed to exceed the yield surface, and the yield function increment cannot be greater than 0. ${\rm d}f=0$ ensures that the stress state remains on the yield surface during plastic loading.
+
+> **QUESTIONS**
+> 1. How to calculate ${\rm d}f$???
 
 And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
 $$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
@@ -393,7 +400,7 @@ $$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
 We define the **elastic strains** according to the **generalised Hooke's law**:
 $$\dot{\boldsymbol{\varepsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
 
-where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}-p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
+where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
 
 > **QUESTIONS**
 > 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive. **Answer**: Generally it's negtive. When it is positive, the meaning is the average normal stress $\sigma_m = -p$.
@@ -432,7 +439,7 @@ Conservation of mass:
 $$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{u}$$
 
 Conservation of momentum:
-$$\frac{{\rm D} \boldsymbol{u}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{b}$$
+$$\frac{{\rm D} \boldsymbol{u}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{f}^{ext}$$
 
 Constitutive equation:
 $$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\varepsilon^p}$$
@@ -450,8 +457,8 @@ $$\begin{aligned} \boldsymbol{x} = \left (\begin{array}{c}
     \sigma_{xx}    &\sigma_{xy}\\    \sigma_{xy}    &\sigma_{yy}
 \end{array}\right) \end{aligned}
 ,
-\begin{aligned} \boldsymbol{b} = \left (\begin{array}{c}
-    b_x\\ b_y
+\begin{aligned} \boldsymbol{f}^{ext} = \left (\begin{array}{c}
+    f^{ext}_x\\ f^{ext}_y
 \end{array}\right) \end{aligned}$$
 
 $$\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{c}
@@ -486,7 +493,7 @@ $$\begin{aligned} \boldsymbol{f}^u = \left (\begin{array}{cc}
       \dot \varepsilon^p_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
-$$\begin{aligned} \boldsymbol{D}^e = D^e_{pq} = \frac{E}{(1+\nu)(1-\nu)} \left (\begin{array}{cccc}
+$$\begin{aligned} \boldsymbol{D}^e = D^e_{pq} = \frac{E}{(1+\nu)(1-2\nu)} \left (\begin{array}{cccc}
     1-\nu  &\nu  &0  &\nu\\ \nu  &1-\nu  &0  &\nu\\
     0  &0  &(1-2\nu)/2  &0\\ \nu  &\nu  &0  &1-\nu\\
 \end{array}\right) \end{aligned}$$
@@ -499,7 +506,12 @@ For the elastoplastic model,
 $$\boldsymbol{g}^{\varepsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s}}$$
 
 which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the D-P yield criterion, where:
-$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{G}$$
+$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{G}$$
+
+$$\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij} = \boldsymbol{s}:\dot{\boldsymbol{\varepsilon}},\ \dot{\boldsymbol{\varepsilon}} = \begin{aligned} \left(\begin{array}{c}
+      \dot \varepsilon_{xx}\\ \dot \varepsilon_{yy}\\
+      2 \dot \varepsilon_{xy}\\ 0
+\end{array} \right) \end{aligned}$$
 
 and $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
 
@@ -509,9 +521,11 @@ $$\boldsymbol{g}^{\varepsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\
 which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion). And $\hat{N}$ is a model parameter.
 
 > **QUESTIONS**
-> 1. How does $\dot{\lambda}$ calculated?
-> 2. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
-> 3. What number should $\hat{N}$ choose?
+> 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models.
+> 2. How does $\dot{\lambda}$ calculated?
+> 3. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
+> 4. What number should $\hat{N}$ choose?
+> 5. What's the difference between $\dot{\boldsymbol{\varepsilon}}$ and $\dot{\boldsymbol{\varepsilon}^p}$???
 
 ### Conservation of mass
 The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
@@ -544,7 +558,7 @@ $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 The discrete governing equations of soil motion in the framework of standard SPH are therefore:
 $$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}_i)\cdot\nabla W_{ij}$$
 
-$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{b}_i$$
+$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
 
 $$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p}$$
 
@@ -555,7 +569,7 @@ In the current work, each SPH particle is assigned the same, constant density fo
 > @Chalk2020, Appendix B.
 
 The considered governing SPH equations are summarised as:
-$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{b}_i = F_1(\boldsymbol{\sigma}_i)$$
+$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)$$
 
 $$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p} = F_2(\boldsymbol{u}_i,\boldsymbol{\sigma}_i)$$
 
@@ -578,25 +592,31 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 
 ### Steps
 * Key point and aim: update the position, velocity and stress.
-* Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{b} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
+* Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
 * Given $\boldsymbol{x}_i^1$, $\boldsymbol{u}_i^1$, $\boldsymbol{\sigma}_i^1$.
 * Step 1: calculate terms $\boldsymbol{f}^{\sigma}$ and $\boldsymbol{f}^u$.
 * Step 2: update boundary consitions and adapt the stress.
 * Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
-* Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{b}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
+* Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
 * Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}_i$.
-  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range, then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise, the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
-  * The plastic term is a function of stress and velocity gradients.
-  * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity.
+  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f<0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
+  * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
+  * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
 * Step 6: compute $F_1$ and $F_2$ on particles.
 * Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
 * Step 8: if necessary, the boundary conditions and stress state are again updated.
-* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{u}_i^4$, $\boldsymbol{\sigma}_i^3$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{u}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
+* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{\sigma}_i^3$, $\boldsymbol{u}_i^4$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{u}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
 
+As for the calculation of strain item:
+<div align="center">
+  <img width="750px" src="./temp/flowchart_item_strain.svg">
+</div>
 As for the implementation of RK4:
 <div align="center">
-  <img width="500px" src="./temp/flowchart.svg">
+  <img width="300px" src="./temp/flowchart_RK4_soil.svg">
 </div>
+
+
 
 
 ## Stress-Particle SPH

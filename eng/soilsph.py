@@ -19,7 +19,7 @@ class SoilSPHSolver(SPHSolver):
         # Paras based on basic paras
         self.mass = self.ps.m_V * self.density_0            # the self.mass of each particle, kg
         self.friction = self.friction_deg / 180 * np.pi     # the angle of internal friction, RAD
-        self.Depq = self.E / (1 + self.poisson) / (1 - self.poisson) * ti.Matrix(
+        self.Depq = self.E / (1 + self.poisson) / (1 - 2 * self.poisson) * ti.Matrix(
                 [[1 - self.poisson, self.poisson, 0, self.poisson],
                  [self.poisson, 1 - self.poisson, 0, self.poisson],
                  [0, 0, (1 - 2 * self.poisson) / 2, 0],
