@@ -153,3 +153,9 @@ cython_debug/
 
 # for changing the icon?
 desktop.ini
+
+# video
+*.mp4
+*.mkv
+*.avi
+

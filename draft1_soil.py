@@ -5,8 +5,8 @@ from eng.soilsph import *
 
 # TODO: Change the rule from N-S to DP, material from water to soil.
 
-ti.init(arch=ti.cpu, debug=True)
-# ti.init(arch=ti.gpu, packed=True, device_memory_GB=4)
+# ti.init(arch=ti.cpu, debug=True)
+ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
 
 if __name__ == "__main__":
     # init particle system paras, world unit is m
