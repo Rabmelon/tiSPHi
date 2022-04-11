@@ -159,3 +159,5 @@ desktop.ini
 *.mkv
 *.avi
 
+# gitbak
+*.gitbak

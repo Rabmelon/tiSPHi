@@ -24,8 +24,8 @@ html:
       - [For straight, stationary walls](#for-straight-stationary-walls)
       - [For free surface problems](#for-free-surface-problems)
   - [Time integration](#time-integration)
-    - [Symp Euler - Symplectic Euler](#symp-euler-symplectic-euler)
-    - [RK4 - 4th order Runge-Kutta](#rk4-4th-order-runge-kutta)
+    - [Symp Euler - Symplectic Euler](#symp-euler---symplectic-euler)
+    - [RK4 - 4th order Runge-Kutta](#rk4---4th-order-runge-kutta)
     - [XSPH](#xsph)
   - [Tensile instability](#tensile-instability)
 - [SPH for water](#sph-for-water)
@@ -210,7 +210,7 @@ First, choose the method to solve boundary problems. I want to update the behavi
 
 The dummy particle method is used to represent the wall boundary. For dummy and repulsive particles at the wall boundary, they are spaced apart by $\Delta x/2$. For other dummy particles, are $\Delta x$.
 <div align="center">
-  <img width="300px" src="./temp/Dummy_particles.png">
+  <img width="300px" src="./img/Dummy_particles.png">
 </div>
 
 The repulsive particles are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force $\hat{\boldsymbol{F}}_{ij}$ is applied to all particles that interact with the repulsive boundary particles, and is included in the SPH momentum equation:
@@ -469,7 +469,7 @@ And for the elastoplastic constitutive equation of Drucker-Prager and *non-assoc
 And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
 The Von Mises and D-P yield criteria are illustrated in two dimensions:
 <div align="center">
-  <img width="400px" src="./temp/Yield_criterias.png">
+  <img width="400px" src="./img/Yield_criterias.png">
 </div>
 
 Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
@@ -511,7 +511,7 @@ In the elastoplastic model, the stress state is not allowed to exceed the yield 
 
 But the stress state is not allowed to exceed the yield surfae. The stress must be checked at every step and adapted if it does not lie within a valid range.
 <div align="center">
-  <img width="800px" src="./temp/Adaptation_stress_states.png">
+  <img width="800px" src="./img/Adaptation_stress_states.png">
 </div>
 
 First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as **tension cracking**, in the movement of the stress state at point E to point F. Tension cracking occurss when: $-\alpha_{\varphi}I_1+k_c<0$. And in such circumstances, the hydrostatic stress $I_1$ must be shifted back to the apex of the yield surface by adapting the normal stress components:
@@ -709,11 +709,11 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 
 As for the calculation of strain item:
 <div align="center">
-  <img width="750px" src="./temp/flowchart_item_strain.svg">
+  <img width="750px" src="./img/flowchart_item_strain.svg">
 </div>
 As for the implementation of RK4:
 <div align="center">
-  <img width="300px" src="./temp/flowchart_RK4_soil.svg">
+  <img width="300px" src="./img/flowchart_RK4_soil.svg">
 </div>
 
 
