@@ -1,1 +1,1 @@
-from . import soilsph, sph_solver, particle_system, wcsph
+from . import particle_system, sph_solver, wcsph
