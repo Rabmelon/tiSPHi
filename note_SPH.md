@@ -12,19 +12,20 @@ html:
   - [Basic mathematics](#basic-mathematics)
     - [The spatial derivative operators in 3D](#the-spatial-derivative-operators-in-3d)
     - [Material derivative](#material-derivative)
+    - [Other mathematical components](#other-mathematical-components)
   - [SPH basic formulations](#sph-basic-formulations)
-    - [Kernel estimation](#kernel-estimation)
+    - [The integral estimation](#the-integral-estimation)
+    - [Particle approximations](#particle-approximations)
     - [Spatial derivatives](#spatial-derivatives)
     - [Improving approximations for spatial derivatives](#improving-approximations-for-spatial-derivatives)
-    - [Particle approximations](#particle-approximations)
   - [Boundary treatment](#boundary-treatment)
     - [Basic methods](#basic-methods)
     - [Complex boundary treatment](#complex-boundary-treatment)
       - [For straight, stationary walls](#for-straight-stationary-walls)
       - [For free surface problems](#for-free-surface-problems)
   - [Time integration](#time-integration)
-    - [Symp Euler - Symplectic Euler](#symp-euler---symplectic-euler)
-    - [RK4 - 4th order Runge-Kutta](#rk4---4th-order-runge-kutta)
+    - [Symp Euler - Symplectic Euler](#symp-euler-symplectic-euler)
+    - [RK4 - 4th order Runge-Kutta](#rk4-4th-order-runge-kutta)
     - [XSPH](#xsph)
   - [Tensile instability](#tensile-instability)
 - [SPH for water](#sph-for-water)
@@ -38,6 +39,9 @@ html:
     - [RK4 for WCSPH](#rk4-for-wcsph)
 - [SPH for soil](#sph-for-soil)
   - [Constitutive model of soil](#constitutive-model-of-soil)
+    - [A simple elastic-perfectly plastic model for soil](#a-simple-elastic-perfectly-plastic-model-for-soil)
+    - [$\mu(I)$-rheological constitutive model](#mui-rheological-constitutive-model)
+    - [Drucker-Prager yield criteria](#drucker-prager-yield-criteria)
   - [Governing equations](#governing-equations)
     - [Conservation of mass](#conservation-of-mass)
     - [Conservation of momentum](#conservation-of-momentum)
@@ -89,9 +93,47 @@ $$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
 > **QUESTIONS**
 > 1. Why does Bui use $\frac{{\rm d} \rho}{{\rm d} t}$ while Chalk uses $\frac{{\rm D} \rho}{{\rm D} t}$? Who is right? What's the difference? **GUESS** Maybe Chalk is right? There is no material derivative in Bui's formulations.
 
+### Other mathematical components
+
+$\dot{\#}$ - the accent-dot indicates the time derivative of the vector/tensor quantities. *from @Bui2021, 3.2.1.1. p15*
+
+
 ## SPH basic formulations
 
-### Kernel estimation
+### The integral estimation
+> @Chalk2019 4.2
+
+The integral approximation involves representing a function $f(x)$ as an integral:
+$$f(x)=\int_{\Omega}f(x')\delta(x-x'){\rm d}x'$$
+
+where $\Omega$ donates the integral domain and $\delta(x-x')$ is the Dirac delta function defined as:
+$$\delta(x-x')=\begin{cases}
+  1, &x=x' \\ 0, &x\neq x'
+\end{cases} $$
+
+In the derivation of SPH, the integral approximation is obtained by replacing the Dirac delta with a smoothing function $W$:
+$$\langle f(x)\rangle=\int_{\Omega}f(x')W(x-x', h_s){\rm d}x' $$
+
+The smoothing function, or kernel, must satisfy three conditions:
+$$\begin{aligned}
+    \begin{array}{rl}
+    Normalisation\ condition: &\int_{\Omega}W(x-x',h_s){\rm d}x'=1 \\
+    Compact\ support: &W(x-x',h_s)=0\ when\ |x-x'|>\kappa h_s \\
+    Satisfy\ the\ Dirac\ delta\ function\ condition: &\underset{h\rightarrow0}{\lim}W(x-x',h_s)=\delta(x-x')
+    \end{array}
+\end{aligned} $$
+
+With these conditions for the smoothing kernel, the integral approximation is of second order accuracy, so that:
+$$f(x)=\int_{\Omega}f(x')W(x-x',h_s){\rm d}x'+O(h_s^2) $$
+
+### Particle approximations
+The particle approximation is utilised to discretise the integral equation over a set of particles. This involves writing the integral approximation in discrete form using a summation approach:
+$$\langle f(x)\rangle\approx\sum_{j=1}^Nf(x_j)W(x-x_j,h_s)V_j $$
+
+where $V_j$ is the discrete volume at each point and $N$ is the total number of particles within the region defined by $W$ and $h_s$. Here, the function $f(x)$ is approximated by summing over all discrete particles $j$ within the domain of influence at the position $x$. So the summation approach can be expressed for a specific particle $i$ as:
+$$f(x_i)=\sum_{j=1}^N\frac{m_j}{\rho_j}f(x_j)W(x_i-x_j,h_s) $$
+
+This equation describes the SPH evaluation of a function or variable at a particle $i$.
 
 ### Spatial derivatives
 > taichiCourse01-10 PPT p59 and 72
@@ -109,10 +151,13 @@ $${\color{Salmon} \nabla\times} \boldsymbol{F}(r) \approx -\sum_j \frac{m_j}{\rh
 
 $${\color{Salmon} \nabla^2} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla^2}W(r-r_j, h)  $$
 
-with $W(r_i-r_j, h) = W_{ij}$ in discrete view.
+with $W(r_i-r_j, h) = W_{ij}$ in discrete view, and:
+$$\nabla W_{ij}=\frac{\partial W_{ij}}{\partial x_i}=(\frac{x_i-x_j}{r})\frac{\partial W_{ij}}{\partial r},\ r=|x_i-x_j| $$
+
+$$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial x_i^2} $$
 
 > **QUESTIONS**
-> 1. How to calculate $\nabla W$ and $\nabla^2 W$?
+> 1. How to calculate $\nabla W$ and $\nabla^2 W$? **ANSWER**: just directly take the partial derivative!
 
 ### Improving approximations for spatial derivatives
 > taichiCourse01-10 PPT p60-70
@@ -131,8 +176,6 @@ with $W(r_i-r_j, h) = W_{ij}$ in discrete view.
 
   * When $n=-1$: $\nabla f(r) \approx \rho\sum_j m_j(\frac{f(r_j)}{\rho_j^2}+\frac{f(r)}{\rho^2})\nabla W(r-r_j, h)$, we call it the **symmetric form**
 * 通常会使用一些反对称(**anti-sym**)或对称型(**sym**)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当$f(r)$是一个力的时候，从动量守恒的角度去推导，使用**sym**更好；当做散度、需要投影的时候，使用**anti-sym**更好。
-
-### Particle approximations
 
 
 ## Boundary treatment
@@ -369,6 +412,55 @@ $$\begin{aligned}
 # SPH for soil
 
 ## Constitutive model of soil
+
+In the application of CFD approach to model geomaterials using SPH, the materials are considered to either be fluid-like materials (i.e. liquefied materials) or have reached its critical state. However, the key drawback of this type of constitutive model is that it cannot describe complex responses of geomaterials, including the hardening or/and softening processes before reaching the critical state of soils.
+Advanced constitutive models were built on the basis of continuum plasticity theory
+
+### A simple elastic-perfectly plastic model for soil
+> bui2021 3.2.1.1.
+
+Standard CFD approach for $c-\varphi$ soils. The shear stresses increase linearly with the incresing shear strain and thus cannot capture the plastic response. A simple approach is to restrict the development of shear stresses when the materials enter the plastic flow regime without actually solving the plastic deformation. (即不计算塑性变形，当材料进入塑性流动状态时，直接按照M-C强度准则约束剪应力)
+The stress tensor is decomposed into the isotropic pressure $p$ and deviatoric stress $\boldsymbol{s}$:
+$$\boldsymbol{\sigma}=p\boldsymbol{I}+\boldsymbol{s}$$
+
+$p$ is computed using an equation of state (EOS) which is often formulated as a function of density change and sound speed. For geomechanics applications, following the general Hooke's law:
+$$p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)$$
+
+On the other hand, the deviatoric shear stress can be estimated using the general Hooke's law for **elastic materials**:
+$$\dot{\boldsymbol{s}}=2G(\dot{\boldsymbol{\varepsilon}}-\frac{1}{3}\boldsymbol{I}\dot{\varepsilon}_v)$$
+
+The plastic regime for general soils can be determinded by the Mohr-Coulomb failure criterion:
+$$\tau_f=c+p\tan{\varphi}$$
+
+where $\tau_f=\sqrt{\frac{3}{2}\boldsymbol{s}:\boldsymbol{s}}$ is the maximum shear stress at failure. When the soil enters its plastic flow regime, the shear stress components are scaled back to the yield surface.
+
+### $\mu(I)$-rheological constitutive model
+> bui2021 3.2.1.2.
+
+The $\mu(I)$-rheological model is one of the most commonl used and widely validated rheological models, developed to capture the rate-dependent and inertial effect of granular materials in the dense flow regime.
+It was derived based on the Bingham constitutive relation for non-Newtonian fluids. It assumes the materials behave as a rigid body or stiff elastic response before yielding and then quickly reaching their plastic flow behaviour. (假设材料在屈服前表现为刚体或刚性弹性响应？然后迅速达到其塑性流动状态即屈服后的临界状态)
+It separates the stress tensor into an isotropic pressure and viscous shear stress tensor, and the viscous shear stress is then defined as a function of total strain-rate:
+$$\boldsymbol{\sigma}=p\boldsymbol{I}+\boldsymbol{\tau}$$
+
+$$\boldsymbol{\tau}=2\eta\dot{\boldsymbol{\varepsilon}},\ \eta=\frac{\mu(I)p}{\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}},\ \mu(I)=\mu_s+\frac{\mu_2-\mu_s}{I_0/I+1}$$
+
+where $\eta$ is an effective viscosity, when $\dot{\boldsymbol{\varepsilon}}\rightarrow0$, it diverges to infinity and this ensures the material behaviour is rigid or very stiff when the strain rate is very small or at the static condition and thus guaranteeing the existence of a ield criterion;
+$\dot{\boldsymbol{\varepsilon}}$ is the total strain-rate tensor;
+$\mu$ is a frictional function dependent on the inertial number $I=d_s\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}/\sqrt{p/\rho_s}$ with $d_s$ being the grain diameter, $\rho_s$ being the solid density;
+$\mu_2$ and $I_0$ are both materials constants with $\mu_2$ being the critical friction angle at very high $I$;
+and $\mu_s$ is the sratic friction coefficient, corresponding to the state of no plastic flow.
+
+Under the condition of the strain rate tensor in the limit of 0 ($I\rightarrow0$), the second component of $\mu(I)$ will approach 0. This suggests that, under static condition, $\mu(I)=\mu_s$, which defines a yielding threshold above which yielding occurs. Accordingly, the following yield criterion, which takes the form of the Drucker-Prager-like criterion, can be defined:
+$$|\boldsymbol{\tau}|\leq\mu_sp,\ |\boldsymbol{\tau}|=\sqrt{0.5(\boldsymbol{\tau}:\boldsymbol{\tau})}$$
+
+The isotropic pressure can be defined alternltively, where the second one is commonly used in the SPH context to eodel quasi-comopressible fluids:
+$$p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)\ or\ p=c^2(\rho-\rho_0)$$
+
+where $c$ is the speed of sound.
+Finally, it is noted that when incorporating this model, to avoid unphysical behaviour, the **shear component of the stress tensor** should be set to 0 for negative pressure value.
+In addition, the **initial strain rate tensor** should be set close to 0 (e.g. $10^{-7}$) as 0 strain rates can result in mathematically undefined behaviour.
+
+### Drucker-Prager yield criteria
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
 For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
 $$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
@@ -493,12 +585,22 @@ $$\begin{aligned} \boldsymbol{f}^u = \left (\begin{array}{cc}
       \dot \varepsilon^p_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
+$$\dot\varepsilon_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}}),\
+\dot{\boldsymbol{\varepsilon}} = \begin{aligned} \left(\begin{array}{c}
+      \dot \varepsilon_{xx}\\ \dot \varepsilon_{yy}\\
+      \dot \varepsilon_{xy}\\ 0
+\end{array} \right) \end{aligned} = \begin{aligned} \left(\begin{array}{c}
+      \frac{\partial u_x}{\partial x}\\ \frac{\partial u_y}{\partial y}\\
+      \frac{1}{2}(\frac{\partial u_x}{\partial y}+\frac{\partial u_y}{\partial x})\\ 0
+\end{array} \right) \end{aligned}$$
+
 $$\begin{aligned} \boldsymbol{D}^e = D^e_{pq} = \frac{E}{(1+\nu)(1-2\nu)} \left (\begin{array}{cccc}
     1-\nu  &\nu  &0  &\nu\\ \nu  &1-\nu  &0  &\nu\\
     0  &0  &(1-2\nu)/2  &0\\ \nu  &\nu  &0  &1-\nu\\
 \end{array}\right) \end{aligned}$$
 
 $D^e_{pq}$ is the **elastic constitutive tensor**, also the ealstic constitutive matrix reduces in plane strain condition.
+$\boldsymbol{\tilde{\sigma}}$ is the **Jaumann stress-rate**, which is adopted to achieve an invariant stress rate with respect to rigid-body rotation for large deformation analysis.
 $\dot{\omega}_{\alpha\beta}$ is the **spin rate tensor**.
 And $\boldsymbol{g}^{\varepsilon^p}$ is a vector containing the plastic terms which is the only difference responsible for plastic deformations between the **elastoplastic** and **Perzyna** constitutive models. In both models, the plastic terms are functions of the plastic strain rate, which is dependent on the state of stress and material parameters.
 
@@ -508,14 +610,8 @@ $$\boldsymbol{g}^{\varepsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s
 which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the D-P yield criterion, where:
 $$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{G}$$
 
-$$\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij} = \boldsymbol{s}:\dot{\boldsymbol{\varepsilon}},\ \dot{\boldsymbol{\varepsilon}} = \begin{aligned} \left(\begin{array}{c}
-      \dot \varepsilon_{xx}\\ \dot \varepsilon_{yy}\\
-      \dot \varepsilon_{xy}\\ 0
-\end{array} \right) \end{aligned} = \begin{aligned} \left(\begin{array}{c}
-      \frac{\partial u_x}{\partial x}\\ \frac{\partial u_y}{\partial y}\\
-      \frac{1}{2}(\frac{\partial u_x}{\partial y}+\frac{\partial u_y}{\partial x})\\ 0
-\end{array} \right) \end{aligned}
-,\ \dot \varepsilon_{kk}=\dot \varepsilon_{xx}+\dot \varepsilon_{yy}+0$$
+$$\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij} = \boldsymbol{s}:\dot{\boldsymbol{\varepsilon}},\
+ \dot \varepsilon_{kk}=\dot \varepsilon_{xx}+\dot \varepsilon_{yy}+0$$
 
 and $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
 
