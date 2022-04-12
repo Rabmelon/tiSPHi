@@ -2,17 +2,16 @@ import taichi as ti
 import numpy as np
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
-# TODO: create a pure particle system
+# TODO: Unify all coordinate systems and put padding area outside the real world.
 
 @ti.data_oriented
 class ParticleSystem:
     def __init__(self, world, radius):
         print("Hallo, class Particle System starts to serve!")
 
-        # Basic information of the simulation 模拟世界矩形范围信息
+        # Basic information of the simulation
         self.dim = len(world)
         assert self.dim in (2, 3), "SPH solver supports only 2D and 3D particle system."
-        self.bound = np.array(world)    # Simply create a rectangular bound
 
         # Material 材料类型定义
         self.material_fluid = 1
@@ -31,12 +30,13 @@ class ParticleSystem:
         self.particle_num = ti.field(int, shape=())  # record the number of current particles
 
         # Grid property 背景格网的基本属性
-        self.grid_size = self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
+        self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
         # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
-        self.grid_num = np.ceil(self.bound / self.grid_size).astype(int)  # 格网总数
+        self.range = np.array([i + 2 * self.grid_size for i in world])    # Simply create a rectangular range
+        self.grid_num = np.ceil(self.range / self.grid_size).astype(int)  # 格网总数
         self.grid_particles_num = ti.field(int)  # 每个格网中的粒子总数
         self.grid_particles = ti.field(int)  # 每个格网中的粒子编号
-        self.padding = self.grid_size  # 边界padding, 用在enforce_boundary函数中
+        self.padding = self.grid_size  # 边界padding, 用在enforce_rangeary函数中
 
         # Particle related property 粒子携带的属性信息
         # Basic
@@ -63,8 +63,8 @@ class ParticleSystem:
         cell_node = grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子编号的存储空间
         cell_node.place(self.grid_particles)
 
-        # Create boundary particles
-        # self.gen_boundary_particles()
+        # Create rangeary particles
+        self.gen_rangeary_particles()
 
 
     ###########################################################################
@@ -121,7 +121,7 @@ class ParticleSystem:
     @ti.kernel
     def search_neighbors(self):
         for p_i in range(self.particle_num[None]):
-            # Skip boundary particles
+            # Skip rangeary particles
             if self.material[p_i] == self.material_dummy:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
@@ -192,7 +192,7 @@ class ParticleSystem:
 
     ###########################################################################
     # 增加 padding region 中所有方向上矩形边界的粒子，2d
-    def gen_one_boundary_cube(self, dl, tr, color, type, voff):
+    def gen_one_rangeary_cube(self, dl, tr, color, type, voff):
         self.add_cube(lower_corner=dl,
                       cube_size=tr - dl,
                       material=type,
@@ -200,23 +200,23 @@ class ParticleSystem:
                       offset=voff,
                       flag_print=False)
 
-    def gen_boundary_particles(self):
+    def gen_rangeary_particles(self):
         Dummy_color = 0x9999FF
         Dummy_type = 10
         Dummy_off = self.particle_diameter
         Dummy_cube_d_dl = np.zeros(2) + self.padding - self.support_radius
-        Dummy_cube_d_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.padding])
-        Dummy_cube_u_dl = np.array([self.padding - self.support_radius, self.bound[1] - self.padding])
-        Dummy_cube_u_tr = self.bound - self.padding + self.support_radius
+        Dummy_cube_d_tr = np.array([self.range[0] - self.padding + self.support_radius, self.padding])
+        Dummy_cube_u_dl = np.array([self.padding - self.support_radius, self.range[1] - self.padding])
+        Dummy_cube_u_tr = self.range - self.padding + self.support_radius
         Dummy_cube_l_dl = np.array([self.padding - self.support_radius, self.padding])
-        Dummy_cube_l_tr = np.array([self.padding, self.bound[1] - self.padding])
-        Dummy_cube_r_dl = np.array([self.bound[0] - self.padding, self.padding])
-        Dummy_cube_r_tr = np.array([self.bound[0] - self.padding + self.support_radius, self.bound[1] - self.padding])
-        self.gen_one_boundary_cube(Dummy_cube_d_dl, Dummy_cube_d_tr, Dummy_color, Dummy_type, Dummy_off)
-        self.gen_one_boundary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type, Dummy_off)
-        self.gen_one_boundary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type, Dummy_off)
-        self.gen_one_boundary_cube(Dummy_cube_r_dl, Dummy_cube_r_tr, Dummy_color, Dummy_type, Dummy_off)
-        print("Boundary dummy particles' number: ", self.particle_num)
+        Dummy_cube_l_tr = np.array([self.padding, self.range[1] - self.padding])
+        Dummy_cube_r_dl = np.array([self.range[0] - self.padding, self.padding])
+        Dummy_cube_r_tr = np.array([self.range[0] - self.padding + self.support_radius, self.range[1] - self.padding])
+        self.gen_one_rangeary_cube(Dummy_cube_d_dl, Dummy_cube_d_tr, Dummy_color, Dummy_type, Dummy_off)
+        self.gen_one_rangeary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type, Dummy_off)
+        self.gen_one_rangeary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type, Dummy_off)
+        self.gen_one_rangeary_cube(Dummy_cube_r_dl, Dummy_cube_r_tr, Dummy_color, Dummy_type, Dummy_off)
+        print("rangeary dummy particles' number: ", self.particle_num)
 
     ###########################################################################
     # 增加一个cube区域的粒子，2/3d通用。

@@ -1,5 +1,15 @@
 
 
+22.04.12.
+1. To change the location of padding, I need to change the whole coordinate system of real physical world, simulation world and drawing world.
+   1. For real world, the origin is the d-l corner.
+   2. For calculation world, it is the expansion of real world and the origin keeps at the d-l corner of real world.
+   3. For drawing world, the key issue is the screen-world-ratio and the origin being at the d-l corner of screen.
+   4. Learn from fem128ggui to see how to change the color of particles as value changes when simulating.
+2. To implement the constitutive model, the $\nabla u$ is a necessary variable. But maybe it cannot be calculated directly through the SPH derivative equation. **How can one equation of the gradient of a vector lead to a vector result of four vector?**
+* TODO: Unify all coordinate systems and put padding area outside the real world.
+
+
 22.03.31.
 1. Reread the basi knowledge and make a **new plan** for code:
    1. Conduct a simple shear test, Bui2021 Section 3.2.4.
