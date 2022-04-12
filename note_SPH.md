@@ -17,6 +17,8 @@ html:
     - [The integral estimation](#the-integral-estimation)
     - [Particle approximations](#particle-approximations)
     - [Spatial derivatives](#spatial-derivatives)
+    - [Kernel functions](#kernel-functions)
+      - [The cubic spline kernel](#the-cubic-spline-kernel)
     - [Improving approximations for spatial derivatives](#improving-approximations-for-spatial-derivatives)
   - [Boundary treatment](#boundary-treatment)
     - [Basic methods](#basic-methods)
@@ -24,8 +26,8 @@ html:
       - [For straight, stationary walls](#for-straight-stationary-walls)
       - [For free surface problems](#for-free-surface-problems)
   - [Time integration](#time-integration)
-    - [Symp Euler - Symplectic Euler](#symp-euler---symplectic-euler)
-    - [RK4 - 4th order Runge-Kutta](#rk4---4th-order-runge-kutta)
+    - [Symp Euler - Symplectic Euler](#symp-euler-symplectic-euler)
+    - [RK4 - 4th order Runge-Kutta](#rk4-4th-order-runge-kutta)
     - [XSPH](#xsph)
   - [Tensile instability](#tensile-instability)
 - [SPH for water](#sph-for-water)
@@ -138,26 +140,55 @@ This equation describes the SPH evaluation of a function or variable at a partic
 ### Spatial derivatives
 > taichiCourse01-10 PPT p59 and 72
 
-Approximate a function $f(r)$ using finite probes $f(r_j)$, and the degree of freedom $(r)$ goes inside the kernel functions (**anti-sym** and **sym**).
+Approximate a function $f(x)$ using finite probes $f(x_j)$, and the degree of freedom $(x)$ goes inside the kernel functions (**anti-sym** and **sym**).
 * SPH discretization:
-$$f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j)W(r-r_j, h) $$
+$$f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j)W(x-x_j, h) $$
 
 * SPH spatial derivatives:
-$${\color{Salmon} \nabla} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla}W(r-r_j, h)  $$
+$${\color{Salmon} \nabla} f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla\cdot} \boldsymbol{F}(r) \approx \sum_j \frac{m_j}{\rho_j}\boldsymbol{F}(r_j){\color{Salmon} \cdot\nabla}W(r-r_j, h)  $$
+$${\color{Salmon} \nabla\cdot} \boldsymbol{F}(x) \approx \sum_j \frac{m_j}{\rho_j}\boldsymbol{F}(x_j){\color{Salmon} \cdot\nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla\times} \boldsymbol{F}(r) \approx -\sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \times\nabla}W(r-r_j, h)  $$
+$${\color{Salmon} \nabla\times} \boldsymbol{F}(x) \approx -\sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \times\nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla^2} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla^2}W(r-r_j, h)  $$
+$${\color{Salmon} \nabla^2} f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \nabla^2}W(x-x_j, h)  $$
 
-with $W(r_i-r_j, h) = W_{ij}$ in discrete view, and:
-$$\nabla W_{ij}=\frac{\partial W_{ij}}{\partial x_i}=(\frac{x_i-x_j}{r})\frac{\partial W_{ij}}{\partial r},\ r=|x_i-x_j| $$
+with $W(x_i-x_j, h) = W_{ij}$ in discrete view, and:
+$$\nabla W_{ij}=\frac{\partial W_{ij}}{\partial x_i} $$
 
 $$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial x_i^2} $$
 
 > **QUESTIONS**
 > 1. How to calculate $\nabla W$ and $\nabla^2 W$? **ANSWER**: just directly take the partial derivative!
+
+### Kernel functions
+> @koschierSmoothedParticleHydrodynamics2019
+
+#### The cubic spline kernel
+$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  6(q^3-q^2)+1, &0\leq q \leq 0.5 \\ 2(1-q)^3, &0.5 < q \leq 1 \\ 0, &otherwise
+\end{cases} $$
+
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{4}{3h}$, $k_2=\frac{40}{7\pi h^2}$, $k_3=\frac{8}{\pi h^3}$. The kernel is $C^2$ continuous.
+
+For **1d kernel function**:
+The first-order derivation:
+$$\nabla W_{ij}=\frac{\partial W}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert},\ \boldsymbol{r}=x_i-x_j $$
+
+$$\frac{\partial W}{\partial q}=k_d\begin{cases}
+  6(3q^2-2q), &0\leq q \leq 0.5 \\ -6(1-q)^2, &0.5 < q \leq 1 \\ 0, &otherwise
+\end{cases} $$
+
+The second-order derivation:
+$$\nabla^2W_{ij}=\frac{\partial^2 W}{\partial x_i^2}=\frac{\partial}{\partial x_i}(\frac{\partial W}{\partial x_i})=\frac{\partial^2 W}{\partial q^2}\cdot(\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i})^2=\frac{\partial^2 W}{\partial q^2}\cdot\frac{1}{h^2}\cdot\frac{(x_i-x_j)^2}{\Vert\boldsymbol{r}\Vert^2} $$
+
+$$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
+  6(6q-2), &0\leq q \leq 0.5 \\ 12(1-q), &0.5 < q \leq 1 \\ 0, &otherwise
+\end{cases} $$
+
+> **QUESTIONS**
+> 1. Maybe the second-order derivation is wront!
+
 
 ### Improving approximations for spatial derivatives
 > taichiCourse01-10 PPT p60-70

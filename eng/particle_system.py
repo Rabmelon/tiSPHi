@@ -31,7 +31,7 @@ class ParticleSystem:
         self.particle_num = ti.field(int, shape=())  # record the number of current particles
 
         # Grid property 背景格网的基本属性
-        self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
+        self.grid_size = self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
         # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
         self.grid_num = np.ceil(self.bound / self.grid_size).astype(int)  # 格网总数
         self.grid_particles_num = ti.field(int)  # 每个格网中的粒子总数
@@ -46,10 +46,12 @@ class ParticleSystem:
         self.material = ti.field(dtype=int)                 # material type
         self.color = ti.field(dtype=int)                    # color in drawing
         # Values
+        self.v = ti.field(dtype=float)               # store a value
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
         self.particles_node.place(self.x, self.material, self.color)
+        self.particles_node.place(self.v)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         self.particle_node.place(self.particle_neighbors)
@@ -62,21 +64,23 @@ class ParticleSystem:
         cell_node.place(self.grid_particles)
 
         # Create boundary particles
-        self.gen_boundary_particles()
+        # self.gen_boundary_particles()
 
 
     ###########################################################################
     # 增加单个粒子，或者说第p个粒子，2/3d通用
     @ti.func
-    def add_particle(self, p, x, material, color):
+    def add_particle(self, p, x, v, material, color):
         self.x[p] = x
         self.material[p] = material
         self.color[p] = color
+        self.v[p] = v
 
     # 增加一群粒子，2/3d通用
     @ti.kernel
     def add_particles(self, new_particles_num: int,
                       new_particles_positions: ti.ext_arr(),
+                      new_particles_value: ti.ext_arr(),
                       new_particles_material: ti.ext_arr(),
                       new_particles_color: ti.ext_arr()):
         for p in range(self.particle_num[None],
@@ -85,6 +89,7 @@ class ParticleSystem:
             for d in ti.static(range(self.dim)):
                 x[d] = new_particles_positions[p - self.particle_num[None], d]
             self.add_particle(p, x,
+                new_particles_value[p - self.particle_num[None]],
                 new_particles_material[p - self.particle_num[None]],
                 new_particles_color[p - self.particle_num[None]])
         self.particle_num[None] += new_particles_num
@@ -175,8 +180,12 @@ class ParticleSystem:
         np_color = np.ndarray((self.particle_num[None],), dtype=np.int32)
         self.copy_to_numpy(np_color, self.color)
 
+        np_value = np.ndarray((self.particle_num[None],), dtype=np.float32)
+        self.copy_to_numpy(np_value, self.v)
+
         return {
             'position': np_x,
+            'value': np_value,
             'material': np_material,
             'color': np_color
         }
@@ -217,6 +226,7 @@ class ParticleSystem:
                  cube_size,
                  material,
                  color=0xFFFFFF,
+                 value=None,
                  offset=None,
                  flag_print=True):
 
@@ -234,4 +244,5 @@ class ParticleSystem:
 
         materials = np.full_like(np.zeros(num_new_particles), material)
         colors = np.full_like(np.zeros(num_new_particles), color)
-        self.add_particles(num_new_particles, new_positions, materials, colors)
+        value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
+        self.add_particles(num_new_particles, new_positions, value, materials, colors)

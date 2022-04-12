@@ -161,3 +161,6 @@ desktop.ini
 
 # gitbak
 *.gitbak
+
+# matlab backup file
+*.asv

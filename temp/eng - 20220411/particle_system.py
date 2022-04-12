@@ -129,7 +129,7 @@ class ParticleSystem:
             flag = flag and (0 <= cell[d] < self.grid_num[d])
         return flag
 
-    # 计算每个粒子对应的grid编号？？？并将粒子编号加入到对应的grid的链表中？？？
+    # 计算每个粒子对应的grid编号，并将粒子编号加入到对应的grid的链表中
     @ti.kernel
     def allocate_particles_to_grid(self):
         for p in range(self.particle_num[None]):
