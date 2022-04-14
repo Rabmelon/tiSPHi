@@ -32,7 +32,8 @@ class ParticleSystem:
         # Grid property 背景格网的基本属性
         self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
         # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
-        self.range = np.array([i + 2 * self.grid_size for i in world])    # Simply create a rectangular range
+        self.bound = np.array([[-self.grid_size, -self.grid_size], [i + self.grid_size for i in world]])    # Simply create a rectangular range
+        self.range = np.array([self.bound[1][0] - self.bound[0][0], self.bound[1][1] - self.bound[0][1]])    # Simply create a rectangular range
         self.grid_num = np.ceil(self.range / self.grid_size).astype(int)  # 格网总数
         self.grid_particles_num = ti.field(int)  # 每个格网中的粒子总数
         self.grid_particles = ti.field(int)  # 每个格网中的粒子编号
@@ -64,7 +65,7 @@ class ParticleSystem:
         cell_node.place(self.grid_particles)
 
         # Create rangeary particles
-        self.gen_rangeary_particles()
+        # self.gen_rangeary_particles()
 
 
     ###########################################################################
@@ -116,6 +117,8 @@ class ParticleSystem:
             cell = self.pos_to_index(self.x[p])                     # 当前粒子位于哪个grid
             offset = ti.atomic_add(self.grid_particles_num[cell], 1)    # 当前粒子是这个grid中的第几个粒子
             self.grid_particles[cell, offset] = p
+            print('pos: ', self.x[p], end=' ')
+            print('in grid: ', cell)
 
     # 搜索邻域粒子，使用的应该是常规的基于格网的搜索方法
     @ti.kernel

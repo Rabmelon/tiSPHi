@@ -1,5 +1,5 @@
 import taichi as ti
-from .sph_solver import SPHSolver
+from sph_solver import SPHSolver
 
 class WCSPHSolver(SPHSolver):
     def __init__(self, particle_system, TDmethod):

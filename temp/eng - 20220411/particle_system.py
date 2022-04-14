@@ -71,7 +71,7 @@ class ParticleSystem:
         cell_node.place(self.grid_particles)
 
         # Create boundary particles
-        self.gen_boundary_particles()
+        # self.gen_boundary_particles()
 
     # 增加单个粒子，或者说第p个粒子，2/3d通用
     @ti.func
