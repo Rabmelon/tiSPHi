@@ -9,7 +9,13 @@ html:
 <!-- code_chunk_output -->
 
 - [Foundation of SPH](#foundation-of-sph)
-  - [Basic mathematics](#basic-mathematics)
+  - [Basic mathematics and mechanics](#basic-mathematics-and-mechanics)
+    - [Tensor](#tensor)
+      - [Einstein summation convention](#einstein-summation-convention)
+      - [Kronecker delta](#kronecker-delta)
+      - [Levi-Civita symbol](#levi-civita-symbol)
+      - [Tensor equation / algebra](#tensor-equation-algebra)
+      - [Some commonly used special tensors](#some-commonly-used-special-tensors)
     - [The spatial derivative operators in 3D](#the-spatial-derivative-operators-in-3d)
     - [Material derivative](#material-derivative)
     - [Other mathematical components](#other-mathematical-components)
@@ -61,7 +67,32 @@ For learning how SPH works basically in slope failure and post-failure process, 
 ---
 # Foundation of SPH
 
-## Basic mathematics
+## Basic mathematics and mechanics
+
+### Tensor
+Tensors are simply mathematical objects that can be used to describe physical properties, a tensor is something that transforms like a tensor. The laws of physics described in tensor automatically guarantee this property of being invariant with the reference frame.
+The rank (or order) of a tensor is defined by the number of directions required to describe it. A scalar is a 0 rank tensor, a vector is a first rank tensor, a matrix is a two rank tensor. In general, in a 3D space, an $n^{th}$ rank tensor can be described by $3^n$ coefficients.
+
+#### Einstein summation convention
+Einstein summation convention is a notational convention that implies summation over a set of indexed terms in a formula, thus achieving brevity.
+* **Summation index (dummy index)**: an index that is summed over.
+  $i$ in $y=\sum_{i=1}^3c_ix_i=c_1x_1+c_2x_2+c_3x_3=c_ix_i$
+  * A dummy index can only appear twice in one item. If there are more dummy indexes in one item, it should be added a summation symbol:
+    $a_1b_1c_1+a_2b_2c_2+a_3b_3c_3=\sum_{i=1}^3a_ib_ic_i$ **not just** $a_ib_ic_i$
+* **Free index**: an index that is not summed over.
+  $j$ in $v_i=\sum_{j=1}^3=a_ib_jx_j=a_ib_1x_1+a_ib_2x_2+a_ib_3x_3$
+  * A free index cannot be written twice in one item.
+
+Unless otherwise specified, $i,j,k,...$ represent 3D index, and $\alpha,\beta,\gamma,...$ represent 2D index: $\boldsymbol{a}\cdot\boldsymbol{b}=a_ib_i=a_1b_1+a_2b_2+a_3b_3$ and $\boldsymbol{a}\cdot\boldsymbol{b}=a_{\alpha}b_{\alpha}=a_1b_1+a_2b_2$
+
+#### Kronecker delta
+
+#### Levi-Civita symbol
+
+#### Tensor equation / algebra
+
+#### Some commonly used special tensors
+
 
 ### The spatial derivative operators in 3D
 $\nabla$ 算子的三个语义:
@@ -69,6 +100,9 @@ $$\nabla=\boldsymbol{i}\frac{\partial}{\partial x}+\boldsymbol{j}\frac{\partial}
 
 **梯度Gradient**：作用于**标量**$f(x, y, z)$得到**矢量**。$\mathbb{R}^1\rightarrow\mathbb{R}^3, \nabla$
 $$grad\ f=\nabla f=(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}, \frac{\partial f}{\partial z})$$
+
+作用于张量则张量rank+1
+$$\nabla\boldsymbol{u}=\frac{\partial u_i}{\partial x_j}\boldsymbol{e}_i\boldsymbol{e}_j $$
 
 **散度Divergence**：作用于**矢量**$(f_x, f_y, f_z)$得到**标量**。$\mathbb{R}^3\rightarrow\mathbb{R}^1, \nabla\cdot$
 $$div\ \boldsymbol{f}=\nabla\cdot \boldsymbol{f}=\frac{\partial f_x}{\partial x} + \frac{\partial f_y}{\partial y} + \frac{\partial f_z}{\partial z}$$
@@ -187,7 +221,7 @@ $$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
 \end{cases} $$
 
 > **QUESTIONS**
-> 1. Maybe the second-order derivation is wront!
+> 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
 
 
 ### Improving approximations for spatial derivatives
@@ -507,7 +541,7 @@ Here we difine the firse invariant of the stress tensor $I_1$ and the second inv
 $$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
 
 > **QUESTIONS**
-> 1. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" a tensor and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
+> 1. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" two 2nd rank tensors and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
 
 The increment of the yield function after plastic loading or unloading:
 $${\rm d}f=\frac{\partial f}{\partial \boldsymbol{\sigma}} {\rm d}\boldsymbol{\sigma}$$
@@ -639,10 +673,7 @@ For the elastoplastic model,
 $$\boldsymbol{g}^{\varepsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s}}$$
 
 which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the D-P yield criterion, where:
-$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij}}{G}$$
-
-$$\boldsymbol{s}\dot{\boldsymbol{\varepsilon}}_{ij} = \boldsymbol{s}:\dot{\boldsymbol{\varepsilon}},\
- \dot \varepsilon_{kk}=\dot \varepsilon_{xx}+\dot \varepsilon_{yy}+0$$
+$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{G}$$
 
 and $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
 
