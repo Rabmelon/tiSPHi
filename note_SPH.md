@@ -14,8 +14,9 @@ html:
       - [Einstein summation convention](#einstein-summation-convention)
       - [Kronecker delta](#kronecker-delta)
       - [Levi-Civita symbol](#levi-civita-symbol)
-      - [Tensor equation / algebra](#tensor-equation-algebra)
+      - [Tensor equation / algebra](#tensor-equation--algebra)
       - [Some commonly used special tensors](#some-commonly-used-special-tensors)
+    - [Chain rule in derivative](#chain-rule-in-derivative)
     - [The spatial derivative operators in 3D](#the-spatial-derivative-operators-in-3d)
     - [Material derivative](#material-derivative)
     - [Other mathematical components](#other-mathematical-components)
@@ -32,8 +33,8 @@ html:
       - [For straight, stationary walls](#for-straight-stationary-walls)
       - [For free surface problems](#for-free-surface-problems)
   - [Time integration](#time-integration)
-    - [Symp Euler - Symplectic Euler](#symp-euler-symplectic-euler)
-    - [RK4 - 4th order Runge-Kutta](#rk4-4th-order-runge-kutta)
+    - [Symp Euler - Symplectic Euler](#symp-euler---symplectic-euler)
+    - [RK4 - 4th order Runge-Kutta](#rk4---4th-order-runge-kutta)
     - [XSPH](#xsph)
   - [Tensile instability](#tensile-instability)
 - [SPH for water](#sph-for-water)
@@ -92,6 +93,14 @@ Unless otherwise specified, $i,j,k,...$ represent 3D index, and $\alpha,\beta,\g
 #### Tensor equation / algebra
 
 #### Some commonly used special tensors
+
+### Chain rule in derivative
+
+$$
+\begin{aligned}
+  h &= f(g(x)) \\ h &= (f\circ g)(x) \\ h'(x) &= f'(g(x))g'(x) \\ \frac{{\rm d}(f\circ g)}{{\rm d}x} &= \frac{{\rm d}f}{{\rm d}g}\frac{{\rm d}g}{{\rm d}x} \\ \frac{{\rm d}^2(f\circ g)}{{\rm d}x^2} &= \frac{{\rm d}^2f}{{\rm d}g^2}(\frac{{\rm d}g}{{\rm d}x})^2+\frac{{\rm d}f}{{\rm d}g}\frac{{\rm d}^2g}{{\rm d}x^2} \\ \frac{{\rm d}^3(f\circ g)}{{\rm d}x^3} &= \frac{{\rm d}^3f}{{\rm d}g^3} (\frac{{\rm d}g}{{\rm d}x})^3+3\frac{{\rm d}^2f}{{\rm d}g^2}\frac{{\rm d}g}{{\rm d}x}\frac{{\rm d}^2g}{{\rm d}x^2}+\frac{{\rm d}f}{{\rm d}g}\frac{{\rm d}^3g}{{\rm d}x^3}
+\end{aligned}
+$$
 
 
 ### The spatial derivative operators in 3D
