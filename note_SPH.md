@@ -14,7 +14,7 @@ html:
       - [Einstein summation convention](#einstein-summation-convention)
       - [Kronecker delta](#kronecker-delta)
       - [Levi-Civita symbol](#levi-civita-symbol)
-      - [Tensor equation / algebra](#tensor-equation--algebra)
+      - [Tensor equation / algebra](#tensor-equation-algebra)
       - [Some commonly used special tensors](#some-commonly-used-special-tensors)
     - [Chain rule in derivative](#chain-rule-in-derivative)
     - [The spatial derivative operators in 3D](#the-spatial-derivative-operators-in-3d)
@@ -33,8 +33,8 @@ html:
       - [For straight, stationary walls](#for-straight-stationary-walls)
       - [For free surface problems](#for-free-surface-problems)
   - [Time integration](#time-integration)
-    - [Symp Euler - Symplectic Euler](#symp-euler---symplectic-euler)
-    - [RK4 - 4th order Runge-Kutta](#rk4---4th-order-runge-kutta)
+    - [Symp Euler - Symplectic Euler](#symp-euler-symplectic-euler)
+    - [RK4 - 4th order Runge-Kutta](#rk4-4th-order-runge-kutta)
     - [XSPH](#xsph)
   - [Tensile instability](#tensile-instability)
 - [SPH for water](#sph-for-water)
@@ -780,7 +780,7 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 
 As for the calculation of strain item:
 <div align="center">
-  <img width="750px" src="./img/flowchart_item_strain.svg">
+  <img width="800px" src="./img/flowchart_item_strain_DP.svg">
 </div>
 As for the implementation of RK4:
 <div align="center">
