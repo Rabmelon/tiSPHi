@@ -185,7 +185,10 @@ if __name__ == "__main__":
     fric = 25*par
     youngMod = 1.80e6
     nu = 0.2
-    stress_ini = [16, 12, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz
+    stress_ini = [6.2992, 4, 5, -2, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt plas
+    # stress_ini = [6, 2, 3, -1, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt elas
+    # stress_ini = [6, 2, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 2
+    # stress_ini = [16, 12, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 1
     stress0 = [[stress_ini[0], stress_ini[3], stress_ini[4]], [stress_ini[3], stress_ini[1], stress_ini[5]], [stress_ini[4], stress_ini[5], stress_ini[2]]]
 
     grad_u = initMove(dt, u, x, a)
