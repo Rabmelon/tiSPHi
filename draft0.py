@@ -13,9 +13,10 @@ if __name__ == "__main__":
     print("hallo tiSPHi!")
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
+    ld = [0,0]  # for a default left-down corner position (0,0), not added to the code
     screen_to_world_ratio = 4   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     world = [120, 100]
-    particle_radius = 2
+    particle_radius = 1
     cube_size = [20, 40]
 
     TDmethod = 1    # 1 Symp Euler; 2 RK4

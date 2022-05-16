@@ -13,6 +13,7 @@ def guishow(case, world, screen_to_world_ratio, write_to_disk):
     flag_pause = True
     flag_step = 0
     show_pos = [0.0, 0.0]
+    show_grid = [0, 0]
 
     while gui.running:
         if not flag_pause:
@@ -43,11 +44,12 @@ def guishow(case, world, screen_to_world_ratio, write_to_disk):
                 flag_pause = not flag_pause
             elif e.key == ti.GUI.LMB:
                 show_pos = [i / screen_to_world_ratio * max(res) - case.grid_size for i in e.pos]
+                show_grid = [(i - j) // case.grid_size for i,j in zip(show_pos, case.bound[0])]
 
         # show text
         gui.text('Total particle number: {pnum:,}'.format(pnum=case.particle_num[None]), (0.05, 0.9), font_size=24, color=0x055555)
         gui.text('Step: {step:,}'.format(step=flag_step), (0.05, 0.95), font_size=24, color=0x055555)
         gui.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]), (0.05, 0.85), font_size=24, color=0x055555)
-        gui.text('Grid: {gx:.2f}, {gy:.2f}'.format(gx=show_pos[0]/case.grid_size, gy=show_pos[1]/case.grid_size), (0.05, 0.8), font_size=24, color=0x055555)
+        gui.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]), (0.05, 0.8), font_size=24, color=0x055555)
 
         gui.show(f'{flag_step:06d}.png' if write_to_disk else None)

@@ -1,4 +1,8 @@
-
+22.05.10.
+1. Rocky can do simulations with over 1MM particles in one gaming card!
+2. SPlisHSPlasH takes around 0.5kb memory per particle
+3. QuanTaichi can shrink the memory size per particle to 40b!
+4. How much particles can I use in a 4GB GPU memory or a 16GB CPU memory?
 
 22.04.12.
 1. To change the location of padding, I need to change the whole coordinate system of real physical world, simulation world and drawing world.

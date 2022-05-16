@@ -11,7 +11,7 @@ class ParticleSystem:
 
         # Basic information of the simulation
         self.dim = len(world)
-        assert self.dim in (2, 3), "SPH solver supports only 2D and 3D particle system."
+        assert self.dim in (2, 3), "SPH solver supports only 2D and 3D particle system and 2D ractangular world from ld_pos(0,0) now."
 
         # Material 材料类型定义
         self.material_fluid = 1
@@ -32,7 +32,7 @@ class ParticleSystem:
         # Grid property 背景格网的基本属性
         self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
         # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
-        self.bound = np.array([[-self.grid_size, -self.grid_size], [i + self.grid_size for i in world]])    # Simply create a rectangular range
+        self.bound = [[-self.grid_size, -self.grid_size], [i + self.grid_size for i in world]]    # Simply create a rectangular range
         self.range = np.array([self.bound[1][0] - self.bound[0][0], self.bound[1][1] - self.bound[0][1]])    # Simply create a rectangular range
         self.grid_num = np.ceil(self.range / self.grid_size).astype(int)  # 格网总数
         self.grid_particles_num = ti.field(int)  # 每个格网中的粒子总数
@@ -65,7 +65,7 @@ class ParticleSystem:
         cell_node.place(self.grid_particles)
 
         # Create rangeary particles
-        # self.gen_rangeary_particles()
+        self.gen_rangeary_particles()
 
 
     ###########################################################################
@@ -99,7 +99,7 @@ class ParticleSystem:
     # 获取粒子位置对应的grid编号
     @ti.func
     def pos_to_index(self, pos):
-        return (pos / self.grid_size).cast(int)
+        return ((pos - self.bound[0]) / self.grid_size).cast(int)
 
     # 检查cell的编号是否有效，即是否在grid内
     @ti.func
@@ -117,8 +117,6 @@ class ParticleSystem:
             cell = self.pos_to_index(self.x[p])                     # 当前粒子位于哪个grid
             offset = ti.atomic_add(self.grid_particles_num[cell], 1)    # 当前粒子是这个grid中的第几个粒子
             self.grid_particles[cell, offset] = p
-            print('pos: ', self.x[p], end=' ')
-            print('in grid: ', cell)
 
     # 搜索邻域粒子，使用的应该是常规的基于格网的搜索方法
     @ti.kernel
@@ -207,14 +205,14 @@ class ParticleSystem:
         Dummy_color = 0x9999FF
         Dummy_type = 10
         Dummy_off = self.particle_diameter
-        Dummy_cube_d_dl = np.zeros(2) + self.padding - self.support_radius
-        Dummy_cube_d_tr = np.array([self.range[0] - self.padding + self.support_radius, self.padding])
-        Dummy_cube_u_dl = np.array([self.padding - self.support_radius, self.range[1] - self.padding])
-        Dummy_cube_u_tr = self.range - self.padding + self.support_radius
-        Dummy_cube_l_dl = np.array([self.padding - self.support_radius, self.padding])
-        Dummy_cube_l_tr = np.array([self.padding, self.range[1] - self.padding])
-        Dummy_cube_r_dl = np.array([self.range[0] - self.padding, self.padding])
-        Dummy_cube_r_tr = np.array([self.range[0] - self.padding + self.support_radius, self.range[1] - self.padding])
+        Dummy_cube_d_dl = np.array([i + self.grid_size - self.support_radius for i in self.bound[0]])
+        Dummy_cube_d_tr = np.array([self.bound[1][0] - self.grid_size + self.support_radius, 0])
+        Dummy_cube_u_dl = np.array([self.bound[0][0] + self.grid_size - self.support_radius, self.bound[1][1] - self.grid_size])
+        Dummy_cube_u_tr = np.array([i - self.grid_size + self.support_radius for i in self.bound[1]])
+        Dummy_cube_l_dl = np.array([self.bound[0][0] + self.grid_size - self.support_radius, 0])
+        Dummy_cube_l_tr = np.array([self.bound[0][0] + self.grid_size, self.bound[1][1] - self.grid_size])
+        Dummy_cube_r_dl = np.array([self.bound[1][0] - self.grid_size, 0])
+        Dummy_cube_r_tr = np.array([self.bound[1][0] - self.grid_size + self.support_radius, self.bound[1][1] - self.grid_size])
         self.gen_one_rangeary_cube(Dummy_cube_d_dl, Dummy_cube_d_tr, Dummy_color, Dummy_type, Dummy_off)
         self.gen_one_rangeary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type, Dummy_off)
         self.gen_one_rangeary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type, Dummy_off)
