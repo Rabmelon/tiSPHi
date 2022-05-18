@@ -1,7 +1,7 @@
 import taichi as ti
 import numpy as np
 
-def guishow(case, world, screen_to_world_ratio, write_to_disk):
+def guishow(case, solver, world, screen_to_world_ratio, write_to_disk):
 # def show(case, solver, world, screen_to_world_ratio, write_to_disk):
     print("Hallo, gui starts to serve!")
 
@@ -10,7 +10,7 @@ def guishow(case, world, screen_to_world_ratio, write_to_disk):
     res = (np.array(drawworld) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)
 
-    flag_pause = True
+    flag_pause = False
     flag_step = 0
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]
@@ -19,7 +19,7 @@ def guishow(case, world, screen_to_world_ratio, write_to_disk):
         if not flag_pause:
             print('----step:', flag_step)
             for i in range(20):
-                # solver.step()
+                solver.step()
                 flag_step += 1
 
         particle_info = case.dump()

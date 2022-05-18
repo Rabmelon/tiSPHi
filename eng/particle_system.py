@@ -2,21 +2,24 @@ import taichi as ti
 import numpy as np
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
-# TODO: Unify all coordinate systems and put padding area outside the real world.
+# TODO: --ok Unify all coordinate systems and put padding area outside the real world.
 
 @ti.data_oriented
 class ParticleSystem:
     def __init__(self, world, radius):
-        print("Hallo, class Particle System starts to serve!")
+        print("Class Particle System starts to serve!")
 
         # Basic information of the simulation
+        self.world = np.array(world)
         self.dim = len(world)
         assert self.dim in (2, 3), "SPH solver supports only 2D and 3D particle system and 2D ractangular world from ld_pos(0,0) now."
+        self.dim_ts = 4 if self.dim == 2 else 6     # temporary 6 for 3D
 
         # Material 材料类型定义
         self.material_fluid = 1
         self.material_solid = 2
         self.material_dummy = 10
+        self.material_repulsive = 11
 
         # Basic particle property 粒子的基本属性
         self.particle_radius = radius
@@ -30,14 +33,13 @@ class ParticleSystem:
         self.particle_num = ti.field(int, shape=())  # record the number of current particles
 
         # Grid property 背景格网的基本属性
-        self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】
+        self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】at the same equals to padding width
         # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
         self.bound = [[-self.grid_size, -self.grid_size], [i + self.grid_size for i in world]]    # Simply create a rectangular range
         self.range = np.array([self.bound[1][0] - self.bound[0][0], self.bound[1][1] - self.bound[0][1]])    # Simply create a rectangular range
         self.grid_num = np.ceil(self.range / self.grid_size).astype(int)  # 格网总数
         self.grid_particles_num = ti.field(int)  # 每个格网中的粒子总数
         self.grid_particles = ti.field(int)  # 每个格网中的粒子编号
-        self.padding = self.grid_size  # 边界padding, 用在enforce_rangeary函数中
 
         # Particle related property 粒子携带的属性信息
         # Basic
@@ -48,11 +50,17 @@ class ParticleSystem:
         self.color = ti.field(dtype=int)                    # color in drawing
         # Values
         self.v = ti.field(dtype=float)               # store a value
+        # Paras
+        self.u = ti.Vector.field(self.dim, dtype=float)     # velocity
+        self.density = ti.field(dtype=float)
+        self.pressure = ti.field(dtype=float)
+        self.stress = ti.Vector.field(self.dim_ts, dtype=float)
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
         self.particles_node.place(self.x, self.material, self.color)
         self.particles_node.place(self.v)
+        self.particles_node.place(self.u, self.density, self.pressure, self.stress)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         self.particle_node.place(self.particle_neighbors)
@@ -64,7 +72,7 @@ class ParticleSystem:
         cell_node = grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子编号的存储空间
         cell_node.place(self.grid_particles)
 
-        # Create rangeary particles
+        # Create rectangle rangeary particles
         self.gen_rangeary_particles()
 
 
@@ -154,6 +162,12 @@ class ParticleSystem:
         self.particle_neighbors.fill(-1)
         self.allocate_particles_to_grid()
         self.search_neighbors()
+
+    ###########################################################################
+    # Update the color of different type of particles by value
+    @ti.kernel
+    def update_color(self):
+        pass
 
     ###########################################################################
     # transfer data from ti to np
