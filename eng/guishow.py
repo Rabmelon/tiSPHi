@@ -10,7 +10,7 @@ def guishow(case, solver, world, screen_to_world_ratio, write_to_disk):
     res = (np.array(drawworld) * screen_to_world_ratio).astype(int)
     gui = ti.GUI('SPH window', res=(max(res), max(res)), background_color=0xFFFFFF)
 
-    flag_pause = False
+    flag_pause = True
     flag_step = 0
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]

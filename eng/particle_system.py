@@ -3,6 +3,8 @@ import numpy as np
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
 # TODO: --ok Unify all coordinate systems and put padding area outside the real world.
+# TODO: still warnings in NS, offset loop die for endless
+# TODO: better method of update kh
 
 @ti.data_oriented
 class ParticleSystem:
@@ -17,7 +19,7 @@ class ParticleSystem:
 
         # Material 材料类型定义
         self.material_fluid = 1
-        self.material_solid = 2
+        self.material_soil = 2
         self.material_dummy = 10
         self.material_repulsive = 11
 
@@ -49,18 +51,19 @@ class ParticleSystem:
         self.material = ti.field(dtype=int)                 # material type
         self.color = ti.field(dtype=int)                    # color in drawing
         # Values
-        self.v = ti.field(dtype=float)               # store a value
+        self.v = ti.field(dtype=float)                      # store a value
         # Paras
         self.u = ti.Vector.field(self.dim, dtype=float)     # velocity
         self.density = ti.field(dtype=float)
         self.pressure = ti.field(dtype=float)
         self.stress = ti.Vector.field(self.dim_ts, dtype=float)
+        self.strain = ti.Vector.field(self.dim_ts, dtype=float)
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
         self.particles_node.place(self.x, self.material, self.color)
         self.particles_node.place(self.v)
-        self.particles_node.place(self.u, self.density, self.pressure, self.stress)
+        self.particles_node.place(self.u, self.density, self.pressure, self.stress, self.strain)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         self.particle_node.place(self.particle_neighbors)
@@ -74,34 +77,6 @@ class ParticleSystem:
 
         # Create rectangle rangeary particles
         self.gen_rangeary_particles()
-
-
-    ###########################################################################
-    # 增加单个粒子，或者说第p个粒子，2/3d通用
-    @ti.func
-    def add_particle(self, p, x, v, material, color):
-        self.x[p] = x
-        self.material[p] = material
-        self.color[p] = color
-        self.v[p] = v
-
-    # 增加一群粒子，2/3d通用
-    @ti.kernel
-    def add_particles(self, new_particles_num: int,
-                      new_particles_positions: ti.ext_arr(),
-                      new_particles_value: ti.ext_arr(),
-                      new_particles_material: ti.ext_arr(),
-                      new_particles_color: ti.ext_arr()):
-        for p in range(self.particle_num[None],
-                       self.particle_num[None] + new_particles_num):
-            x = ti.Vector.zero(float, self.dim)
-            for d in ti.static(range(self.dim)):
-                x[d] = new_particles_positions[p - self.particle_num[None], d]
-            self.add_particle(p, x,
-                new_particles_value[p - self.particle_num[None]],
-                new_particles_material[p - self.particle_num[None]],
-                new_particles_color[p - self.particle_num[None]])
-        self.particle_num[None] += new_particles_num
 
     ###########################################################################
     # 获取粒子位置对应的grid编号
@@ -186,8 +161,26 @@ class ParticleSystem:
 
     # 数据交换至numpy
     def dump(self):
+        np_value = np.ndarray((self.particle_num[None],), dtype=np.float32)
+        self.copy_to_numpy(np_value, self.v)
+
         np_x = np.ndarray((self.particle_num[None], self.dim), dtype=np.float32)
         self.copy_to_numpy_nd(np_x, self.x)
+
+        np_u = np.ndarray((self.particle_num[None], self.dim), dtype=np.float32)
+        self.copy_to_numpy_nd(np_u, self.u)
+
+        np_stress = np.ndarray((self.particle_num[None], self.dim_ts), dtype=np.float32)
+        self.copy_to_numpy_nd(np_stress, self.stress)
+
+        np_strain = np.ndarray((self.particle_num[None], self.dim_ts), dtype=np.float32)
+        self.copy_to_numpy_nd(np_strain, self.strain)
+
+        np_density = np.ndarray((self.particle_num[None],), dtype=np.float32)
+        self.copy_to_numpy(np_density, self.density)
+
+        np_pressure = np.ndarray((self.particle_num[None],), dtype=np.float32)
+        self.copy_to_numpy(np_pressure, self.pressure)
 
         np_material = np.ndarray((self.particle_num[None],), dtype=np.int32)
         self.copy_to_numpy(np_material, self.material)
@@ -195,15 +188,64 @@ class ParticleSystem:
         np_color = np.ndarray((self.particle_num[None],), dtype=np.int32)
         self.copy_to_numpy(np_color, self.color)
 
-        np_value = np.ndarray((self.particle_num[None],), dtype=np.float32)
-        self.copy_to_numpy(np_value, self.v)
-
         return {
-            'position': np_x,
             'value': np_value,
+            'position': np_x,
+            'velocity': np_u,
+            'stress': np_stress,
+            'strain': np_strain,
+            'density': np_density,
+            'pressure': np_pressure,
             'material': np_material,
             'color': np_color
         }
+
+    ###########################################################################
+    # 增加单个粒子，或者说第p个粒子，2/3d通用
+    @ti.func
+    def add_particle(self, p, v, x, u, density, pressure, stress, strain, material, color):
+        self.v[p] = v
+        self.x[p] = x
+        self.u[p] = u
+        self.density[p] = density
+        self.pressure[p] = pressure
+        self.stress[p] = stress
+        self.strain[p] = strain
+        self.material[p] = material
+        self.color[p] = color
+
+    # 增加一群粒子，2/3d通用
+    @ti.kernel
+    def add_particles(self, new_particles_num: int,
+                      new_particles_value: ti.ext_arr(),
+                      new_particles_positions: ti.ext_arr(),
+                      new_particles_velocity: ti.ext_arr(),
+                      new_particles_density: ti.ext_arr(),
+                      new_particles_pressure: ti.ext_arr(),
+                      new_particles_stress: ti.ext_arr(),
+                      new_particles_strain: ti.ext_arr(),
+                      new_particles_material: ti.ext_arr(),
+                      new_particles_color: ti.ext_arr()):
+        for p in range(self.particle_num[None],
+                       self.particle_num[None] + new_particles_num):
+            new_p = p - self.particle_num[None]
+            x = ti.Vector.zero(float, self.dim)
+            u = ti.Vector.zero(float, self.dim)
+            stress = ti.Vector.zero(float, self.dim_ts)
+            strain = ti.Vector.zero(float, self.dim_ts)
+            for d in ti.static(range(self.dim)):
+                x[d] = new_particles_positions[new_p, d]
+                u[d] = new_particles_velocity[new_p, d]
+            for d in ti.static(range(self.dim_ts)):
+                stress[d] = new_particles_stress[new_p, d]
+                strain[d] = new_particles_strain[new_p, d]
+            self.add_particle(p, new_particles_value[new_p], x, u,
+                new_particles_density[new_p],
+                new_particles_pressure[new_p],
+                stress, strain,
+                new_particles_material[new_p],
+                new_particles_color[new_p])
+        self.particle_num[None] += new_particles_num
 
     ###########################################################################
     # 增加 padding region 中所有方向上矩形边界的粒子，2d
@@ -242,6 +284,11 @@ class ParticleSystem:
                  material,
                  color=0xFFFFFF,
                  value=None,
+                 velocity=None,
+                 stress=None,
+                 strain=None,
+                 density=None,
+                 pressure=None,
                  offset=None,
                  flag_print=True):
 
@@ -257,7 +304,22 @@ class ParticleSystem:
         if flag_print:
             print("New cube's number and dim: ", new_positions.shape)
 
+        if velocity is None:
+            velocity = np.full_like(new_positions, 0)
+        else:
+            velocity = np.array([velocity for _ in range(num_new_particles)], dtype=np.float32)
+        if stress is None:
+            stress = np.full_like(new_positions, 0)
+        else:
+            stress = np.array([stress for _ in range(num_new_particles)], dtype=np.float32)
+        if strain is None:
+            strain = np.full_like(new_positions, 0)
+        else:
+            strain = np.array([strain for _ in range(num_new_particles)], dtype=np.float32)
+
+        value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
+        density = np.full_like(np.zeros(num_new_particles), density if density is not None else 1000.0)
+        pressure = np.full_like(np.zeros(num_new_particles), pressure if pressure is not None else 0.0)
         materials = np.full_like(np.zeros(num_new_particles), material)
         colors = np.full_like(np.zeros(num_new_particles), color)
-        value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
-        self.add_particles(num_new_particles, new_positions, value, materials, colors)
+        self.add_particles(num_new_particles, value, new_positions, velocity, density, pressure, stress, strain, materials, colors)
