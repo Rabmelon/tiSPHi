@@ -15,7 +15,7 @@ class SPHSolver:
         self.TDmethod = TDmethod # 1 for Symp Euler; 2 for RK4
         self.g = -9.81
         self.dt = ti.field(float, shape=())
-        self.dt[None] = 5e-4
+        self.dt[None] = 2e-4
 
     ###########################################################################
     # value of cubic spline smoothing kernel: PPT 10 p52
@@ -62,7 +62,7 @@ class SPHSolver:
         if self.ps.material[p_i] != self.ps.material_dummy and self.ps.material[p_i] != self.ps.material_repulsive:
             if d > self.ps.grid_size:
                 print('!!!!My Error: particle', p_i, 'd =', d, 'padding =', self.ps.grid_size)
-            assert d > self.ps.grid_size, 'My Error: particle goes out of the padding!'
+            # assert d > self.ps.grid_size, 'My Error: particle goes out of the padding!'
 
     # Treat the boundary problems
     @ti.kernel

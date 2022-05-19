@@ -55,22 +55,6 @@ class SoilSPHSolver(SPHSolver):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     ###########################################################################
     @ti.kernel
     def init_data(self):
