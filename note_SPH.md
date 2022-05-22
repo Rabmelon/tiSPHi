@@ -14,7 +14,7 @@ html:
       - [Einstein summation convention](#einstein-summation-convention)
       - [Kronecker delta](#kronecker-delta)
       - [Levi-Civita symbol](#levi-civita-symbol)
-      - [Tensor equation / algebra](#tensor-equation-algebra)
+      - [Tensor equation / algebra](#tensor-equation--algebra)
       - [Some commonly used special tensors](#some-commonly-used-special-tensors)
     - [Chain rule in derivative](#chain-rule-in-derivative)
     - [The spatial derivative operators in 3D](#the-spatial-derivative-operators-in-3d)
@@ -26,6 +26,7 @@ html:
     - [Spatial derivatives](#spatial-derivatives)
     - [Kernel functions](#kernel-functions)
       - [The cubic spline kernel](#the-cubic-spline-kernel)
+      - [The Wenland kernel](#the-wenland-kernel)
     - [Improving approximations for spatial derivatives](#improving-approximations-for-spatial-derivatives)
   - [Boundary treatment](#boundary-treatment)
     - [Basic methods](#basic-methods)
@@ -33,8 +34,8 @@ html:
       - [For straight, stationary walls](#for-straight-stationary-walls)
       - [For free surface problems](#for-free-surface-problems)
   - [Time integration](#time-integration)
-    - [Symp Euler - Symplectic Euler](#symp-euler-symplectic-euler)
-    - [RK4 - 4th order Runge-Kutta](#rk4-4th-order-runge-kutta)
+    - [Symp Euler - Symplectic Euler](#symp-euler---symplectic-euler)
+    - [RK4 - 4th order Runge-Kutta](#rk4---4th-order-runge-kutta)
     - [XSPH](#xsph)
   - [Tensile instability](#tensile-instability)
 - [SPH for water](#sph-for-water)
@@ -59,6 +60,12 @@ html:
     - [RK4 for standard soil SPH](#rk4-for-standard-soil-sph)
     - [Steps](#steps)
   - [Stress-Particle SPH](#stress-particle-sph)
+- [Code frame](#code-frame)
+  - [Structure](#structure)
+  - [Aim](#aim)
+    - [Ensure the correctness](#ensure-the-correctness)
+    - [Improve the performance](#improve-the-performance)
+    - [Balance the convenience](#balance-the-convenience)
 - [FEM-SPH](#fem-sph)
 
 <!-- /code_chunk_output -->
@@ -214,7 +221,6 @@ $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
 
 where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{4}{3h}$, $k_2=\frac{40}{7\pi h^2}$, $k_3=\frac{8}{\pi h^3}$. The kernel is $C^2$ continuous.
 
-For **1d kernel function**:
 The first-order derivation:
 $$\nabla W_{ij}=\frac{\partial W}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert},\ \boldsymbol{r}=x_i-x_j $$
 
@@ -231,6 +237,17 @@ $$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
 
 > **QUESTIONS**
 > 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
+
+#### The Wenland kernel
+$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  (2-q)^4(2q+1), &0\leq q \leq 2 \\ 0, &otherwise
+\end{cases} $$
+
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=2,3$ and $k_2=\frac{7}{32\pi h^2}$, $k_3=\frac{21}{128\pi h^3}$. The kernel is $C^2$ continuous.
+
+The first-order derivation:
+$$\nabla W_{ij}=k_d'(2-q)^3\boldsymbol{r} $$
+where $$k_d'$ for respective dimensions $d=2,3$: $k_2'=-\frac{35}{32\pi h^4}$, $k_3'=-\frac{105}{128\pi h^5}$. The kernel is $C^2$ continuous.
 
 
 ### Improving approximations for spatial derivatives
@@ -373,6 +390,8 @@ $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_
 
 ## Tensile instability
 
+
+---
 # SPH for water
 
 ## Navier-Stokes equation
@@ -482,7 +501,7 @@ $$\begin{aligned}
     \end{array}
 \end{aligned}$$
 
-
+---
 # SPH for soil
 
 ## Constitutive model of soil
@@ -792,5 +811,36 @@ As for the implementation of RK4:
 
 ## Stress-Particle SPH
 
+---
+# Code frame
+## Structure
+
+
+## Aim
+### Ensure the correctness
+1. Generate particles of main domain
+2. Initiate particle paras
+3. Fix neighbour search method
+4. Generate dummy and repulsive particles
+5. Make the approximation right
+6. Make the kernel functions right
+7. Fix the boundary treatment
+8. Test for $f=x+y$ etc
+
+### Improve the performance
+1. Allocate memory well - more particles and faster speed
+2. Promote the calculation function - faster
+3. Use correct taichi functions and syntax - more particles and faster
+
+### Balance the convenience
+1. Set colorbar of selectable paras while running.
+2. Extract the repeated code and functions
+3. Promote the convenience of inputing paras
+
+
+
+
+
+---
 # FEM-SPH
 
