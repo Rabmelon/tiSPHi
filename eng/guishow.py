@@ -3,7 +3,7 @@ import numpy as np
 
 def guishow(case, solver, world, screen_to_world_ratio, write_to_disk):
 # def show(case, solver, world, screen_to_world_ratio, write_to_disk):
-    print("Hallo, gui starts to serve!")
+    print("gui starts to serve!")
 
     drawworld = [i + 2 * case.grid_size for i in world]
     cor_dl = [case.grid_size, case.grid_size]

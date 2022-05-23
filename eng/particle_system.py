@@ -46,6 +46,7 @@ class ParticleSystem:
         # Particle related property 粒子携带的属性信息
         # Basic
         self.x = ti.Vector.field(self.dim, dtype=float)     # position
+        self.pos2vis = ti.Vector.field(self.dim, dtype=float)   # position to visualization
         self.val = ti.field(dtype=float)                      # store a value
         self.particle_neighbors_num = ti.field(int)         # total number of neighbour particles
         self.particle_neighbors = ti.field(int)             # index of neighbour particles
@@ -55,7 +56,7 @@ class ParticleSystem:
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
-        self.particles_node.place(self.x, self.val, self.material, self.color)
+        self.particles_node.place(self.x, self.pos2vis, self.val, self.material, self.color)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         self.particle_node.place(self.particle_neighbors)
@@ -70,6 +71,8 @@ class ParticleSystem:
         # Create rectangle rangeary particles
         self.gen_rangeary_particles()
 
+    ###########################################################################
+    # NS
     ###########################################################################
     # 获取粒子位置对应的grid编号
     @ti.func
@@ -231,7 +234,6 @@ class ParticleSystem:
     ###########################################################################
     # add particles in a cube region
     def add_cube(self, lower_corner, cube_size, material, color=0xFFFFFF, value=None, offset=None):
-
         num_dim = []
         range_offset = offset if offset is not None else self.particle_diameter
         for i in range(self.dim):
@@ -248,3 +250,13 @@ class ParticleSystem:
         colors = np.full_like(np.zeros(num_new_particles), color)
         self.add_particles(num_new_particles, value, new_positions, materials, colors)
         self.initialize_particle_system()
+
+    ###########################################################################
+    # Assist
+    ###########################################################################
+    @ti.kernel
+    def copy2vis(self):
+        for i in range(self.particle_num):
+            for j in range(self.dim):
+                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size)
+
