@@ -25,7 +25,7 @@ if __name__ == "__main__":
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.add_cube(lower_corner=[0, 0],
                    cube_size=cube_size,
-                   color=0x956333,
+                   color=(149/255,99/255,51/255),
                    material=1)
 
     wcsph_solver = WCSPHSolver(case1, TDmethod)

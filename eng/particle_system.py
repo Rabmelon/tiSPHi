@@ -212,7 +212,8 @@ class ParticleSystem:
                       offset=voff)
 
     def gen_rangeary_particles(self):
-        Dummy_color = 0x9999FF
+        Dummy_color = (153/255, 153/255, 255/255)
+        # Dummy_color = 0x9999FF
         Dummy_type = 10
         Dummy_off = self.particle_diameter
         Dummy_cube_d_dl = np.array([i + self.grid_size - self.support_radius for i in self.bound[0]])
@@ -233,7 +234,7 @@ class ParticleSystem:
     # Generate particles in rules
     ###########################################################################
     # add particles in a cube region
-    def add_cube(self, lower_corner, cube_size, material, color=0xFFFFFF, value=None, offset=None):
+    def add_cube(self, lower_corner, cube_size, material, color=(1,1,1), value=None, offset=None):
         num_dim = []
         range_offset = offset if offset is not None else self.particle_diameter
         for i in range(self.dim):
@@ -255,8 +256,8 @@ class ParticleSystem:
     # Assist
     ###########################################################################
     @ti.kernel
-    def copy2vis(self):
-        for i in range(self.particle_num):
-            for j in range(self.dim):
-                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size)
+    def copy2vis(self, s2w_ratio: float, max_res: float):
+        for i in range(self.particle_num[None]):
+            for j in ti.static(range(self.dim)):
+                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
 

@@ -4,6 +4,8 @@ import numpy as np
 # TODO: find how ggui works in taichi example codes, then change my SPH show to ggui!
 # TODO: clarify the drawing coordinate system
 
+
+
 def gguishow(case, solver, world, s2w_ratio, write_to_disk):
     print("ggui starts to serve!")
 
@@ -12,6 +14,7 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk):
     res = (np.array(drawworld) * s2w_ratio).astype(int)
     window = ti.ui.Window('SPH window', res=(max(res), max(res)))
     canvas = window.get_canvas()
+    canvas.set_background_color((1,1,1))
 
     flag_pause = True
     flag_step = 0
@@ -28,8 +31,9 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk):
         particle_info = case.dump()
 
         # draw particles
-        draw_radius = case.particle_radius * s2w_ratio * 1.25
-        canvas.circles(case.x, radius=draw_radius, color=particle_info['color'])
+        case.copy2vis(5.0, 720.0)
+        draw_radius = case.particle_radius * s2w_ratio * 1.25 / max(res)
+        canvas.circles(case.pos2vis, radius=draw_radius, color=particle_info['color'])
 
         # draw world
 

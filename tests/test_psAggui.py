@@ -34,7 +34,7 @@ def gguishow(case, world, s2w_ratio):
 
     while window.running:
         # draw
-        canvas.circles(case.x, radius=1, color=(0.5,0.5,0.5))
+        canvas.circles(case.x, radius=0.1, color=(0.5,0.5,0.5))
 
         # control
         for e in window.get_events(ti.ui.PRESS):
