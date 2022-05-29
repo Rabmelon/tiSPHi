@@ -28,14 +28,18 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk):
                 solver.step()
                 flag_step += 1
 
-        particle_info = case.dump()
-
         # draw particles
         case.copy2vis(5.0, 720.0)
         draw_radius = case.particle_radius * s2w_ratio * 1.25 / max(res)
-        canvas.circles(case.pos2vis, radius=draw_radius, color=particle_info['color'])
+        canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)
 
         # draw world
+        res_world = [(i + case.grid_size) * s2w_ratio / max(res) for i in world]
+        res_cor_ld = [i * s2w_ratio / max(res) for i in cor_dl]
+        draw_world = ti.Vector([res_cor_ld, [res_world[0], res_cor_ld[1]], res_world, [res_cor_ld[0], res_world[1]]])
+        canvas.circles(draw_world, radius=1.0*draw_radius, color=(1,0,0))
+        draw_world_end = ti.Vector([[res_world[0], res_cor_ld[1]], res_world, [res_cor_ld[0], res_world[1]], res_cor_ld])
+        canvas.lines(begin=draw_world, end=draw_world_end, radius=0.25*draw_radius, color=(1,0,0))
 
 
         # control

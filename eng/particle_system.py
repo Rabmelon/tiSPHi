@@ -51,7 +51,8 @@ class ParticleSystem:
         self.particle_neighbors_num = ti.field(int)         # total number of neighbour particles
         self.particle_neighbors = ti.field(int)             # index of neighbour particles
         self.material = ti.field(dtype=int)                 # material type
-        self.color = ti.field(dtype=int)                    # color in drawing
+        # self.color = ti.field(dtype=int)                    # color in drawing for gui
+        self.color = ti.Vector.field(3, dtype=float)     # color in drawing for ggui
         # Paras
 
         # Place nodes on root
@@ -161,8 +162,8 @@ class ParticleSystem:
         np_material = np.ndarray((self.particle_num[None],), dtype=np.int32)
         self.copy_to_numpy(np_material, self.material)
 
-        np_color = np.ndarray((self.particle_num[None],), dtype=np.int32)
-        self.copy_to_numpy(np_color, self.color)
+        np_color = np.ndarray((self.particle_num[None], self.dim), dtype=np.float32)
+        self.copy_to_numpy_nd(np_color, self.color)
 
         return {
             'value': np_value,
@@ -193,11 +194,14 @@ class ParticleSystem:
                        self.particle_num[None] + new_particles_num):
             new_p = p - self.particle_num[None]
             x = ti.Vector.zero(float, self.dim)
+            color = ti.Vector.zero(float, 3)
             for d in ti.static(range(self.dim)):
                 x[d] = new_particles_positions[new_p, d]
+            for i in ti.static(range(3)):
+                color[i] = new_particles_color[new_p, i]
             self.add_particle(p, new_particles_value[new_p], x,
                 new_particles_material[new_p],
-                new_particles_color[new_p])
+                color)
         self.particle_num[None] += new_particles_num
 
     ###########################################################################
@@ -246,9 +250,13 @@ class ParticleSystem:
         new_positions = new_positions.reshape(-1, reduce(lambda x, y: x * y, list(new_positions.shape[1:]))).transpose()
         print("New cube's number and dim: ", new_positions.shape)
 
+        if color is None:
+            colors = np.full_like(new_positions, 0)
+        else:
+            colors = np.array([color for _ in range(num_new_particles)], dtype=np.float32)
+
         value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
         materials = np.full_like(np.zeros(num_new_particles), material)
-        colors = np.full_like(np.zeros(num_new_particles), color)
         self.add_particles(num_new_particles, value, new_positions, materials, colors)
         self.initialize_particle_system()
 
