@@ -54,6 +54,10 @@ class ParticleSystem:
         # self.color = ti.field(dtype=int)                    # color in drawing for gui
         self.color = ti.Vector.field(3, dtype=float)     # color in drawing for ggui
         # Paras
+        self.density = ti.field(dtype=float)
+        self.u = ti.Vector.field(self.dim, dtype=float)
+        self.stress = ti.Vector.field(self.dim_ts, dtype=float)
+        self.strain = ti.Vector.field(self.dim_ts, dtype=float)
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
@@ -177,7 +181,7 @@ class ParticleSystem:
     ###########################################################################
     # add one particle in p with given properties
     @ti.func
-    def add_particle(self, p, val, x, material, color):
+    def add_particle(self, p, val: float, x, material: int, color):
         self.val[p] = val
         self.x[p] = x
         self.material[p] = material
@@ -199,9 +203,7 @@ class ParticleSystem:
                 x[d] = new_particles_positions[new_p, d]
             for i in ti.static(range(3)):
                 color[i] = new_particles_color[new_p, i]
-            self.add_particle(p, new_particles_value[new_p], x,
-                new_particles_material[new_p],
-                color)
+            self.add_particle(p, new_particles_value[new_p], x, new_particles_material[new_p], color)
         self.particle_num[None] += new_particles_num
 
     ###########################################################################

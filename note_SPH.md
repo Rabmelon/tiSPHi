@@ -537,7 +537,7 @@ $$\boldsymbol{\sigma}=p\boldsymbol{I}+\boldsymbol{\tau}$$
 
 $$\boldsymbol{\tau}=2\eta\dot{\boldsymbol{\varepsilon}},\ \eta=\frac{\mu(I)p}{\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}},\ \mu(I)=\mu_s+\frac{\mu_2-\mu_s}{I_0/I+1}$$
 
-where $\eta$ is an effective viscosity, when $\dot{\boldsymbol{\varepsilon}}\rightarrow0$, it diverges to infinity and this ensures the material behaviour is rigid or very stiff when the strain rate is very small or at the static condition and thus guaranteeing the existence of a ield criterion;
+where $\eta$ is an effective viscosity, when $\dot{\boldsymbol{\varepsilon}}\rightarrow0$, it diverges to infinity and this ensures the material behaviour is rigid or very stiff when the strain rate is very small or at the static condition and thus guaranteeing the existence of a field criterion;
 $\dot{\boldsymbol{\varepsilon}}$ is the total strain-rate tensor;
 $\mu$ is a frictional function dependent on the inertial number $I=d_s\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}/\sqrt{p/\rho_s}$ with $d_s$ being the grain diameter, $\rho_s$ being the solid density;
 $\mu_2$ and $I_0$ are both materials constants with $\mu_2$ being the critical friction angle at very high $I$;
