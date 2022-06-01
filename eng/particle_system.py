@@ -15,7 +15,6 @@ class ParticleSystem:
         self.world = np.array(world)
         self.dim = len(world)
         assert self.dim in (2, 3), "SPH solver supports only 2D and 3D particle system and 2D ractangular world from ld_pos(0,0) now."
-        self.dim_ts = 4 if self.dim == 2 else 6     # temporary 6 for 3D
 
         # Material 材料类型定义
         self.material_fluid = 1
@@ -56,8 +55,8 @@ class ParticleSystem:
         # Paras
         self.density = ti.field(dtype=float)
         self.u = ti.Vector.field(self.dim, dtype=float)
-        self.stress = ti.Vector.field(self.dim_ts, dtype=float)
-        self.strain = ti.Vector.field(self.dim_ts, dtype=float)
+        self.stress = ti.Matrix.field((self.dim, self.dim), dtype=float)
+        self.strain = ti.Matrix.field((self.dim, self.dim), dtype=float)
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储

@@ -2,10 +2,10 @@ import taichi as ti
 import numpy as np
 from .sph_solver import SPHSolver
 
-class SoilSPHSolver(SPHSolver):
+class DPSPHSolver(SPHSolver):
     def __init__(self, particle_system, TDmethod, density, cohesion, friction):
         super().__init__(particle_system, TDmethod)
-        print("Class SoilSPH Solver starts to serve!")
+        print("Class Drucker-Prager Soil SPH Solver starts to serve!")
 
         # Basic paras
         self.density_0 = density     # reference density of soil, kg/m3
