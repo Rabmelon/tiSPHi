@@ -61,7 +61,7 @@ class SPHSolver:
     def simulate_collisions(self, p_i, vec, d):
         c_f = 0.7
         self.ps.x[p_i] += vec * d
-        self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.v[p_i].dot(vec)) * vec
+        self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec
         if self.ps.material[p_i] != self.ps.material_dummy and self.ps.material[p_i] != self.ps.material_repulsive:
             if d > self.ps.grid_size:
                 print('!!!!My Error: particle', p_i, 'd =', d, 'padding =', self.ps.grid_size)

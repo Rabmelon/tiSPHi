@@ -30,6 +30,9 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk):
 
         # draw particles
         case.copy2vis(5.0, 720.0)
+        solver.init_value()
+        case.v_maxmin()
+        case.set_color()
         draw_radius = case.particle_radius * s2w_ratio * 1.25 / max(res)
         canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)
 
@@ -46,11 +49,13 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk):
                 show_grid = [(i - j) // case.grid_size for i,j in zip(show_pos, case.bound[0])]
 
         # show text
-        window.GUI.begin("Info", 0.03, 0.03, 0.3, 0.2)
+        window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.25)
         window.GUI.text('Total particle number: {pnum:,}'.format(pnum=case.particle_num[None]))
         window.GUI.text('Step: {step:,}'.format(step=flag_step))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
+        window.GUI.text('max value: {maxv:.3f}'.format(maxv=case.vmax[None]))
+        window.GUI.text('min value: {minv:.3f}'.format(minv=case.vmin[None]))
         window.GUI.end()
 
         window.show()

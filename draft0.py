@@ -3,22 +3,23 @@ import numpy as np
 from eng.guishow import *
 from eng.gguishow import *
 from eng.particle_system import *
+from eng.muIsph import *
 from eng.wcsph import *
 
 # TODO: make unit testing for basic functions of SPH
 
 ti.init(arch=ti.cpu, debug=True)
-# ti.init(arch=ti.vulkan)
 # ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
+# ti.init(arch=ti.vulkan)
 
 if __name__ == "__main__":
     print("hallo tiSPHi!")
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
     screen_to_world_ratio = 5   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [120, 80]   # a rectangle world start from (0, 0) to this pos
-    particle_radius = 1
-    cube_size = [20, 40]
+    rec_world = [80, 120]   # a rectangle world start from (0, 0) to this pos
+    particle_radius = 0.25
+    cube_size = [80, 80]
 
     TDmethod = 1    # 1 Symp Euler; 2 RK4
     write_to_disk = False
@@ -27,8 +28,9 @@ if __name__ == "__main__":
     case1.add_cube(lower_corner=[0, 0],
                    cube_size=cube_size,
                    color=(149/255,99/255,51/255),
-                   material=1)
+                   material=2)
 
-    wcsph_solver = WCSPHSolver(case1, TDmethod)
+    # solver = WCSPHSolver(case1, TDmethod)
+    solver = MCmuISPHSolver(case1, TDmethod, 1850, 0, 29, 0)
 
-    gguishow(case1, wcsph_solver, rec_world, screen_to_world_ratio, write_to_disk)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, write_to_disk)

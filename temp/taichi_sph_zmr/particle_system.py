@@ -174,10 +174,7 @@ class ParticleSystem:
             'color': np_color
         }
 
-    def add_cube(self,
-                 lower_corner,
-                 cube_size,
-                 material,
+    def add_cube(self, lower_corner, cube_size, material,
                  color=0xFFFFFF,
                  density=None,
                  pressure=None,

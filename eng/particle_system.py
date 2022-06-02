@@ -55,12 +55,17 @@ class ParticleSystem:
         # Paras
         self.density = ti.field(dtype=float)
         self.u = ti.Vector.field(self.dim, dtype=float)
-        self.stress = ti.Matrix.field((self.dim, self.dim), dtype=float)
-        self.strain = ti.Matrix.field((self.dim, self.dim), dtype=float)
+        self.stress = ti.Matrix.field(self.dim, self.dim, dtype=float)
+        self.strain = ti.Matrix.field(self.dim, self.dim, dtype=float)
+
+        # info of whole particle systems
+        self.vmax = ti.field(float, shape=())
+        self.vmin = ti.field(float, shape=())
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
         self.particles_node.place(self.x, self.pos2vis, self.val, self.material, self.color)
+        self.particles_node.place(self.density, self.u, self.stress, self.strain)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         self.particle_node.place(self.particle_neighbors)
@@ -180,9 +185,13 @@ class ParticleSystem:
     ###########################################################################
     # add one particle in p with given properties
     @ti.func
-    def add_particle(self, p, val: float, x, material: int, color):
+    def add_particle(self, p, val, x, u, density, stress, strain, material, color):
         self.val[p] = val
         self.x[p] = x
+        self.u[p] = u
+        self.density[p] = density
+        self.stress[p] = stress
+        self.strain[p] = strain
         self.material[p] = material
         self.color[p] = color
 
@@ -191,18 +200,32 @@ class ParticleSystem:
     def add_particles(self, new_particles_num: int,
                       new_particles_value: ti.ext_arr(),
                       new_particles_positions: ti.ext_arr(),
+                      new_particles_velocity: ti.ext_arr(),
+                      new_particles_density: ti.ext_arr(),
+                      new_particles_stress: ti.ext_arr(),
+                      new_particles_strain: ti.ext_arr(),
                       new_particles_material: ti.ext_arr(),
                       new_particles_color: ti.ext_arr()):
         for p in range(self.particle_num[None],
                        self.particle_num[None] + new_particles_num):
             new_p = p - self.particle_num[None]
             x = ti.Vector.zero(float, self.dim)
+            u = ti.Vector.zero(float, self.dim)
+            stress = ti.Matrix.zero(float, self.dim, self.dim)
+            strain = ti.Matrix.zero(float, self.dim, self.dim)
             color = ti.Vector.zero(float, 3)
             for d in ti.static(range(self.dim)):
                 x[d] = new_particles_positions[new_p, d]
+                u[d] = new_particles_velocity[new_p, d]
+            for d, dd in ti.static(ti.ndrange(self.dim, self.dim)):
+                stress[d, dd] = new_particles_stress[new_p, d, dd]
+                strain[d, dd] = new_particles_strain[new_p, d, dd]
+
             for i in ti.static(range(3)):
                 color[i] = new_particles_color[new_p, i]
-            self.add_particle(p, new_particles_value[new_p], x, new_particles_material[new_p], color)
+            self.add_particle(p, new_particles_value[new_p], x, u,
+                              new_particles_density[new_p], stress, strain,
+                              new_particles_material[new_p], color)
         self.particle_num[None] += new_particles_num
 
     ###########################################################################
@@ -239,7 +262,17 @@ class ParticleSystem:
     # Generate particles in rules
     ###########################################################################
     # add particles in a cube region
-    def add_cube(self, lower_corner, cube_size, material, color=(1,1,1), value=None, offset=None):
+    def add_cube(self,
+                 lower_corner,
+                 cube_size,
+                 material,
+                 color=(1, 1, 1),
+                 value=None,
+                 velocity=None,
+                 density=None,
+                 stress=None,
+                 strain=None,
+                 offset=None):
         num_dim = []
         range_offset = offset if offset is not None else self.particle_diameter
         for i in range(self.dim):
@@ -252,13 +285,26 @@ class ParticleSystem:
         print("New cube's number and dim: ", new_positions.shape)
 
         if color is None:
-            colors = np.full_like(new_positions, 0)
+            color = np.zeros((num_new_particles, 3))
         else:
-            colors = np.array([color for _ in range(num_new_particles)], dtype=np.float32)
+            color = np.array([color for _ in range(num_new_particles)], dtype=np.float32)
+        if velocity is None:
+            velocity = np.full_like(new_positions, 0)
+        else:
+            velocity = np.array([velocity for _ in range(num_new_particles)], dtype=np.float32)
+        if stress is None:
+            stress = np.array([np.zeros((self.dim, self.dim)) for _ in range(num_new_particles)], dtype=np.float32)
+        else:
+            stress = np.array([stress for _ in range(num_new_particles)], dtype=np.float32)
+        if strain is None:
+            strain = np.array([np.zeros((self.dim, self.dim)) for _ in range(num_new_particles)], dtype=np.float32)
+        else:
+            strain = np.array([strain for _ in range(num_new_particles)], dtype=np.float32)
 
         value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
-        materials = np.full_like(np.zeros(num_new_particles), material)
-        self.add_particles(num_new_particles, value, new_positions, materials, colors)
+        density = np.full_like(np.zeros(num_new_particles), density if density is not None else 1000.0)
+        material = np.full_like(np.zeros(num_new_particles), material)
+        self.add_particles(num_new_particles, value, new_positions, velocity, density, stress, strain, material, color)
         self.initialize_particle_system()
 
     ###########################################################################
@@ -269,4 +315,31 @@ class ParticleSystem:
         for i in range(self.particle_num[None]):
             for j in ti.static(range(self.dim)):
                 self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
+
+    @ti.kernel
+    def v_maxmin(self):
+        vmax = -float('Inf')
+        vmin = float('Inf')
+        for i in range(self.particle_num[None]):
+            if self.material[i] < 10:
+                vmax = max(vmax, self.val[i])
+                vmin = min(vmin, self.val[i])
+        self.vmax[None] = vmax
+        self.vmin[None] = vmin
+
+    @ti.kernel
+    def set_color(self):
+        vrange = self.vmax[None] - self.vmin[None]
+        vrange1 = 1 / vrange
+        for i in range(self.particle_num[None]):
+            if self.material[i] < 10:
+                self.color[i] = ti.Vector([1, (self.vmax[None] - self.val[i]) * vrange1, 0])
+
+    @ti.kernel
+    def init_value(self):
+        for i in range(self.particle_num[None]):
+            if self.material[i] < 10:
+                self.val[i] = self.x[i][1]
+                # self.val[i] = self.x[i][1]
+
 
