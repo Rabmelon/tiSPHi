@@ -6,10 +6,13 @@ from show import *
 ti.init(arch=ti.cpu)
 
 m = ti.field(float, 10)
-tmp = ti.Vector([1, 2])
+v1 = ti.Vector([1, 2])
+v2 = ti.Vector([1.5, 2.2])
+r = ti.Vector([0.05, 0.02])
 
-@ti.kernel
-def cubic_kernel_derivative(r: ti.types.ndarray()):
+
+@ti.func
+def cubic_kernel_derivative(r):
     res = ti.Vector([0.0 for _ in range(2)])
     k = 40 / 7 / np.pi
     k *= 6. / 12**2
@@ -24,9 +27,17 @@ def cubic_kernel_derivative(r: ti.types.ndarray()):
             res = k * (-factor * factor) * grad_q
     return res
 
-# @ti.kernel
-# def foo():
-    # print(cubic_kernel_derivative(tmp))
+@ti.kernel
+def foo():
+    v_xy = (v1 - v2).dot(r)
+    tmp1 = v_xy * cubic_kernel_derivative(r)
+    tmp2 = r.transpose() @ cubic_kernel_derivative(v1-v2)
+    m[0] = tmp2[0]
+    print(v_xy)
+    print(cubic_kernel_derivative(r))
+    print(tmp1)
+    print(tmp2)
+    print(m[0])
 
 # @ti.kernel
 # def test():
@@ -36,7 +47,5 @@ def cubic_kernel_derivative(r: ti.types.ndarray()):
 
 if __name__ == "__main__":
     print("hallo tiSPHi!")
-    # foo()
+    foo()
     # test()
-    tmp1 = cubic_kernel_derivative(tmp)
-    print(tmp1)

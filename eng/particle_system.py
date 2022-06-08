@@ -116,7 +116,7 @@ class ParticleSystem:
             cnt = 0
             offset_check = 0
             for offset in ti.grouped(ti.ndrange(*((-1, 2),) * self.dim)):
-                # assert offset_check > 9, 'My Error: offset loop die for endless in NS!'
+                # assert offset_check > 9, 'My Error 1: offset loop die for endless in NS!'
                 if offset_check > 9:
                     # print('!!!!My warning: offset loop die for endless in NS!')
                     break

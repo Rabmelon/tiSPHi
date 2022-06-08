@@ -32,14 +32,15 @@ class MCmuISPHSolver(SPHSolver):
     @ti.kernel
     def cal_d_density(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.d_density[p_i] = 0.0
+            dd = ti.Vector([0.0])
             if self.ps.material[p_i] != self.ps.material_soil:
+                self.ps.density[p_i] = self.density_0
                 continue
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 tmp = self.ps.density[p_i] * self.mass * (self.ps.u[p_i] - self.ps.u[p_j]) / self.ps.density[p_j]
-                assert p_i == 3000 & j == 2
-                self.d_density[p_i] += tmp.transpose() @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                dd += tmp.transpose() @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+            self.d_density[p_i] = dd[0]
 
     @ti.kernel
     def cal_density(self):
@@ -56,12 +57,12 @@ class MCmuISPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-                self.u_grad[p_i] += self.mass / self.ps.density[p_j] * (self.ps.u[p_j] - self.ps.u[p_i]).transpose() @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                self.u_grad[p_i] += self.mass / self.ps.density[p_j] * (self.ps.u[p_j] - self.ps.u[p_i]) @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]).transpose()
 
     @ti.kernel
     def cal_strain(self):
         for p_i in range(self.ps.particle_num[None]):
-            for i, j in ti.ndrange(self.ps.dim, self.ps.dim):
+            for i, j in ti.static(ti.ndrange(self.ps.dim, self.ps.dim)):
                 self.ps.strain[p_i][i, j] = 0.5 * (self.u_grad[p_i][i, j] + self.u_grad[p_i][j, i])
             self.strain_dbdot[p_i] = ti.sqrt(0.5 * (self.ps.strain[p_i] * self.ps.strain[p_i]).sum())
 
@@ -78,21 +79,25 @@ class MCmuISPHSolver(SPHSolver):
     @ti.kernel
     def cal_d_velocity(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.d_u[p_i] = 0.0
+            du = ti.Vector([0.0 for _ in range(self.ps.dim)])
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-                self.d_u[p_i] += (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-            self.d_u[p_i] *= self.mass
-            self.d_u[p_i] += ti.Vector([0, self.g])
+                du += (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+            du *= self.mass
+            if self.ps.dim == 2:
+                du += ti.Vector([0, self.g])
+            else:
+                print("!!!!!My Error: cannot used in 3D now!")
+            self.d_u[p_i] = du
 
     @ti.kernel
     def advect(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
                 self.ps.u[p_i] += self.d_u[p_i] * self.dt[None]
-                self.ps.x[p_i] += self.u[p_i] * self.dt[None]
+                self.ps.x[p_i] += self.ps.u[p_i] * self.dt[None]
 
     def substep_SympEuler(self):
         self.cal_d_density()

@@ -1,16 +1,10 @@
 import taichi as ti
 import numpy as np
 
-# TODO: find how ggui works in taichi example codes, then change my SPH show to ggui!
-# TODO: clarify the drawing coordinate system
-
-
-
-def gguishow(case, solver, world, s2w_ratio, write_to_disk):
+def gguishow(case, solver, world, s2w_ratio, write_to_disk=False, stepwise=20):
     print("ggui starts to serve!")
 
     drawworld = [i + 2 * case.grid_size for i in world]
-    cor_dl = [case.grid_size, case.grid_size]
     res = (np.array(drawworld) * s2w_ratio).astype(int)
     window = ti.ui.Window('SPH window', res=(max(res), max(res)))
     canvas = window.get_canvas()
@@ -21,10 +15,13 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk):
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]
 
+    iparticle = 656
+
     while window.running:
         if not flag_pause:
-            print('----step:', flag_step)
-            for i in range(20):
+            print('---- step %d, x[%d] = (%.3f, %.3f)' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1]))
+            # print('---- step %d' % (flag_step))
+            for i in range(stepwise):
                 solver.step()
                 flag_step += 1
 
@@ -59,3 +56,4 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk):
         window.GUI.end()
 
         window.show()
+        # window.show(f'{flag_step:06d}.png' if write_to_disk else None)

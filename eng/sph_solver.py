@@ -62,17 +62,15 @@ class SPHSolver:
         c_f = 0.7
         self.ps.x[p_i] += vec * d
         self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec
-        if self.ps.material[p_i] != self.ps.material_dummy and self.ps.material[p_i] != self.ps.material_repulsive:
-            if d > self.ps.grid_size:
-                print('!!!!My Error: particle', p_i, 'd =', d, 'padding =', self.ps.grid_size)
-            assert d > self.ps.grid_size, 'My Error: particle goes out of the padding!'
+        if self.ps.material[p_i] < 10:
+            assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! di = %f[%d], vec = [%f, %f] ' % (d, p_i, vec[0], vec[1])
 
     # Treat the boundary problems
     @ti.kernel
     def enforce_boundary(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.dim == 2:
-                if self.ps.material[p_i] != self.ps.material_dummy and self.ps.material[p_i] != self.ps.material_repulsive:
+                if self.ps.material[p_i] < 10:
                     pos = self.ps.x[p_i]
                     if pos[0] < 0:
                         self.simulate_collisions(p_i, ti.Vector([1.0, 0.0]), - pos[0])
