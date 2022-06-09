@@ -1,7 +1,12 @@
 import taichi as ti
 import numpy as np
 
-def gguishow(case, solver, world, s2w_ratio, write_to_disk=False, stepwise=20):
+# TODO: add constant color choice
+# TODO: debug to a stable colorbar
+# TODO: add the function of picture capture
+# TODO: add figure output and video/gif make
+
+def gguishow(case, solver, world, s2w_ratio, color_particle=-1, write_to_disk=False, stepwise=20, iparticle=None):
     print("ggui starts to serve!")
 
     drawworld = [i + 2 * case.grid_size for i in world]
@@ -14,23 +19,24 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk=False, stepwise=20):
     flag_step = 0
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]
-
-    iparticle = 656
+    max_res = int(res.max())
 
     while window.running:
         if not flag_pause:
-            print('---- step %d, x[%d] = (%.3f, %.3f)' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1]))
-            # print('---- step %d' % (flag_step))
+            if iparticle is None:
+                print('---- step %d' % (flag_step))
+            else:
+                print('---- step %d, p[%d]: x = (%.3f, %.3f), u = (%.3f, %.3f)' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1]))
             for i in range(stepwise):
                 solver.step()
                 flag_step += 1
 
         # draw particles
-        case.copy2vis(5.0, 720.0)
+        case.copy2vis(s2w_ratio, max_res)
         solver.init_value()
         case.v_maxmin()
         case.set_color()
-        draw_radius = case.particle_radius * s2w_ratio * 1.25 / max(res)
+        draw_radius = case.particle_radius * s2w_ratio * 1.25 / max_res
         canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)
 
         # draw world
@@ -42,7 +48,7 @@ def gguishow(case, solver, world, s2w_ratio, write_to_disk=False, stepwise=20):
             elif e.key == ti.ui.SPACE:
                 flag_pause = not flag_pause
             elif e.key == ti.ui.LMB:
-                show_pos = [i / s2w_ratio * max(res) - case.grid_size for i in window.get_cursor_pos()]
+                show_pos = [i / s2w_ratio * max_res - case.grid_size for i in window.get_cursor_pos()]
                 show_grid = [(i - j) // case.grid_size for i,j in zip(show_pos, case.bound[0])]
 
         # show text

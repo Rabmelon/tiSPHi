@@ -8,8 +8,8 @@ from eng.wcsph import *
 
 # TODO: make unit testing for basic functions of SPH
 
-ti.init(arch=ti.cpu, debug=True)
-# ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
+# ti.init(arch=ti.cpu, debug=True)
+ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
 # ti.init(arch=ti.vulkan)
 
 if __name__ == "__main__":
@@ -18,10 +18,10 @@ if __name__ == "__main__":
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
     screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     rec_world = [120, 80]   # a rectangle world start from (0, 0) to this pos
-    particle_radius = 1
+    particle_radius = 0.25
     cube_size = [20, 40]
 
-    mat = 1
+    mat = 2
     rho = 1850
     TDmethod = 1    # 1 Symp Euler; 2 RK4
 
@@ -37,4 +37,4 @@ if __name__ == "__main__":
     elif mat == 2:
         solver = MCmuISPHSolver(case1, TDmethod, rho, 0, 29, 0)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=10)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=2436, color_particle=(149/255, 99/255, 51/255))

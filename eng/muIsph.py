@@ -64,7 +64,7 @@ class MCmuISPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             for i, j in ti.static(ti.ndrange(self.ps.dim, self.ps.dim)):
                 self.ps.strain[p_i][i, j] = 0.5 * (self.u_grad[p_i][i, j] + self.u_grad[p_i][j, i])
-            self.strain_dbdot[p_i] = ti.sqrt(0.5 * (self.ps.strain[p_i] * self.ps.strain[p_i]).sum())
+            self.strain_dbdot[p_i] = ti.sqrt(0.5 * (self.ps.strain[p_i] * self.ps.strain[p_i]).sum()) + self.epsilon
 
     @ti.kernel
     def cal_tau(self):
@@ -115,6 +115,7 @@ class MCmuISPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.pressure[p_i]
 
 

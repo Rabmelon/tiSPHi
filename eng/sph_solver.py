@@ -5,8 +5,6 @@ import numpy as np
 # TODO: check boundary treatment
 # TODO: add different advection methods
 
-epsilon = 1e-5
-
 @ti.data_oriented
 class SPHSolver:
     def __init__(self, particle_system, TDmethod):
@@ -16,6 +14,7 @@ class SPHSolver:
         self.g = -9.81
         self.dt = ti.field(float, shape=())
         self.dt[None] = 2e-4
+        self.epsilon = 1e-8
 
     ###########################################################################
     # Kernel functions
@@ -44,7 +43,7 @@ class SPHSolver:
         k *= 6. / self.ps.support_radius**self.ps.dim
         r_norm = r.norm()
         q = r_norm / self.ps.support_radius
-        if r_norm > epsilon and q <= 1.0:
+        if r_norm > self.epsilon and q <= 1.0:
             grad_q = r / (r_norm * self.ps.support_radius)
             if q <= 0.5:
                 res = k * q * (3.0 * q - 2.0) * grad_q
@@ -59,11 +58,11 @@ class SPHSolver:
     # Collision factor, assume roughly (1-c_f)*velocity loss after collision
     @ti.func
     def simulate_collisions(self, p_i, vec, d):
+        # if self.ps.material[p_i] < 10:
+            # assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
         c_f = 0.7
-        self.ps.x[p_i] += vec * d
+        self.ps.x[p_i] += (1.0 + c_f) * vec * d
         self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec
-        if self.ps.material[p_i] < 10:
-            assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! di = %f[%d], vec = [%f, %f] ' % (d, p_i, vec[0], vec[1])
 
     # Treat the boundary problems
     @ti.kernel
@@ -73,13 +72,13 @@ class SPHSolver:
                 if self.ps.material[p_i] < 10:
                     pos = self.ps.x[p_i]
                     if pos[0] < 0:
-                        self.simulate_collisions(p_i, ti.Vector([1.0, 0.0]), - pos[0])
+                        self.simulate_collisions(p_i, ti.Vector([1.0, 0.0]), -pos[0])
                     if pos[0] > self.ps.world[0]:
                         self.simulate_collisions(p_i, ti.Vector([-1.0, 0.0]), pos[0] - self.ps.world[0])
                     if pos[1] > self.ps.world[1]:
                         self.simulate_collisions(p_i, ti.Vector([0.0, -1.0]), pos[1] - self.ps.world[1])
                     if pos[1] < 0:
-                        self.simulate_collisions(p_i, ti.Vector([0.0, 1.0]), - pos[1])
+                        self.simulate_collisions(p_i, ti.Vector([0.0, 1.0]), -pos[1])
 
     ###########################################################################
     # Time integration

@@ -311,7 +311,7 @@ class ParticleSystem:
     # Assist
     ###########################################################################
     @ti.kernel
-    def copy2vis(self, s2w_ratio: float, max_res: float):
+    def copy2vis(self, s2w_ratio: float, max_res: int):
         for i in range(self.particle_num[None]):
             for j in ti.static(range(self.dim)):
                 self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
