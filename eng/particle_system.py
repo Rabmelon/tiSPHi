@@ -61,6 +61,8 @@ class ParticleSystem:
         # info of whole particle systems
         self.vmax = ti.field(float, shape=())
         self.vmin = ti.field(float, shape=())
+        self.vmaxmax = ti.field(float, shape=())
+        self.vminmin = ti.field(float, shape=())
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
@@ -329,11 +331,13 @@ class ParticleSystem:
 
     @ti.kernel
     def set_color(self):
-        vrange = self.vmax[None] - self.vmin[None]
+        self.vmaxmax[None] = max(self.vmax[None], self.vmaxmax[None])
+        self.vminmin[None] = min(self.vmin[None], self.vminmin[None])
+        vrange = self.vmaxmax[None] - self.vminmin[None]
         vrange1 = 1 / vrange
         for i in range(self.particle_num[None]):
             if self.material[i] < 10:
-                self.color[i] = ti.Vector([1, (self.vmax[None] - self.val[i]) * vrange1, 0])
+                self.color[i] = ti.Vector([1, (self.vmaxmax[None] - self.val[i]) * vrange1, 0])
 
     @ti.kernel
     def init_value(self):

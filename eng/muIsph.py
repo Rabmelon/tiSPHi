@@ -50,7 +50,7 @@ class MCmuISPHSolver(SPHSolver):
     @ti.kernel
     def cal_pressure(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.pressure[p_i] = self.usound2 * (self.ps.density[p_i] - self.density_0)
+            self.pressure[p_i] = ti.max(self.usound2 * (self.ps.density[p_i] - self.density_0), 0.0)
 
     @ti.kernel
     def cal_u_grad(self):
