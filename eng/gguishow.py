@@ -4,10 +4,8 @@ import time
 import os
 from datetime import datetime
 
-# TODO: debug a stable colorbar!!!!!!!!!!!!!!!!
-# TODO: add constant color choice
-# TODO: add the function of picture capture
-# TODO: add figure output and video/gif make
+# TODO: debug a stable colorbar -- Now with an unupdatable max and min value
+# TODO: add different color choice
 
 def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_particle=-1, write_to_disk=False, stepwise=20, iparticle=None):
     print("ggui starts to serve!")
