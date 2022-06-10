@@ -57,6 +57,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_particle=-1, wr
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.25)
         window.GUI.text('Total particle number: {pnum:,}'.format(pnum=case.particle_num[None]))
         window.GUI.text('Step: {step:,}'.format(step=flag_step))
+        window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * flag_step))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
         window.GUI.text('max value: {maxv:.3f}'.format(maxv=case.vmaxmax[None]))
