@@ -1,12 +1,15 @@
 import taichi as ti
 import numpy as np
+import time
+import os
+from datetime import datetime
 
 # TODO: debug a stable colorbar!!!!!!!!!!!!!!!!
 # TODO: add constant color choice
 # TODO: add the function of picture capture
 # TODO: add figure output and video/gif make
 
-def gguishow(case, solver, world, s2w_ratio, color_particle=-1, write_to_disk=False, stepwise=20, iparticle=None):
+def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_particle=-1, write_to_disk=False, stepwise=20, iparticle=None):
     print("ggui starts to serve!")
 
     drawworld = [i + 2 * case.grid_size for i in world]
@@ -20,6 +23,14 @@ def gguishow(case, solver, world, s2w_ratio, color_particle=-1, write_to_disk=Fa
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]
     max_res = int(res.max())
+
+    cappath = os.getcwd() + r"\screenshots"
+    if write_to_disk:
+        timestamp = datetime.today().strftime('%Y-%m-%d-%H%M%S')
+        simpath = os.getcwd() + "\\sim_" + timestamp
+        if not os.path.exists(simpath):
+            os.mkdir(simpath)
+        os.chdir(simpath)
 
     while window.running:
         if not flag_pause:
@@ -36,20 +47,11 @@ def gguishow(case, solver, world, s2w_ratio, color_particle=-1, write_to_disk=Fa
         solver.init_value()
         case.v_maxmin()
         case.set_color()
-        draw_radius = case.particle_radius * s2w_ratio * 1.25 / max_res
+        draw_radius = case.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)
 
         # draw world
 
-        # control
-        for e in window.get_events(ti.ui.PRESS):
-            if e.key == ti.ui.ESCAPE:
-                window.running = False
-            elif e.key == ti.ui.SPACE:
-                flag_pause = not flag_pause
-            elif e.key == ti.ui.LMB:
-                show_pos = [i / s2w_ratio * max_res - case.grid_size for i in window.get_cursor_pos()]
-                show_grid = [(i - j) // case.grid_size for i,j in zip(show_pos, case.bound[0])]
 
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.25)
@@ -61,5 +63,21 @@ def gguishow(case, solver, world, s2w_ratio, color_particle=-1, write_to_disk=Fa
         window.GUI.text('min value: {minv:.3f}'.format(minv=case.vminmin[None]))
         window.GUI.end()
 
+        # control
+        for e in window.get_events(ti.ui.PRESS):
+            if e.key == ti.ui.ESCAPE:
+                window.running = False
+            elif e.key == ti.ui.SPACE:
+                flag_pause = not flag_pause
+            elif e.key == ti.ui.LMB:
+                show_pos = [i / s2w_ratio * max_res - case.grid_size for i in window.get_cursor_pos()]
+                show_grid = [(i - j) // case.grid_size for i,j in zip(show_pos, case.bound[0])]
+        if window.is_pressed('p'):
+            timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
+            fname = os.path.join(cappath, f"screenshot{timestamp}.jpg")
+            window.write_image(fname)
+            print(f"Screenshot has been saved to {fname}")
+
+        if write_to_disk:
+            window.write_image(f"{flag_step:06d}.png")
         window.show()
-        # window.show(f'{flag_step:06d}.png' if write_to_disk else None)

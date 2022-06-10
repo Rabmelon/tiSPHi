@@ -37,4 +37,4 @@ if __name__ == "__main__":
     elif mat == 2:
         solver = MCmuISPHSolver(case1, TDmethod, rho, 0, 29, 0)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=2436, color_particle=(149/255, 99/255, 51/255))
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=26035, kradius=1.5, write_to_disk=1)

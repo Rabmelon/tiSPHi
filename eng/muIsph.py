@@ -116,6 +116,7 @@ class MCmuISPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.u[p_i].norm()
-                self.ps.val[p_i] = self.pressure[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.ps.u[p_i][0]
 
 
