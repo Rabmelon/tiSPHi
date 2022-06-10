@@ -2,6 +2,9 @@ import taichi as ti
 import numpy as np
 from .sph_solver import SPHSolver
 
+# TODO: need to add damping?
+# TODO: need to init the stress state when starting the simulation?
+
 class MCmuISPHSolver(SPHSolver):
     def __init__(self, particle_system, TDmethod, density, cohesion, friction, eta_0):
         super().__init__(particle_system, TDmethod)
@@ -115,7 +118,8 @@ class MCmuISPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.u[p_i][0]
 

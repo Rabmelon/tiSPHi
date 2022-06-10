@@ -7,7 +7,7 @@ from datetime import datetime
 # TODO: debug a stable colorbar -- Now with an unupdatable max and min value
 # TODO: add different color choice
 
-def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_particle=-1, write_to_disk=False, stepwise=20, iparticle=None):
+def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", color_particle=-1, write_to_disk=False, stepwise=20, iparticle=None):
     print("ggui starts to serve!")
 
     drawworld = [i + 2 * case.grid_size for i in world]
@@ -58,6 +58,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_particle=-1, wr
         window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * flag_step))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
+        window.GUI.text('colorbar: {str}'.format(str=color_title))
         window.GUI.text('max value: {maxv:.3f}'.format(maxv=case.vmaxmax[None]))
         window.GUI.text('min value: {minv:.3f}'.format(minv=case.vminmin[None]))
         window.GUI.end()

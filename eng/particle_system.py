@@ -304,7 +304,7 @@ class ParticleSystem:
             strain = np.array([strain for _ in range(num_new_particles)], dtype=np.float32)
 
         value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
-        density = np.full_like(np.zeros(num_new_particles), density if density is not None else 1000.0)
+        density = np.full_like(np.zeros(num_new_particles), density if density is not None else 0.0)
         material = np.full_like(np.zeros(num_new_particles), material)
         self.add_particles(num_new_particles, value, new_positions, velocity, density, stress, strain, material, color)
         self.initialize_particle_system()

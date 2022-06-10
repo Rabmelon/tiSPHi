@@ -3,7 +3,7 @@ import numpy as np
 from .sph_solver import SPHSolver
 
 class DPSPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, density, cohesion, friction):
+    def __init__(self, particle_system, TDmethod, density, cohesion, friction, poison, EYongMod):
         super().__init__(particle_system, TDmethod)
         print("Class Drucker-Prager Soil SPH Solver starts to serve!")
 
@@ -11,8 +11,8 @@ class DPSPHSolver(SPHSolver):
         self.density_0 = density     # reference density of soil, kg/m3
         self.coh = cohesion       # the material cohesion, Pa
         self.fric_deg = friction      # the angle of internal friction, DEG
-        self.poi = 0.3          # poi’s ratio
-        self.EYoungMod = 8e7                # Young’s modulus, Pa
+        self.poi = poison          # poi’s ratio
+        self.EYoungMod = EYongMod                # Young’s modulus, Pa
 
         # Paras based on basic paras
         self.mass = self.ps.m_V * self.density_0            # the self.mass of each particle, kg
