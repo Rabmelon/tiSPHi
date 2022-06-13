@@ -6,29 +6,34 @@ In the application of CFD approach to model geomaterials using SPH, the material
 Advanced constitutive models were built on the basis of continuum plasticity theory
 
 ### A simple elastic-perfectly plastic model for soil
-> bui2021 3.2.1.1.
+> @bui2021 3.2.1.1.
 
 Standard CFD approach for $c-\varphi$ soils. The shear stresses increase linearly with the incresing shear strain and thus cannot capture the plastic response. A simple approach is to restrict the development of shear stresses when the materials enter the plastic flow regime without actually solving the plastic deformation. (即不计算塑性变形，当材料进入塑性流动状态时，直接按照M-C强度准则约束剪应力)
 The stress tensor is decomposed into the isotropic pressure $p$ and deviatoric stress $\boldsymbol{s}$:
+
 $$\boldsymbol{\sigma}=p\boldsymbol{I}+\boldsymbol{s}$$
 
 $p$ is computed using an equation of state (EOS) which is often formulated as a function of density change and sound speed. For geomechanics applications, following the general Hooke's law:
+
 $$p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)$$
 
 On the other hand, the deviatoric shear stress can be estimated using the general Hooke's law for **elastic materials**:
+
 $$\dot{\boldsymbol{s}}=2G(\dot{\boldsymbol{\varepsilon}}-\frac{1}{3}\boldsymbol{I}\dot{\varepsilon}_v)$$
 
 The plastic regime for general soils can be determinded by the Mohr-Coulomb failure criterion:
+
 $$\tau_f=c+p\tan{\varphi}$$
 
 where $\tau_f=\sqrt{\frac{3}{2}\boldsymbol{s}:\boldsymbol{s}}$ is the maximum shear stress at failure. When the soil enters its plastic flow regime, the shear stress components are scaled back to the yield surface.
 
 ### $\mu(I)$-rheological constitutive model
-> bui2021 3.2.1.2. and yang2021 2.2
+> @bui2021 3.2.1.2. and yang2021 2.2
 
 The $\mu(I)$-rheological model is one of the most commonl used and widely validated rheological models, developed to capture the rate-dependent and inertial effect of granular materials in the dense flow regime.
 It was derived based on the Bingham constitutive relation for non-Newtonian fluids. It assumes the materials behave as a rigid body or stiff elastic response before yielding and then quickly reaching their plastic flow behaviour. (假设材料在屈服前表现为刚体或刚性弹性响应？然后迅速达到其塑性流动状态即屈服后的临界状态)
 It separates the stress tensor into an isotropic pressure and viscous shear stress tensor, and the viscous shear stress is then defined as a function of total strain-rate:
+
 $$\boldsymbol{\sigma}=-p\boldsymbol{I}+\boldsymbol{\tau}$$
 
 $$\boldsymbol{\tau}=2\eta\dot{\boldsymbol{\varepsilon}},\ \eta=\frac{\mu(I)p}{\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}},\ \mu(I)=\mu_s+\frac{\mu_2-\mu_s}{I_0/I+1}$$
@@ -40,9 +45,11 @@ $\mu_2$ and $I_0$ are both materials constants with $\mu_2$ being the critical f
 and $\mu_s$ is the sratic friction coefficient, corresponding to the state of no plastic flow.
 
 Under the condition of the strain rate tensor in the limit of 0 ($I\rightarrow0$), the second component of $\mu(I)$ will approach 0. This suggests that, under static condition, $\mu(I)=\mu_s$, which defines a yielding threshold above which yielding occurs. Accordingly, the following yield criterion, which takes the form of the Drucker-Prager-like criterion, can be defined:
+
 $$|\boldsymbol{\tau}|\leq\mu_sp,\ |\boldsymbol{\tau}|=\sqrt{0.5(\boldsymbol{\tau}:\boldsymbol{\tau})}$$
 
 The isotropic pressure can be defined alternltively, where the second one is commonly used in the SPH context to eodel quasi-comopressible fluids:
+
 $$p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)\ or\ p=c^2(\rho-\rho_0)$$
 
 where $c$ is the speed of sound, which is assumed to be $10 v_{max}$
@@ -52,6 +59,7 @@ In addition, the **initial strain rate tensor** should be set close to 0 (e.g. $
 ### Drucker-Prager yield criteria
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
 For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
+
 $$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
 
 And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis $\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$. $g$ is the plastic potential function (塑性势函数).
@@ -62,12 +70,14 @@ The Von Mises and D-P yield criteria are illustrated in two dimensions:
 </div>
 
 Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
+
 $$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
 
 > **QUESTIONS**
 > 1. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" two 2nd rank tensors and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
 
 The increment of the yield function after plastic loading or unloading:
+
 $${\rm d}f=\frac{\partial f}{\partial \boldsymbol{\sigma}} {\rm d}\boldsymbol{\sigma}$$
 
 The stress state is not allowed to exceed the yield surface, and the yield function increment cannot be greater than 0. ${\rm d}f=0$ ensures that the stress state remains on the yield surface during plastic loading.
@@ -76,9 +86,11 @@ The stress state is not allowed to exceed the yield surface, and the yield funct
 > 1. How to calculate ${\rm d}f$? **ANSWER**: ${\rm d}f = f^*-f$ in advection.
 
 And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
+
 $$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
 
 We define the **elastic strains** according to the **generalised Hooke's law**:
+
 $$\dot{\boldsymbol{\varepsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
 
 where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
@@ -87,9 +99,11 @@ where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}
 > 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive. **Answer**: Generally it's negtive. When it is positive, the meaning is the average normal stress $\sigma_m = -p$.
 
 The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
+
 $$\boldsymbol{\dot\varepsilon} = \boldsymbol{\dot\varepsilon}^e+\boldsymbol{\dot\varepsilon}^p$$
 
 With an assumption of a kinematic condition between the *total strain rate* and the *velocity gradients*.
+
 $$\dot{\varepsilon}_{\alpha\beta} = \frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}})$$
 
 Consider both a **Von Mises** and a **D-P** yield criterion to distinguish between elastic and plastic material behaviour.
@@ -104,9 +118,11 @@ But the stress state is not allowed to exceed the yield surfae. The stress must 
 </div>
 
 First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as **tension cracking**, in the movement of the stress state at point E to point F. Tension cracking occurss when: $-\alpha_{\varphi}I_1+k_c<0$. And in such circumstances, the hydrostatic stress $I_1$ must be shifted back to the apex of the yield surface by adapting the normal stress components:
+
 $$\hat{\sigma}_{\alpha\alpha} = \sigma_{\alpha\alpha}-\frac{1}{3}(I_1-\frac{k_c}{\alpha_{\varphi}})$$
 
 The second corrective stress treatment must be performed when the stress state exceeds the yield surface during plastic loading, as shown by the path A to B. For the D-P yield criterion, this occurs when: $-\alpha_{\varphi}I_1+k_c<\sqrt{J_2}$. And the stress state must be scaleld back appropriately. For this, a scaling factor $r_{\sigma}$ is introduced: $r_{\sigma} = (-\alpha_{\varphi}I_1+k_c) / \sqrt{J_2}$. The deviatoric shear stress is then reduced via this scaling factor for all components of the stress tensor:
+
 $$\hat{\sigma}_{\alpha\alpha} = r_{\sigma}s_{\alpha\alpha}+\frac{1}{3}I_1$$
 
 $$\hat{\sigma}_{\alpha\beta} = r_{\sigma}s_{\alpha\beta}$$
@@ -117,15 +133,19 @@ In the SPH implementation of the elastoplastic model, the two corrective treatme
 
 ## Governing equations
 Conservation of mass:
+
 $$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{u}$$
 
 Conservation of momentum:
+
 $$\frac{{\rm D} \boldsymbol{u}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{f}^{ext}$$
 
 Constitutive equation:
+
 $$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\varepsilon^p}$$
 
 where:
+
 $$\begin{aligned} \boldsymbol{x} = \left (\begin{array}{c}
     x\\ y
 \end{array}\right) \end{aligned}
@@ -194,14 +214,17 @@ $\dot{\omega}_{\alpha\beta}$ is the **spin rate tensor**.
 And $\boldsymbol{g}^{\varepsilon^p}$ is a vector containing the plastic terms which is the only difference responsible for plastic deformations between the **elastoplastic** and **Perzyna** constitutive models. In both models, the plastic terms are functions of the plastic strain rate, which is dependent on the state of stress and material parameters.
 
 For the elastoplastic model,
+
 $$\boldsymbol{g}^{\varepsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s}}$$
 
 which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the D-P yield criterion, where:
+
 $$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{G}$$
 
 and $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
 
 And for the Perzyna model,
+
 $$\boldsymbol{g}^{\varepsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\partial \boldsymbol{\sigma}}(\frac{\sqrt{3J_2}-f_c}{f_c})^{\hat{N}}$$
 
 which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion). And $\hat{N}$ is a model parameter.
@@ -215,6 +238,7 @@ which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield 
 
 ### Conservation of mass
 The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
+
 $$-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm d}y{\rm d}z=[\frac{\partial (\rho u_x)}{\partial x}+\frac{\partial (\rho u_y)}{\partial y}+\frac{\partial (\rho u_z)}{\partial z}]{\rm d}x{\rm d}y{\rm d}z$$
 
 $$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho \boldsymbol{u})=0$$
@@ -229,6 +253,7 @@ $$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
 ### Conservation of momentum
 根据牛顿流体的本构方程，推导获得流体的动量方程。
 无粘流动的动量方程即欧拉方程（惯性力$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}$，体积力$\boldsymbol{f}$，压差力$-\frac{1}{\rho}\nabla p$，普通动量方程中的粘性力$\frac{\mu}{\rho}\nabla^2\boldsymbol{u}+\frac{1}{3}\frac{\mu}{\rho}\nabla(\nabla\cdot\boldsymbol{u})=0$）：
+
 $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 
 流体静止时，粘性力项自然为0，惯性力项也为0，即退化为欧拉静平衡方程$\nabla p=\rho\boldsymbol{f}$。
@@ -242,6 +267,7 @@ $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
 > @chalk2020 Section 3.1
 
 The discrete governing equations of soil motion in the framework of standard SPH are therefore:
+
 $$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}_i)\cdot\nabla W_{ij}$$
 
 $$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
@@ -255,6 +281,7 @@ In the current work, each SPH particle is assigned the same, constant density fo
 > @Chalk2020, Appendix B.
 
 The considered governing SPH equations are summarised as:
+
 $$
 \frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)
 $$
@@ -262,11 +289,13 @@ $$
 $$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p} = F_2(\boldsymbol{u}_i,\boldsymbol{\sigma}_i)$$
 
 Using the fourth order Runge-Kutta (RK4) method:
+
 $$\boldsymbol{u}_i^{t+\Delta t} = \boldsymbol{u}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}^1_i)+2F_1(\boldsymbol{\sigma}^2_i)+2F_1(\boldsymbol{\sigma}^3_i)+F_1(\boldsymbol{\sigma}^4_i))$$
 
 $$\boldsymbol{\sigma}_i^{t+\Delta t} = \boldsymbol{\sigma}_i^t + \frac{\Delta t}{6}(F_2(\boldsymbol{u}^1_i,\boldsymbol{\sigma}^1_i)+2F_2(\boldsymbol{u}^2_i,\boldsymbol{\sigma}^2_i)+2F_2(\boldsymbol{u}^3_i,\boldsymbol{\sigma}^3_i)+F_2(\boldsymbol{u}^4_i,\boldsymbol{\sigma}^4_i))$$
 
 where:
+
 $$\begin{aligned}
     \begin{array}{ll}
       \boldsymbol{u}^1_i = \boldsymbol{u}^t_i &\boldsymbol{\sigma}^1_i = \boldsymbol{\sigma}^t_i\\
@@ -279,6 +308,7 @@ $$\begin{aligned}
 In standard SPH, these eight eqs are spatially resolved at each calculation step by calculating $\boldsymbol{u}_i^{t+\Delta t}$ and $\boldsymbol{\sigma}_i^{t+\Delta t}$ at each particle.
 
 ### Steps
+
 * Key point and aim: update the position, velocity and stress.
 * Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
 * Given $\boldsymbol{x}_i^1$, $\boldsymbol{u}_i^1$, $\boldsymbol{\sigma}_i^1$.

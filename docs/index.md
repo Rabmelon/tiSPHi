@@ -1,5 +1,9 @@
 # Welcome to tiSPHi
 
+<div align="center">
+  <img width="300px" src="/img/tiSPHi_logo_squre.png">
+</div>
+
 For full documentation visit [tiSPHi github](https://github.com/Rabmelon/tiSPHi).
 
 ## Commands
