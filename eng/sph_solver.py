@@ -12,6 +12,7 @@ class SPHSolver:
         self.ps = particle_system
         self.TDmethod = TDmethod # 1 for Symp Euler; 2 for RK4
         self.g = -9.81
+        self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
         self.dt[None] = 2e-4    # "ti video -f125" will be good to make the video 2 times slower than calculation (8s simulation and 16s video, 2000 frames / 8*2s = 125fps)
         self.epsilon = 1e-16

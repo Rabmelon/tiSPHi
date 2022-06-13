@@ -19,8 +19,6 @@ class MCmuISPHSolver(SPHSolver):
         self.fric = self.fric_deg / 180 * np.pi
         self.mass = self.ps.m_V * self.density_0
         self.mu = ti.tan(self.fric)
-        self.I = ti.Matrix(np.eye(self.ps.dim))
-        self.g = -9.81
 
         # allocate memories
         self.u_grad = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
