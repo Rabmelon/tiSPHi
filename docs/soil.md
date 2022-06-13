@@ -110,7 +110,7 @@ Consider both a **Von Mises** and a **D-P** yield criterion to distinguish betwe
 
 In the elastoplastic model, the stress state is not allowed to exceed the yield surface and I should apply a stress adaptation to particles, after every calculation step. And the elastic and plastic behaviour are distinguished via a stress-dependent yield criterion.
 
-> Bui2008 Section 3.3.1 and Chalk2019 Section 4.3.1
+> @Bui2008 Section 3.3.1 and Chalk2019 Section 4.3.1
 
 But the stress state is not allowed to exceed the yield surfae. The stress must be checked at every step and adapted if it does not lie within a valid range.
 <div align="center">
@@ -237,29 +237,40 @@ which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield 
 > 5. What's the difference between $\dot{\boldsymbol{\varepsilon}}$ and $\dot{\boldsymbol{\varepsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{u}$.
 
 ### Conservation of mass
-The loss of mass equals to the net outflow: (控制体内质量的减少=净流出量)
+> @mit fluids lectures [f10](https://web.mit.edu/16.unified/www/FALL/fluids/Lectures/f10.pdf)
+
+All the governing equations of fluid motion which were derived using control volume concepts can be recast in terms of the substantial derivative. We will employ the following general vector identity:
+
+$$\nabla\cdot(a\boldsymbol{u}) = \boldsymbol{u}\cdot\nabla a + a\nabla\cdot\boldsymbol{u}$$
+
+which is valid for any scalar $a$ and any vector $\boldsymbol{u}$.
+
+Beginning with the conservation of mass and the constraint that the density within a moving volume of fluid remains constant, an equivalent condition required for [incompressible flow](https://en.wikipedia.org/wiki/Incompressible_flow) is that the divergence of the flow velocity vanishes. As the loss of mass equals to the net outflow: (控制体内质量的减少=净流出量). So:
+
+$$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho\boldsymbol{u})=0,\ from\ \frac{\partial\rho}{\partial t}=-\nabla\cdot\boldsymbol{J}=0\ and\ \boldsymbol{J}=\rho\boldsymbol{u}$$
 
 $$-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm d}y{\rm d}z=[\frac{\partial (\rho u_x)}{\partial x}+\frac{\partial (\rho u_y)}{\partial y}+\frac{\partial (\rho u_z)}{\partial z}]{\rm d}x{\rm d}y{\rm d}z$$
 
-$$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho \boldsymbol{u})=0$$
+$$\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{u}=0$$
 
-$$\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{u}=0, ~ \frac{{\rm D}\rho}{{\rm D}t}=\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho$$
+The final form in Lagrangian method of density: (left 为微团密度的变化，right 为微团体积的变化。)
 
-$$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
-
-> **QUESTIONS**
-> 1. Where do these equations come from?
+$$\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{u}$$
 
 ### Conservation of momentum
-根据牛顿流体的本构方程，推导获得流体的动量方程。
-无粘流动的动量方程即欧拉方程（惯性力$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}$，体积力$\boldsymbol{f}$，压差力$-\frac{1}{\rho}\nabla p$，普通动量方程中的粘性力$\frac{\mu}{\rho}\nabla^2\boldsymbol{u}+\frac{1}{3}\frac{\mu}{\rho}\nabla(\nabla\cdot\boldsymbol{u})=0$）：
 
-$$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\boldsymbol{f}-\frac{1}{\rho}\nabla p$$
+[Cauchy momentum equation](https://en.wikipedia.org/wiki/Cauchy_momentum_equation) is a vector partial differential equation that describes the non-relativistic momentum transport in any continuum. And in convective (or Lagrangian) form is written as:
 
-流体静止时，粘性力项自然为0，惯性力项也为0，即退化为欧拉静平衡方程$\nabla p=\rho\boldsymbol{f}$。
+$$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\frac{1}{\rho}\nabla\cdot\boldsymbol{\sigma}+\boldsymbol{f}$$
 
-> **QUESTIONS**
-> 1. The momentum considered here is not the same as Navier-Stokes equation but what?
+### Constitutive equation
+
+Unlike the CFD approach, the general elastoplastic constitutive modelling approach evolves the stress tensor over time using a unique stress-strain relationship that relates the stress-increment to the strain-increment. It is assumed that for an elastoplastic material, the total strain-increment tensor ${\rm d}\boldsymbol{\varepsilon}$ is decomposed into elastic and plastic components: ${\rm d}\boldsymbol{\varepsilon}={\rm d}\boldsymbol{\varepsilon}_e+{\rm d}\boldsymbol{\varepsilon}_p$
+
+The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol{\sigma}=\boldsymbol{D}^{ep}:{\rm d}\boldsymbol{\varepsilon}$
+
+> **QUESTIONS**:
+> 1. Is the stress derivative ? deviation? divergancy? the material derivative or partial derivative?
 
 ## Standard soil SPH
 
@@ -317,9 +328,9 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 * Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
 * Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
 * Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}_i$.
-  * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
-  * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
-  * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
+    * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
+    * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
+    * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
 * Step 6: compute $F_1$ and $F_2$ on particles.
 * Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
 * Step 8: if necessary, the boundary conditions and stress state are again updated.

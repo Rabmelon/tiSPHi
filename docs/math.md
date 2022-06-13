@@ -63,22 +63,26 @@ $$laplace\ f=div(grad\ f)=\nabla^2f=\frac{\partial^2 f}{\partial x^2} + \frac{\p
 
 $$\frac{{\rm D}f}{{\rm D}t}=\frac{\partial f}{\partial t}+\boldsymbol{u}\cdot\nabla f$$
 
-is **material derivative** in fluid mechanics, total derivative in math. 数学上的全导数，流体力学中的物质导数、随体导数，为流体质点在运动时所具有的物理量对时间的全导数。
-[Wiki](https://en.wikipedia.org/wiki/Material_derivative): In continuum mechanics, the material derivative describes the time rate of change of some physical quantity (like heat or momentum) of a material element that is subjected to a space-and-time-dependent macroscopic velocity field. The material derivative can serve as a link between Eulerian and Lagrangian descriptions of continuum deformation.
-运动的流体微团的物理量随时间的变化率，它等于该物理量由当地时间变化所引起的变化率与由流体对流引起的变化率的和。
+is **material derivative** in fluid mechanics, total derivative in math. 数学上的全导数，流体力学中的物质导数、随体导数，为流体质点在运动时所具有的物理量对时间的全导数。<br>
+[Wiki](https://en.wikipedia.org/wiki/Material_derivative): In continuum mechanics, the material derivative describes the time rate of change of some physical quantity (like heat or momentum) of a material element that is subjected to a space-and-time-dependent macroscopic velocity field. The material derivative can serve as a link between Eulerian and Lagrangian descriptions of continuum deformation.<br>
+运动的流体微团的物理量随时间的变化率，它等于该物理量由当地时间变化所引起的变化率与由流体对流引起的变化率的和。<br>
 从偏导数全微分的摡念出发，密度变化可以认为是密度分布函数（密度场）的时间偏导数项（不定常）和空间偏导数项（空间不均匀）的和。时间偏导项叫局部导数或就地导数。空间偏导项叫位变导数或对流导数。
 中科院的李新亮研究员给出了一个更加形象的例子：高铁的电子显示屏上会实时显示车外的温度，如果我们将高铁看作是一个流体微元，它早上从北京出发，中午到达上海，显示屏上记录的室外温度的变化就是物质导数，它包含了两个部分，一是从北京到上海的地理位置的变化所带来的温度变化，即对流导数；二是由于早上到中午由于时间不同而引起的温度变化，即当地导数。)
-The final form in Lagrangian method of density: (等号左侧，第一项为微团密度的变化，第二项为微团体积的变化。)
 
-$$\frac{{\rm D}\rho}{{\rm D}t}+\rho\nabla\cdot\boldsymbol{u}=0$$
+## Fluid and solid
+**Solid**: Applied tengential force/area (or shear stress) $\tau$ produces a proportional deformation angle (or strain) $\theta$. The constant of proportionality $G$ is called the *elastic modulus* and has the units of $force/area$.
 
-对于不可压缩流动，质点的密度在运动过程中保持不变，故$\frac{{\rm D}\rho}{{\rm D}t}=0$
+$$\tau=G\theta$$
 
-> **QUESTIONS**
-> 1. Why does Bui use $\frac{{\rm d} \rho}{{\rm d} t}$ while Chalk uses $\frac{{\rm D} \rho}{{\rm D} t}$? Who is right? What's the difference? **GUESS** Maybe Chalk is right? There is no material derivative in Bui's formulations.
+**Fluid**: Applied shear stress $\tau$ produces a proportional continuously-increasing deformation (or strain rate) $\dot\theta$. The constant of proportionality $\mu$ is called the *viscosity* and has the units of $force \times time/area$.
+
+$$\tau=\mu\dot\theta$$
+
+<div align="center">
+  <img width="400px" src="/img/Solid_Fluid.png">
+</div>
 
 ## Other mathematical components
 
 $\dot{\#}$ - the accent-dot indicates the time derivative of the vector/tensor quantities. *from @Bui2021, 3.2.1.1. p15*
-
 

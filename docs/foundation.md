@@ -45,7 +45,7 @@ $$f(x_i)=\sum_{j=1}^N\frac{m_j}{\rho_j}f(x_j)W(x_i-x_j,h_s) $$
 This equation describes the SPH evaluation of a function or variable at a particle $i$.
 
 ### Spatial derivatives
-> taichiCourse01-10 PPT p59 and 72
+> @taichiCourse01-10 PPT p59 and 72
 
 Approximate a function $f(x)$ using finite probes $f(x_j)$, and the degree of freedom $(x)$ goes inside the kernel functions (**anti-sym** and **sym**).
 * SPH discretization:
@@ -112,46 +112,48 @@ where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factor
 The first-order derivation:
 
 $$\nabla W_{ij}=k_d'(2-q)^3\boldsymbol{r} $$
-where $$k_d'$ for respective dimensions $d=2,3$: $k_2'=-\frac{35}{32\pi h^4}$, $k_3'=-\frac{105}{128\pi h^5}$. The kernel is $C^2$ continuous.
+
+where $k_d'$ for respective dimensions $d=2,3$: $k_2'=-\frac{35}{32\pi h^4}$, $k_3'=-\frac{105}{128\pi h^5}$. The kernel is $C^2$ continuous.
 
 
 ### Improving approximations for spatial derivatives
-> taichiCourse01-10 PPT p60-70
+> @taichiCourse01-10 PPT p60-70
 
 * Let $f(r) \equiv 1$, we have:
-  * $1 \approx \sum_j \frac{m_j}{\rho_j}W(r-r_j, h)$
-  * $0 \approx \sum_j \frac{m_j}{\rho_j}\nabla W(r-r_j, h)$
+    * $1 \approx \sum_j \frac{m_j}{\rho_j}W(r-r_j, h)$
+    * $0 \approx \sum_j \frac{m_j}{\rho_j}\nabla W(r-r_j, h)$
 * Since $f(r)\equiv f(r) * 1$, we have:
-  * $\nabla f(r) = \nabla f(r)*1+f(r)*\nabla 1$
-  * Or equivalently: $\nabla f(r) = \nabla f(r)*1-f(r)*\nabla 1$
+    * $\nabla f(r) = \nabla f(r)*1+f(r)*\nabla 1$
+    * Or equivalently: $\nabla f(r) = \nabla f(r)*1-f(r)*\nabla 1$
 * Then use ${\color{Salmon} \nabla} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla}W(r-r_j, h)$ to derivate $\nabla f(r)$ and $\nabla 1$, we have:
-  * $\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j)\nabla W(r-r_j, h) - f(r)\sum_j \frac{m_j}{\rho_j}\nabla W(r-r_j, h)$
-  * $\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}(f(r_j)-f(r))\nabla W(r-r_j, h)$, we call it the **anti-symmetric form**
+    * $\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j)\nabla W(r-r_j, h) - f(r)\sum_j \frac{m_j}{\rho_j}\nabla W(r-r_j, h)$
+    * $\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}(f(r_j)-f(r))\nabla W(r-r_j, h)$, we call it the **anti-symmetric form**
 * A more general case:
 
-  $$\nabla f(r) \approx \sum_j m_j(\frac{f(r_j)\rho_j^{n-1}}{\rho^n}-\frac{nf(r)}{\rho})\nabla W(r-r_j, h)$$
+    $$\nabla f(r) \approx \sum_j m_j(\frac{f(r_j)\rho_j^{n-1}}{\rho^n}-\frac{nf(r)}{\rho})\nabla W(r-r_j, h)$$
 
-  * When $n=-1$: $\nabla f(r) \approx \rho\sum_j m_j(\frac{f(r_j)}{\rho_j^2}+\frac{f(r)}{\rho^2})\nabla W(r-r_j, h)$, we call it the **symmetric form**
+    * When $n=-1$: $\nabla f(r) \approx \rho\sum_j m_j(\frac{f(r_j)}{\rho_j^2}+\frac{f(r)}{\rho^2})\nabla W(r-r_j, h)$, we call it the **symmetric form**
+
 * 通常会使用一些反对称(**anti-sym**)或对称型(**sym**)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当$f(r)$是一个力的时候，从动量守恒的角度去推导，使用**sym**更好；当做散度、需要投影的时候，使用**anti-sym**更好。
 
 
 ## Boundary treatment
 
 ### Basic methods
-> taichiCourse01-10 PPT p43 and 79-85
+> @taichiCourse01-10 PPT p43 and 79-85
 
 * Mainly two styles: **free surface** and **solid boundary**
 * Problems: There are not enough samples within the supporting radius.
 * For free surface:
-  * Problem: Density $\downarrow$, pressure $\downarrow$; and generate outward pressure.
-  * Solution: Clamp the negative pressure (everywhere); assume $p = max(0,k(\rho-\rho_0))$
-  * 会导致液面可能会向外膨胀一点
+    * Problem: Density $\downarrow$, pressure $\downarrow$; and generate outward pressure.
+    * Solution: Clamp the negative pressure (everywhere); assume $p = max(0,k(\rho-\rho_0))$
+    * 会导致液面可能会向外膨胀一点
 * For solid boundary:
-  * Problem: Density $\downarrow$, pressure $\downarrow$; and fluid leakage (due to outbound velocity)
-  * Solution: $p = max(0,k(\rho-\rho_0))$;
-  * Solution for leakage:
-    1. Reflect the outbound velocity when close to boundary. 还可以将垂直边界方向的速度乘上一个衰减值。这样处理大抵应该是不会导致粒子飞出去。
-    2. Pad a layer of solid particles (or called ghost particles) underneath the boundaries with $\rho_{solid} = \rho_0$ and $v_{solid} = 0$. 总体来说比方法1稳定，但可能会导致边界附近粒子的数值黏滞。
+    * Problem: Density $\downarrow$, pressure $\downarrow$; and fluid leakage (due to outbound velocity)
+    * Solution: $p = max(0,k(\rho-\rho_0))$;
+    * Solution for leakage:
+        1. Reflect the outbound velocity when close to boundary. 还可以将垂直边界方向的速度乘上一个衰减值。这样处理大抵应该是不会导致粒子飞出去。
+        2. Pad a layer of solid particles (or called ghost particles) underneath the boundaries with $\rho_{solid} = \rho_0$ and $v_{solid} = 0$. 总体来说比方法1稳定，但可能会导致边界附近粒子的数值黏滞。
 
 > **QUESTIONS**
 > 1. 多介质的流体混合时，多介质的界面？？？
@@ -222,12 +224,12 @@ The particles that comprise the free surface should satisfy a stress-free condit
 ## Time integration
 
 ### Symp Euler - Symplectic Euler
-> taichiCourse01-10 PPT p77
+> @taichiCourse01-10 PPT p77
 
 $$u_i^* = u_i+\Delta t\frac{{\rm d}u_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tu_i^*$$
 
 ### RK4 - 4th order Runge-Kutta
-> Chalk2020 Appendix B.
+> @Chalk2020 Appendix B.
 
 The RK4 scheme has fourth order accuracy and relatively simple implementation.
 Consider a general ordinary differential equation for a variable $\phi$ with an initial condition $\phi^0$ at an initial time $t^0$:

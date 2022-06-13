@@ -76,12 +76,12 @@ In WCSPH:
 
 * Find a particle of interest ($i$) and its nerghbours ($j$) with its support radius $h$.
 * Compute the acceleration for particle $i$:
-  * for i in particles:
-    * Step 1: Evaluate density
+    * for i in particles:
+        * Step 1: Evaluate density
 
         $$\rho_i = \sum_j \frac{m_j}{\rho_j}\rho_jW(r_i-r_j, h) = \sum_j m_jW_{ij}$$
 
-    * Step 2: Evaluate viscosity (**anti-sym**)
+        * Step 2: Evaluate viscosity (**anti-sym**)
 
         $$\nu\nabla^2u_i = \nu\sum_j m_j \frac{u_j-u_i}{\rho_j}\nabla^2W_{ij}$$
 
