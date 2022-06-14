@@ -82,7 +82,23 @@ $$\tau=\mu\dot\theta$$
   <img width="400px" src="/img/Solid_Fluid.png">
 </div>
 
-## Other mathematical components
+## Stress, strain and strain-rate tensor
+> @[wiki: strain-rate tensor](https://en.wikipedia.org/wiki/Strain-rate_tensor#)
 
+In continuum mechanics, the gradient $\nabla\boldsymbol{u}$ of the celocity is a second-order tensor:
+
+$$ \boldsymbol{L}=\nabla\boldsymbol{u}=\left[\begin{matrix} \frac{\partial u_x}{\partial x_x} &\frac{\partial u_y}{\partial x_x} &\frac{\partial u_z}{\partial x_x}\\ \frac{\partial u_x}{\partial x_y} &\frac{\partial u_y}{\partial x_y} &\frac{\partial u_z}{\partial x_y}\\ \frac{\partial u_x}{\partial x_z} &\frac{\partial u_y}{\partial x_z} &\frac{\partial u_z}{\partial x_z} \end{matrix}\right]$$
+
+$\boldsymbol{L}$ can be decomposed into the sum of a symmetric matrix $\boldsymbol{E}$ and a skew-symmetric matrix $\boldsymbol{W}$:
+
+$$\boldsymbol{E}=\frac{1}{2}(\boldsymbol{L}+\boldsymbol{L}^T)$$
+
+$$\boldsymbol{W}=\frac{1}{2}(\boldsymbol{L}-\boldsymbol{L}^T)$$
+
+$\boldsymbol{E}$ is called the strain rate tensor and describes the rate of stretching and shearing. $\boldsymbol{W}$ is called the spin tensor and describes the rate of rotation.
+
+The strain-rate tensor describes the rate of change of the deformation of a material in the neighborhood of a certain point, at a certain moment of time. It can be defined as the derivative of the strain tensor with respect to time, or as the symmetric component of the Jacobian matrix of the flow velocity.
+
+## Other mathematical components
 $\dot{\#}$ - the accent-dot indicates the time derivative of the vector/tensor quantities. *from @Bui2021, 3.2.1.1. p15*
 

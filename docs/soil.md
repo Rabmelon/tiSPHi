@@ -167,15 +167,15 @@ $$\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{c}
 \end{array} \right) \end{aligned}
 ,
 \begin{aligned} \boldsymbol{\tilde{\sigma}} = \left(\begin{array}{c}
-      2\sigma_{xy}\omega_{xy}\\ 2\sigma_{xy}\omega_{yx}\\
-      \sigma_{xx}\omega_{yx}+\sigma_{yy}\omega_{xy}\\ 0
+      2\sigma_{xy}\dot\omega_{xy}\\ 2\sigma_{xy}\dot\omega_{yx}\\
+      \sigma_{xx}\dot\omega_{yx}+\sigma_{yy}\dot\omega_{xy}\\ 0
     \end{array} \right)
     = \left(\begin{array}{c}
-      2\sigma_{xy}\omega_{xy}\\ -2\sigma_{xy}\omega_{xy}\\
-      (\sigma_{yy}-\sigma_{xx})\omega_{xy}\\ 0
+      2\sigma_{xy}\dot\omega_{xy}\\ -2\sigma_{xy}\dot\omega_{xy}\\
+      (\sigma_{yy}-\sigma_{xx})\dot\omega_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
-$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}-\frac{\partial u_{\beta}}{\partial x_{\alpha}})\ ,\ \omega_{xy} = \frac{1}{2}(\frac{\partial u_x}{\partial x_y}-\frac{\partial u_y}{\partial x_x})$$
+$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}-\frac{\partial u_{\beta}}{\partial x_{\alpha}})\ ,\ \dot\omega_{xy} = \frac{1}{2}(\frac{\partial u_x}{\partial x_y}-\frac{\partial u_y}{\partial x_x})$$
 
 $$\begin{aligned} \boldsymbol{f}^u = \left (\begin{array}{cc}
     D^e_{11}u_x    &D^e_{12}u_y\\ D^e_{21}u_x    &D^e_{22}u_y\\
@@ -270,7 +270,7 @@ Unlike the CFD approach, the general elastoplastic constitutive modelling approa
 The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol{\sigma}=\boldsymbol{D}^{ep}:{\rm d}\boldsymbol{\varepsilon}$
 
 > **QUESTIONS**:
-> 1. Is the stress derivative ? deviation? divergancy? the material derivative or partial derivative?
+> 1. Is the stress derivative ? deviation? divergancy? the material derivative or partial derivative? It should be $\partial\sigma/\partial t$? Or the stress is also proper to be described in material derivative?
 
 ## Standard soil SPH
 
@@ -286,6 +286,27 @@ $$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i
 $$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p}$$
 
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
+
+### Symp-Euler for standard soil SPH
+
+* Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
+* Given $\boldsymbol{x}_i^1$, $\boldsymbol{u}_i^1$, $\boldsymbol{\sigma}_i^1$.
+* Update boundary
+* Cal gradient of velocity tensor
+* Cal strain tensor
+* Cal spin rate and Jaumann stress rate tensor
+* Cal old 
+
+* Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
+* Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
+* Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}_i$.
+    * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
+    * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
+    * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
+* Step 6: compute $F_1$ and $F_2$ on particles.
+* Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
+* Step 8: if necessary, the boundary conditions and stress state are again updated.
+* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{\sigma}_i^3$, $\boldsymbol{u}_i^4$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{u}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
 
 
 ### RK4 for standard soil SPH

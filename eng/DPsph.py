@@ -15,6 +15,7 @@ class DPSPHSolver(SPHSolver):
         self.EYoungMod = EYongMod                # Young’s modulus, Pa
 
         # Paras based on basic paras
+        self.dim_packed = 4 if self.ps.dim == 2 else 6
         self.mass = self.ps.m_V * self.density_0            # the self.mass of each particle, kg
         self.fric = self.fric_deg / 180 * np.pi     # the angle of internal friction, RAD
         self.Depq = self.EYoungMod / (1 + self.poi) / (1 - 2 * self.poi) * ti.Matrix(
@@ -29,29 +30,30 @@ class DPSPHSolver(SPHSolver):
 
         # Allocate memories
         self.f_stress = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
-        self.f_u = ti.Matrix.field(self.ps.dim_ts, self.ps.dim, dtype=float)
+        self.f_u = ti.Matrix.field(self.dim_packed, self.ps.dim, dtype=float)
         self.f_stress_grad = ti.Vector.field(self.ps.dim, dtype=float)
-        self.f_u_grad = ti.Vector.field(self.ps.dim_ts, dtype=float)
+        self.f_u_grad = ti.Vector.field(self.dim_packed, dtype=float)
         self.f_ext = ti.Vector.field(self.ps.dim, dtype=float)
         self.u_grad = ti.Matrix.field((self.ps.dim, self.ps.dim), dtype=float)
-        self.g_p = ti.Vector.field(self.ps.dim_ts, dtype=float)     # item in constitutive equation
+        self.g_p = ti.Vector.field(self.dim_packed, dtype=float)     # item in constitutive equation
         self.f_DP = ti.field(dtype=float)               # the value of checking stress state
-        self.s = ti.Vector.field(self.ps.dim_ts, dtype=float)       # the deviatoric stress
+        self.s = ti.Vector.field(self.dim_packed, dtype=float)       # the deviatoric stress
         self.p = ti.field(dtype=float)                  # the hydrostatic pressure
         self.I1 = ti.field(dtype=float)                 # the firse invariant of the stress tensor
         self.sJ2 = ti.field(dtype=float)                # sqrt of the second invariant of the deviatoric stress tensor
         self.r_sigma = ti.field(dtype=float)            # the scaling factor
         self.spin = ti.field(dtype=float)               # the spin rate tensor
-        self.Jaumann = ti.Vector.field(self.ps.dim_ts, dtype=float)     # the Jaumann stress rate, tilde σ
+        self.Jaumann = ti.Vector.field(self.dim_packed, dtype=float)     # the Jaumann stress rate, tilde σ
         self.F1 = ti.Vector.field(self.ps.dim, dtype=float)
-        self.F2 = ti.Vector.field(self.ps.dim_ts, dtype=float)
+        self.F2 = ti.Vector.field(self.dim_packed, dtype=float)
         self.u1234 = ti.Vector.field(self.ps.dim, dtype=float)
-        self.stress1234 = ti.Vector.field(self.ps.dim_ts, dtype=float)
+        self.stress1234 = ti.Vector.field(self.dim_packed, dtype=float)
 
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
         particle_node.place(self.f_stress, self.f_u, self.f_stress_grad, self.f_u_grad, self.f_ext, self.u_grad, self.g_p, self.f_DP, self.s, self.p, self.I1, self.sJ2, self.spin, self.Jaumann, self.u1234, self.stress1234)
         particle_node.dense(ti.j, 4).place(self.F1, self.F2)
 
+    ###########################################################################
 
 
 
@@ -68,7 +70,7 @@ class DPSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             for m in range(4):
                 self.F1[p_i, m] = ti.Vector([0.0 for _ in range(self.ps.dim)])
-                self.F2[p_i, m] = ti.Vector([0.0 for _ in range(self.ps.dim_ts)])
+                self.F2[p_i, m] = ti.Vector([0.0 for _ in range(self.dim_packed)])
 
     ###########################################################################
     @ti.kernel
@@ -187,7 +189,7 @@ class DPSPHSolver(SPHSolver):
                 continue
             x_i = self.ps.x[p_i]
             f_stress_grad_i = ti.Vector([0.0 for _ in range(self.ps.dim)])
-            f_u_grad_i = ti.Vector([0.0 for _ in range(self.ps.dim_ts)])
+            f_u_grad_i = ti.Vector([0.0 for _ in range(self.dim_packed)])
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
@@ -206,12 +208,12 @@ class DPSPHSolver(SPHSolver):
     # TODO: Calculate plastic strain
     @ti.func
     def compute_g_p(self, p_i):
-        self.g_p[p_i] = ti.Vector([0.0 for _ in range(self.ps.dim_ts)])
+        self.g_p[p_i] = ti.Vector([0.0 for _ in range(self.dim_packed)])
 
     # TODO: Calculate the Jaumann stress rate
     @ti.func
     def compute_Jaumann(self, p_i):
-        self.Jaumann[p_i] = ti.Vector([0.0 for _ in range(self.ps.dim_ts)])
+        self.Jaumann[p_i] = ti.Vector([0.0 for _ in range(self.dim_packed)])
 
     # Compute F1 and F2
     @ti.kernel
@@ -241,7 +243,6 @@ class DPSPHSolver(SPHSolver):
                 self.ps.x[p_i] += self.dt[None] * self.ps.u[p_i]
 
     def RK4_one_step(self, m):
-        # print('RK4 start to compute step', m)
         self.update_boundary()
         self.check_adapt_stress_DP()
         self.compute_term_f()
@@ -259,9 +260,7 @@ class DPSPHSolver(SPHSolver):
 
     def substep_SympEuler(self):
         self.update_u_1(0)
-        self.compute_densities()
-        self.compute_non_pressure_forces()
-        self.compute_pressure_forces()
+
         self.advect()
 
     def substep_RK4(self):
