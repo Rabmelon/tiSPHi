@@ -72,9 +72,17 @@ $$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial x_i^2} $$
 > 1. How to calculate $\nabla W$ and $\nabla^2 W$? **ANSWER**: just directly take the partial derivative!
 
 ### Kernel functions
-> @koschierSmoothedParticleHydrodynamics2019
 
 #### The cubic spline kernel
+> @bui2021
+
+$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  \frac{2}{3}-q^2+\frac{1}{2}q^3, &0\leq q \leq 1 \\ \frac{1}{6}(2-q)^3, &1 < q \leq 2 \\ 0, &otherwise
+\end{cases} $$
+
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{1}{h}$, $k_2=\frac{15}{7\pi h^2}$, $k_3=\frac{3}{2\pi h^3}$. The kernel is $C^2$ continuous.
+
+> @koschierSmoothedParticleHydrodynamics2019
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
   6(q^3-q^2)+1, &0\leq q \leq 0.5 \\ 2(1-q)^3, &0.5 < q \leq 1 \\ 0, &otherwise
@@ -100,20 +108,24 @@ $$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
 
 > **QUESTIONS**
 > 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
+> 2. Where is the fault?
 
-#### The Wenland kernel
+#### The Wendland C2 kernel
+> @bui2021 2.3
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
-  (2-q)^4(2q+1), &0\leq q \leq 2 \\ 0, &otherwise
+  (1-0.5q)^4(1+2q), &0\leq q \leq 2 \\ 0, &otherwise
 \end{cases} $$
 
-where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=2,3$ and $k_2=\frac{7}{32\pi h^2}$, $k_3=\frac{21}{128\pi h^3}$. The kernel is $C^2$ continuous.
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=2,3$ and $k_2=\frac{7}{4\pi h^2}$, $k_3=\frac{21}{2\pi h^3}$. For 1d, the formulation is changed. The kernel is $C^2$ continuous.
 
 The first-order derivation:
 
-$$\nabla W_{ij}=k_d'(2-q)^3\boldsymbol{r} $$
+$$\nabla W_{ij}=\frac{k_d}{h}(-5q)(1-0.5q)^3 $$
 
-where $k_d'$ for respective dimensions $d=2,3$: $k_2'=-\frac{35}{32\pi h^4}$, $k_3'=-\frac{105}{128\pi h^5}$. The kernel is $C^2$ continuous.
+The second-order derivation:
+
+???
 
 
 ### Improving approximations for spatial derivatives

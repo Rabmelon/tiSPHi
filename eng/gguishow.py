@@ -52,7 +52,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", c
 
 
         # show text
-        window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.25)
+        window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)
         window.GUI.text('Total particle number: {pnum:,}'.format(pnum=case.particle_num[None]))
         window.GUI.text('Step: {step:,}'.format(step=flag_step))
         window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * flag_step))

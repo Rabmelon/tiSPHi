@@ -6,8 +6,8 @@ from .sph_solver import SPHSolver
 # TODO: need to init the stress state when starting the simulation?
 
 class MCmuISPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, density, cohesion, friction, eta_0):
-        super().__init__(particle_system, TDmethod)
+    def __init__(self, particle_system, TDmethod, kernel, density, cohesion, friction, eta_0):
+        super().__init__(particle_system, TDmethod, kernel)
         print("Class M-C μ(I) Soil SPH Solver starts to serve!")
 
         # basic paras
@@ -38,9 +38,9 @@ class MCmuISPHSolver(SPHSolver):
                 continue
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-                tmp = self.ps.density[p_i] * self.mass * (self.ps.u[p_i] - self.ps.u[p_j]) / self.ps.density[p_j]
+                tmp = self.mass * (self.ps.u[p_i] - self.ps.u[p_j]) / self.ps.density[p_j]
                 dd += tmp.transpose() @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-            self.d_density[p_i] = dd[0]
+            self.d_density[p_i] = self.ps.density[p_i] * dd[0]
 
     @ti.kernel
     def cal_density(self):
@@ -117,7 +117,8 @@ class MCmuISPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
-                self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.d_density[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.u[p_i][0]
 
 

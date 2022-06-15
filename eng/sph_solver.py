@@ -7,12 +7,13 @@ import numpy as np
 
 @ti.data_oriented
 class SPHSolver:
-    def __init__(self, particle_system, TDmethod):
+    def __init__(self, particle_system, TDmethod, kernel):
         print("Class SPH Solver starts to serve!")
         self.ps = particle_system
-        self.TDmethod = TDmethod # 1 for Symp Euler; 2 for RK4
+        self.TDmethod = TDmethod # 1 for Symp Euler, 2 for RK4
+        self.flag_kernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
         self.g = -9.81          # gravity, m/s2
-        self.usound = 600        # speed of sound, m/s
+        self.usound = 50        # speed of sound, m/s
         self.usound2 = self.usound ** 2
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
@@ -23,6 +24,24 @@ class SPHSolver:
     ###########################################################################
     # Kernel functions
     ###########################################################################
+    @ti.func
+    def kernel(self, r):
+        res = ti.cast(0.0, ti.f32)
+        if self.flag_kernel == 1:
+            res = self.cubic_kernel(r)
+        elif self.flag_kernel == 2:
+            pass
+        return res
+
+    @ti.func
+    def kernel_derivative(self, r):
+        res = ti.Vector([0.0 for _ in range(self.ps.dim)])
+        if self.flag_kernel == 1:
+            res = self.cubic_kernel_derivative(r)
+        elif self.flag_kernel == 2:
+            pass
+        return res
+
     # Cubic spline kernel
     @ti.func
     def cubic_kernel(self, r):
@@ -54,6 +73,12 @@ class SPHSolver:
             else:
                 factor = 1.0 - q
                 res = k * (-factor * factor) * grad_q
+        return res
+
+    # Wenland kernel
+    @ti.func
+    def wenland_kernel(self, r):
+        res = ti.cast(0.0, ti.f32)
         return res
 
     ###########################################################################

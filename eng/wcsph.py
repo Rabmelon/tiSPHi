@@ -2,8 +2,8 @@ import taichi as ti
 from .sph_solver import SPHSolver
 
 class WCSPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod):
-        super().__init__(particle_system, TDmethod)
+    def __init__(self, particle_system, TDmethod, kernel):
+        super().__init__(particle_system, TDmethod, kernel)
         print("Hallo, class WCSPH Solver starts to serve!")
 
         # Basic paras
@@ -34,7 +34,7 @@ class WCSPHSolver(SPHSolver):
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
-    def init_data(self):
+    def init_F(self):
         for p_i in range(self.ps.particle_num[None]):
             for m in range(4):
                 self.F[p_i, m] = ti.Vector([0.0 for _ in range(self.ps.dim)])
@@ -231,7 +231,7 @@ class WCSPHSolver(SPHSolver):
         self.update_particle()
 
     def substep_RK4(self):
-        self.init_data()
+        self.init_F()
         self.compute_densities()
         self.advect_RK4()
 

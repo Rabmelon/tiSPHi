@@ -3,16 +3,25 @@ function draft
 
 %% check kernel function
 
-radius = 1;
+dx = 0.1;
 kh = 6;
-h = kh*2*radius;
-r = (-h:0.01:h)';
-W = cal_kn_cubicspline(r, h);
-grad_W = cal_kn_grad_cubicspline(r, h);
-lapl_W = cal_kn_lapl_cubicspline(r, h);
+kshow = 2.5;
+
+h = kh*dx;
+r = (-kshow*h:0.001:kshow*h)';
+W = zeros(size(r));
+grad_W = zeros(size(r));
+lapl_W = zeros(size(r));
+% W = cal_kn_cubicspline(r, h);
+% grad_W = cal_kn_grad_cubicspline(r, h);
+% lapl_W = cal_kn_lapl_cubicspline(r, h);
+W = cal_kn_WendlandC2(r, h);
+grad_W = cal_kn_grad_WendlandC2(r, h);
+lapl_W = cal_kn_lapl_WendlandC2(r, h);
 
 figure(1)
-cla; hold on; grid on; axis auto;
+cla; hold on; grid on; axis tight;
+xlabel("q"); ylabel("f(q)");
 plot(r/h, W, 'b')
 plot(r/h, grad_W, 'g')
 plot(r/h, lapl_W, 'r')
@@ -72,5 +81,51 @@ end
 v = kd(2)*v;
 lapl_W = v/h^2;
 
+function W = cal_kn_WendlandC2(r, h)
+qq = abs(r/h);
+kd = [5/(8*h); 7/(4*pi*h^2); 21/(2*pi*h^3)];
+v = zeros(size(qq));
+for i = 1:size(r, 1)
+    q = qq(i);
+    if q >= 0 && q <= 2
+        v(i) = (1-0.5*q)^4*(1+2*q);
+    else
+        v(i) = 0;
+    end
+end
+% v = kd(2)*v;
+W = v;
+
+function grad_W = cal_kn_grad_WendlandC2(r, h)
+qq = abs(r/h);
+kd = [5/(8*h); 7/(4*pi*h^2); 21/(2*pi*h^3)];
+v = zeros(size(qq));
+for i = 1:size(r, 1)
+    q = qq(i);
+    if q >= 0 && q <= 2
+        v(i) = -5*q*(1-0.5*q)^3;
+    else
+        v(i) = 0;
+    end
+end
+% v = kd(2)*v;
+% grad_W = v.*sign(r)/h;
+grad_W = v.*sign(r);
+
+function lapl_W = cal_kn_lapl_WendlandC2(r, h)
+qq = abs(r/h);
+kd = [5/(8*h); 7/(4*pi*h^2); 21/(2*pi*h^3)];
+v = zeros(size(qq));
+for i = 1:size(r, 1)
+    q = qq(i);
+    if q >= 0 && q <= 2
+        v(i) = -5*(1-2*q)*(1-0.5*q)^2;
+    else
+        v(i) = 0;
+    end
+end
+% v = kd(2)*v;
+% grad_W = v/(h*h);
+lapl_W = v;
 
 

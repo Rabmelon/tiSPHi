@@ -1,3 +1,10 @@
+
+
+22.06.15.
+1. the explode problem might be caused by the wrong kernel value!
+
+
+
 22.05.10.
 1. Rocky can do simulations with over 1MM particles in one gaming card!
 2. SPlisHSPlasH takes around 0.5kb memory per particle

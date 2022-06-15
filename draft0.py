@@ -18,21 +18,22 @@ if __name__ == "__main__":
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
     screen_to_world_ratio = 500   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     rec_world = [1.2, 0.8]   # a rectangle world start from (0, 0) to this pos
-    particle_radius = 0.002
+    particle_radius = 0.001
     cube_size = [0.2, 0.4]
 
     mat = 2
     rho = 1680.0
     TDmethod = 1    # 1 Symp Euler; 2 RK4
+    flag_kernel = 1 # 1 cubic-spline; 2 Wenland
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.add_cube(lower_corner=[0.0, 0], cube_size=cube_size, color=(149/255,99/255,51/255), material=mat, density=rho)
 
     if mat == 1:
-        solver = WCSPHSolver(case1, TDmethod)
+        solver = WCSPHSolver(case1, TDmethod, flag_kernel)
     elif mat == 2:
-        solver = MCmuISPHSolver(case1, TDmethod, rho, 0, 29, 0)
+        solver = MCmuISPHSolver(case1, TDmethod, flag_kernel, rho, 0, 29, 0)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=500, iparticle=None, color_title="pressure Pa", kradius=1.5, write_to_disk=1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=50, iparticle=None, color_title="d density N/m3/s", kradius=1.5, write_to_disk=0)
 
     # color title: pressure Pa; density N/m3; velocity m/s;

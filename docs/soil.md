@@ -76,6 +76,7 @@ $$\boldsymbol{\tau}_i=\eta_0\dot{\boldsymbol{\varepsilon}}_i+(c+p\tan\varphi)\fr
 
 The above modified Bingham model can be thought of as a precursor to the $\mu(I)$ model, where the $\mu(I)$ model takes the dynamic viscosity $\eta_0$ and the cohesion $c$ as 0, and also exchanges $\tan\varphi$ for a scalar friction value.
 
+**NOTE**: the $\mu(I)$ model need the difference of density to generate pressure, so it is wrong to keep a constant density.
 
 ### Drucker-Prager yield criteria
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
@@ -152,7 +153,7 @@ The procedure of applying these two equations is referred to as the stress-scali
 In the SPH implementation of the elastoplastic model, the two corrective treatments described above are applied to the particles that have a stress state outside of the valid range.
 
 
-## Governing equations
+## Governing equations for DP
 Conservation of mass:
 
 $$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{u}$$
@@ -293,7 +294,7 @@ The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol
 > **QUESTIONS**:
 > 1. Is the stress derivative ? deviation? divergancy? the material derivative or partial derivative? It should be $\partial\sigma/\partial t$? Or the stress is also proper to be described in material derivative?
 
-## Standard soil SPH
+## Standard DP soil SPH
 
 ### Discretization
 > @chalk2020 Section 3.1
