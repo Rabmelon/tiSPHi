@@ -11,10 +11,13 @@ class SPHSolver:
         print("Class SPH Solver starts to serve!")
         self.ps = particle_system
         self.TDmethod = TDmethod # 1 for Symp Euler; 2 for RK4
-        self.g = -9.81
+        self.g = -9.81          # gravity, m/s2
+        self.usound = 600        # speed of sound, m/s
+        self.usound2 = self.usound ** 2
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
-        self.dt[None] = 2e-5    # "ti video -f125" will be good to make the video 2 times slower than calculation (8s simulation and 16s video, 2000 frames / 8*2s = 125fps)
+        # self.dt[None] = 2e-5    # "ti video -f125" will be good to make the video 2 times slower than calculation (8s simulation and 16s video, 2000 frames / 8*2s = 125fps)
+        self.dt[None] = 0.2 * self.ps.support_radius / self.usound  # CFL
         self.epsilon = 1e-16
 
     ###########################################################################
@@ -60,7 +63,7 @@ class SPHSolver:
     @ti.func
     def simulate_collisions(self, p_i, vec, d):
         # if self.ps.material[p_i] < 10:
-            # assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
+        # assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
         c_f = 0.7
         self.ps.x[p_i] += (1.0 + c_f) * vec * d
         self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec

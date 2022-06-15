@@ -223,12 +223,37 @@ The particles that comprise the free surface should satisfy a stress-free condit
 
 ## Time integration
 
-### Symp Euler - Symplectic Euler
+### Courant-Friedrichs-Lewy (CFL)
+> @yang2021
+
+The size of $\Delta t$ is determined using the Courant-Friedrichs-Lewy (CFL) stability condition, which, for SPH states that:
+
+$$\Delta t=C_{CFL}\frac{h}{c}$$
+
+where a suitable value for $C_{CFL}$ was found to be 0.2.
+$h$ is the smoothing length and $c$ is the speed of sound is the smoothing length and $c$ is the speed of sound.
+
+### Symp Euler - Symplectic Euler (SE)
 > @taichiCourse01-10 PPT p77
 
 $$u_i^* = u_i+\Delta t\frac{{\rm d}u_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tu_i^*$$
 
-### RK4 - 4th order Runge-Kutta
+### Leap-Frog (LF)
+> @yang2021
+
+Leap-Frog(LF) time-integration scheme is sufficiently stable, accurate, and fast due to only requiring one calculation of forces for each timestep. For a given time-step, the density and velocity are brought forward to the mid-increment using material derivatives from the previous timestep(if available), and the position is updated at full-increments:
+
+$$f_{n+\frac{1}{2}}=f_n+\frac{\Delta t}{2}(\frac{{\rm D}f}{{\rm D}t})_{n-1}$$
+
+$f$ is density or velocity or stress. Then calculate $(\frac{{\rm D}f}{{\rm D}t})_{n}$
+
+$$f_{n+1}=f_n+\Delta t(\frac{{\rm D}f}{{\rm D}t})_{n}$$
+
+$$\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{u}_{n+1}$$
+
+
+
+### RK4 - 4th order Runge-Kutta (RK4)
 > @Chalk2020 Appendix B.
 
 The RK4 scheme has fourth order accuracy and relatively simple implementation.

@@ -52,9 +52,30 @@ The isotropic pressure can be defined alternltively, where the second one is com
 
 $$p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)\ or\ p=c^2(\rho-\rho_0)$$
 
-where $c$ is the speed of sound, which is assumed to be $10 v_{max}$
+where $c$ is the speed of sound, which is assumed to be $10 v_{max}$ (for Yang2021, it is $35m/s$ and for Bui2021, it is $600m/s$).
+
 Finally, it is noted that when incorporating this model, to avoid unphysical behaviour, the **shear component of the stress tensor** should be set to 0 for negative pressure value.
+
 In addition, the **initial strain rate tensor** should be set close to 0 (e.g. $10^{-7}$) as 0 strain rates can result in mathematically undefined behaviour.
+
+To incorporate the shear strength of granular materials, here incorporates the Mohr-Coulomb yield criteria, which allows the yielding shear stress to be described as a function of pressure, as well as easily obtained material properties:
+
+$$\tau_y=c+p\tan\varphi$$
+
+where $c$ is cohesion and $\varphi$ is the internal angle of friction. The 1D modified Bingham shear stress:
+
+$$\tau=\eta_0\dot{\boldsymbol{\varepsilon}}+c+p\tan\varphi$$
+
+using an equivalent fluid viscosity, $\eta$, for use in Navier-Stokes solvers:
+
+$$\eta=\eta_0+\frac{c+p\tan\varphi}{\dot{\boldsymbol{\varepsilon}}}$$
+
+As for 3D simulation, the generalised form of the modified Bingham shear stress:
+
+$$\boldsymbol{\tau}_i=\eta_0\dot{\boldsymbol{\varepsilon}}_i+(c+p\tan\varphi)\frac{\dot{\boldsymbol{\varepsilon}}_i}{\sqrt{\frac{1}{2}\dot{\boldsymbol{\varepsilon}}_i:\dot{\boldsymbol{\varepsilon}}_i}}$$
+
+The above modified Bingham model can be thought of as a precursor to the $\mu(I)$ model, where the $\mu(I)$ model takes the dynamic viscosity $\eta_0$ and the cohesion $c$ as 0, and also exchanges $\tan\varphi$ for a scalar friction value.
+
 
 ### Drucker-Prager yield criteria
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
@@ -295,18 +316,8 @@ In the current work, each SPH particle is assigned the same, constant density fo
 * Cal gradient of velocity tensor
 * Cal strain tensor
 * Cal spin rate and Jaumann stress rate tensor
-* Cal old 
 
-* Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
-* Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
-* Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}_i$.
-    * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
-    * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
-    * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
-* Step 6: compute $F_1$ and $F_2$ on particles.
-* Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
-* Step 8: if necessary, the boundary conditions and stress state are again updated.
-* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{\sigma}_i^3$, $\boldsymbol{u}_i^4$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{u}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
+<!-- TODO: clarify and add details of SE DPSPH -->
 
 
 ### RK4 for standard soil SPH

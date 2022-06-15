@@ -100,5 +100,6 @@ $\boldsymbol{E}$ is called the strain rate tensor and describes the rate of stre
 The strain-rate tensor describes the rate of change of the deformation of a material in the neighborhood of a certain point, at a certain moment of time. It can be defined as the derivative of the strain tensor with respect to time, or as the symmetric component of the Jacobian matrix of the flow velocity.
 
 ## Other mathematical components
-$\dot{\#}$ - the accent-dot indicates the time derivative of the vector/tensor quantities. *from @Bui2021, 3.2.1.1. p15*
+1. $\dot{\#}$ - the accent-dot indicates the time derivative of the vector/tensor quantities. *@Bui2021, 3.2.1.1. p15*
+2. The speed of sound: 343m/s in air, 1481m/s in water, 5120m/s in iron.
 

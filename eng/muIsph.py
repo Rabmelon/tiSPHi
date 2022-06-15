@@ -11,7 +11,6 @@ class MCmuISPHSolver(SPHSolver):
         print("Class M-C μ(I) Soil SPH Solver starts to serve!")
 
         # basic paras
-        self.usound2 = 35 ** 2        # speed of sound, in yang2021 takes 35m/s
         self.density_0 = density
         self.coh = cohesion
         self.fric_deg = friction

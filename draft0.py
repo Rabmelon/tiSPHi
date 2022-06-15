@@ -22,7 +22,7 @@ if __name__ == "__main__":
     cube_size = [0.2, 0.4]
 
     mat = 2
-    rho = 1850.0
+    rho = 1680.0
     TDmethod = 1    # 1 Symp Euler; 2 RK4
 
     case1 = ParticleSystem(rec_world, particle_radius)
@@ -33,6 +33,6 @@ if __name__ == "__main__":
     elif mat == 2:
         solver = MCmuISPHSolver(case1, TDmethod, rho, 0, 29, 0)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=50, iparticle=None, color_title="pressure Pa", kradius=1.5, write_to_disk=1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=500, iparticle=None, color_title="pressure Pa", kradius=1.5, write_to_disk=1)
 
     # color title: pressure Pa; density N/m3; velocity m/s;
