@@ -1,5 +1,7 @@
 import taichi as ti
 import numpy as np
+import matplotlib as mpl
+from eng.colormap import *
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
 # TODO: --ok Unify all coordinate systems and put padding area outside the real world.
@@ -324,26 +326,32 @@ class ParticleSystem:
         vmin = float('Inf')
         for i in range(self.particle_num[None]):
             if self.material[i] < 10:
-                vmax = max(vmax, self.val[i])
-                vmin = min(vmin, self.val[i])
+                ti.atomic_max(vmax, self.val[i])
+                ti.atomic_min(vmin, self.val[i])
         self.vmax[None] = vmax
         self.vmin[None] = vmin
 
     @ti.kernel
     def set_color(self):
-        self.vmaxmax[None] = max(self.vmax[None], self.vmaxmax[None])
-        self.vminmin[None] = min(self.vmin[None], self.vminmin[None])
-        vrange = self.vmaxmax[None] - self.vminmin[None]
-        vrange1 = 1 / vrange
+        vrange1 = 1 / (self.vmax[None] - self.vmin[None])
         for i in range(self.particle_num[None]):
             if self.material[i] < 10:
-                self.color[i] = ti.Vector([1, (self.vmaxmax[None] - self.val[i]) * vrange1, 0])
+                # self.color[i] = ti.Vector([1, (self.vmax[None] - self.val[i]) * vrange1, 0])  # Change the second value of RGB, from yellow to red
+                tmp = (self.val[i] - self.vmin[None]) * vrange1
+                self.color[i] = color_map(tmp)
+
+    # @ti.kernel
+    # def set_color(self):
+    #     self.vmaxmax[None] = max(self.vmax[None], self.vmaxmax[None])
+    #     self.vminmin[None] = min(self.vmin[None], self.vminmin[None])
+    #     vrange1 = 1 / (self.vmaxmax[None] - self.vminmin[None])
+    #     for i in range(self.particle_num[None]):
+    #         if self.material[i] < 10:
+    #             tmp = (self.val[i] - self.vminmin[None]) * vrange1
+    #             self.color[i] = color_map(tmp)
 
     @ti.kernel
     def init_value(self):
         for i in range(self.particle_num[None]):
             if self.material[i] < 10:
-                self.val[i] = self.x[i][1]
-                # self.val[i] = self.x[i][1]
-
-
+                self.val[i] = 0.0

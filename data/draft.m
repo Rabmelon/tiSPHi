@@ -3,7 +3,7 @@ function draft
 
 %% check kernel function
 
-dx = 0.1;
+dx = 0.01;
 kh = 6;
 kshow = 2.5;
 
@@ -12,12 +12,12 @@ r = (-kshow*h:0.001:kshow*h)';
 W = zeros(size(r));
 grad_W = zeros(size(r));
 lapl_W = zeros(size(r));
-% W = cal_kn_cubicspline(r, h);
-% grad_W = cal_kn_grad_cubicspline(r, h);
-% lapl_W = cal_kn_lapl_cubicspline(r, h);
-W = cal_kn_WendlandC2(r, h);
-grad_W = cal_kn_grad_WendlandC2(r, h);
-lapl_W = cal_kn_lapl_WendlandC2(r, h);
+W = cal_kn_cubicspline(r, h);
+grad_W = cal_kn_grad_cubicspline(r, h);
+lapl_W = cal_kn_lapl_cubicspline(r, h);
+% W = cal_kn_WendlandC2(r, h);
+% grad_W = cal_kn_grad_WendlandC2(r, h);
+% lapl_W = cal_kn_lapl_WendlandC2(r, h);
 
 figure(1)
 cla; hold on; grid on; axis tight;
@@ -62,7 +62,8 @@ for i = 1:size(r, 1)
     end
 end
 v = kd(2)*v;
-grad_W = v.*sign(r)/h;
+% grad_W = v.*sign(r)/h;
+grad_W = v.*sign(r);
 
 function lapl_W = cal_kn_lapl_cubicspline(r, h)
 qq = abs(r/h);
@@ -79,7 +80,8 @@ for i = 1:size(r, 1)
     end
 end
 v = kd(2)*v;
-lapl_W = v/h^2;
+% lapl_W = v/h^2;
+lapl_W = v;
 
 function W = cal_kn_WendlandC2(r, h)
 qq = abs(r/h);
@@ -93,7 +95,7 @@ for i = 1:size(r, 1)
         v(i) = 0;
     end
 end
-% v = kd(2)*v;
+v = kd(2)*v;
 W = v;
 
 function grad_W = cal_kn_grad_WendlandC2(r, h)
@@ -108,7 +110,7 @@ for i = 1:size(r, 1)
         v(i) = 0;
     end
 end
-% v = kd(2)*v;
+v = kd(2)*v;
 % grad_W = v.*sign(r)/h;
 grad_W = v.*sign(r);
 
@@ -124,8 +126,8 @@ for i = 1:size(r, 1)
         v(i) = 0;
     end
 end
-% v = kd(2)*v;
-% grad_W = v/(h*h);
+v = kd(2)*v;
+% lapl_W = v/(h*h);
 lapl_W = v;
 
 

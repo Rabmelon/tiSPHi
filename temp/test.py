@@ -1,51 +1,65 @@
 import taichi as ti
 import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
-from show import *
 
 ti.init(arch=ti.cpu)
 
-m = ti.field(float, 10)
-v1 = ti.Vector([1, 2])
-v2 = ti.Vector([1.5, 2.2])
-r = ti.Vector([0.05, 0.02])
-
-
-@ti.func
-def cubic_kernel_derivative(r):
-    res = ti.Vector([0.0 for _ in range(2)])
-    k = 40 / 7 / np.pi
-    k *= 6. / 12**2
-    r_norm = r.norm()
-    q = r_norm / 12
-    if r_norm > 1e-5 and q <= 1.0:
-        grad_q = r / (r_norm * 12)
-        if q <= 0.5:
-            res = k * q * (3.0 * q - 2.0) * grad_q
-        else:
-            factor = 1.0 - q
-            res = k * (-factor * factor) * grad_q
-    return res
+N = 10
+val = ti.field(float, shape=N)
+valmax = ti.field(float, shape=())
+valmin = ti.field(float, shape=())
+color = ti.Vector.field(3, dtype=float, shape=N)
 
 @ti.kernel
-def foo():
-    v_xy = (v1 - v2).dot(r)
-    tmp1 = v_xy * cubic_kernel_derivative(r)
-    tmp2 = r.transpose() @ cubic_kernel_derivative(v1-v2)
-    m[0] = tmp2[0]
-    print(v_xy)
-    print(cubic_kernel_derivative(r))
-    print(tmp1)
-    print(tmp2)
-    print(m[0])
+def setval():
+    for i in range(N):
+        val[i] = ti.random() * 10
+        print(val[i])
 
-# @ti.kernel
-# def test():
-    # m[0] = tmp.transpose() @ cubic_kernel_derivative(tmp)
-    # print(m)
+@ti.kernel
+def v_maxmin():
+    vmax = -float('Inf')
+    vmin = float('Inf')
+    for i in range(N):
+        ti.atomic_max(vmax, val[i])
+        ti.atomic_min(vmin, val[i])
+    valmax[None] = vmax
+    valmin[None] = vmin
+
+@ti.kernel
+def set_color():
+    vrange = valmax[None] - valmin[None]
+    vrange1 = 1 / vrange
+    cmap = mpl.cm.coolwarm
+    norm = mpl.colors.Normalize(vmax=valmax[None], vmin=valmin[None])
+    for i in range(N):
+        color[i] = ti.Vector([0.0, 0.0, 0.0])
+        print('color: ', color[i])
 
 
 if __name__ == "__main__":
     print("hallo tiSPHi!")
-    foo()
-    # test()
+
+    setval()
+    v_maxmin()
+    set_color()
+
+# distance_list = [-1.1, 0.3, 0.4, 0.5, 1.2, 6, 8.1, 0.9, 5, 0.7]
+
+# min_val, max_val = min(distance_list), max(distance_list)
+
+# # use the coolwarm colormap that is built-in, and goes from blue to red
+# cmap = mpl.cm.coolwarm
+# norm = mpl.colors.Normalize(vmin=min_val, vmax=max_val)
+
+# # convert your distances to color coordinates
+# color_list = cmap(distance_list)
+
+# fig, ax = plt.subplots()
+# cb = mpl.colorbar.ColorbarBase(ax, cmap=cmap, norm=norm, ticks = sorted(distance_list), orientation='horizontal')
+# cb.set_label('Distance (least to greatest)')
+# ax.tick_params(axis='x', rotation=89)
+
+# plt.show()

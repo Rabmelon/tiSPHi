@@ -13,7 +13,7 @@ class SPHSolver:
         self.TDmethod = TDmethod # 1 for Symp Euler, 2 for RK4
         self.flag_kernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
         self.g = -9.81          # gravity, m/s2
-        self.usound = 50        # speed of sound, m/s
+        self.usound = 60        # speed of sound, m/s
         self.usound2 = self.usound ** 2
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
@@ -30,7 +30,7 @@ class SPHSolver:
         if self.flag_kernel == 1:
             res = self.cubic_kernel(r)
         elif self.flag_kernel == 2:
-            pass
+            res = self.WendlandC2_kernel(r)
         return res
 
     @ti.func
@@ -39,7 +39,7 @@ class SPHSolver:
         if self.flag_kernel == 1:
             res = self.cubic_kernel_derivative(r)
         elif self.flag_kernel == 2:
-            pass
+            res = self.WendlandC2_kernel_derivative(r)
         return res
 
     # Cubic spline kernel
@@ -75,10 +75,31 @@ class SPHSolver:
                 res = k * (-factor * factor) * grad_q
         return res
 
-    # Wenland kernel
+    # Wendland C2 kernel
     @ti.func
-    def wenland_kernel(self, r):
+    def WendlandC2_kernel(self, r):
         res = ti.cast(0.0, ti.f32)
+        h1 = 1 / self.ps.support_radius
+        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else None
+        k *= h1**self.ps.dim
+        r_norm = r.norm()
+        q = r_norm * h1
+        if r_norm > self.epsilon and q <= 2.0:
+            q1 = 1 - 0.5 * q
+            res = k * ti.pow(q1, 4) * (1 + 2 * q)
+        return res
+
+    @ti.func
+    def WendlandC2_kernel_derivative(self, r):
+        res = ti.Vector([0.0 for _ in range(self.ps.dim)])
+        h1 = 1 / self.ps.support_radius
+        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else None
+        k *= h1**self.ps.dim
+        r_norm = r.norm()
+        q = r_norm * h1
+        if r_norm > self.epsilon and q <= 2.0:
+            q1 = 1 - 0.5 * q
+            res = k * ti.pow(q1, 3) * (-5 * q) * h1 * r / r_norm
         return res
 
     ###########################################################################

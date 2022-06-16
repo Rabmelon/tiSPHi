@@ -24,7 +24,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", c
 
     cappath = os.getcwd() + r"\screenshots"
     if write_to_disk:
-        timestamp = datetime.today().strftime('%Y-%m-%d-%H%M%S')
+        timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
         simpath = os.getcwd() + "\\sim_" + timestamp
         if not os.path.exists(simpath):
             os.mkdir(simpath)
@@ -59,8 +59,10 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", c
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
         window.GUI.text('colorbar: {str}'.format(str=color_title))
-        window.GUI.text('max value: {maxv:.3f}'.format(maxv=case.vmaxmax[None]))
-        window.GUI.text('min value: {minv:.3f}'.format(minv=case.vminmin[None]))
+        window.GUI.text('max value: {maxv:.3f}'.format(maxv=case.vmax[None]))
+        window.GUI.text('min value: {minv:.3f}'.format(minv=case.vmin[None]))
+        # window.GUI.text('max value: {maxv:,.3f}'.format(maxv=case.vmaxmax[None]))
+        # window.GUI.text('min value: {minv:,.3f}'.format(minv=case.vminmin[None]))
         window.GUI.end()
 
         # control

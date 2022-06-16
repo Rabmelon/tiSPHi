@@ -121,7 +121,7 @@ where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factor
 
 The first-order derivation:
 
-$$\nabla W_{ij}=\frac{k_d}{h}(-5q)(1-0.5q)^3 $$
+$$\nabla W_{ij}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert} $$
 
 The second-order derivation:
 

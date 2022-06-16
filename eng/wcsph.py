@@ -9,7 +9,7 @@ class WCSPHSolver(SPHSolver):
         # Basic paras
         self.density_0 = 1000.0  # reference density
         self.mass = self.ps.m_V * self.density_0
-        self.viscosity = 0.0005  # viscosity
+        self.viscosity = 0.0001  # viscosity
 
         self.pressure = ti.field(dtype=float)
         self.d_velocity = ti.Vector.field(self.ps.dim, dtype=float)
@@ -20,17 +20,17 @@ class WCSPHSolver(SPHSolver):
         particle_node.dense(ti.j, 4).place(self.F)
 
         # Two paras in taichiWCSPH code
-        self.stiffness = 5000.0   # k1
+        self.stiffness = 50000.0   # k1
         self.exponent = 7.0     # k2
 
     @ti.kernel
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
                 # self.ps.val[p_i] = self.ps.density[p_i]
-                self.ps.val[p_i] = self.pressure[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
