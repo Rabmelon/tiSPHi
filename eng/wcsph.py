@@ -9,7 +9,7 @@ class WCSPHSolver(SPHSolver):
         # Basic paras
         self.density_0 = 1000.0  # reference density
         self.mass = self.ps.m_V * self.density_0
-        self.viscosity = 0.0001  # viscosity
+        self.viscosity = 0.0005  # viscosity
 
         self.pressure = ti.field(dtype=float)
         self.d_velocity = ti.Vector.field(self.ps.dim, dtype=float)
@@ -27,10 +27,10 @@ class WCSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
                 # self.ps.val[p_i] = self.ps.density[p_i]
-                self.ps.val[p_i] = self.pressure[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
@@ -107,7 +107,7 @@ class WCSPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                self.ps.density[p_i] += self.ps.m_V * self.cubic_kernel(x_i - x_j)
+                self.ps.density[p_i] += self.ps.m_V * self.kernel(x_i - x_j)
             self.ps.density[p_i] *= self.density_0
             self.ps.density[p_i] = ti.max(self.ps.density[p_i], self.density_0)
 
@@ -115,7 +115,7 @@ class WCSPHSolver(SPHSolver):
     @ti.func
     def viscosity_force(self, p_i, p_j, r):
         v_xy = (self.v1234[p_i] - self.v1234[p_j]).dot(r)
-        res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.support_radius**2) * self.cubic_kernel_derivative(r)
+        res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_derivative(r)
         return res
 
     # Add repulsive forces
@@ -124,7 +124,7 @@ class WCSPHSolver(SPHSolver):
         r_norm = r.norm()
         chi = 1 if (r_norm >= 0 and r_norm < 1.5 * self.ps.particle_diameter) else 0
         c = 60000
-        gamma = r_norm / (0.75 * self.ps.support_radius)
+        gamma = r_norm / (0.75 * self.ps.smoothing_len)
         f = 0
         if gamma > 0 and gamma <= 2 / 3:
             f = 2 / 3
@@ -166,7 +166,7 @@ class WCSPHSolver(SPHSolver):
     # Compute the pressure force contribution, Symmetric formula
     @ti.func
     def pressure_force(self, p_i, p_j, r):
-        res = -self.mass * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * self.cubic_kernel_derivative(r)
+        res = -self.mass * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * self.kernel_derivative(r)
         return res
 
     # Evaluate pressure force

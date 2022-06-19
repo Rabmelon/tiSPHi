@@ -18,8 +18,14 @@ class SPHSolver:
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
         # self.dt[None] = 2e-5    # "ti video -f125" will be good to make the video 2 times slower than calculation (8s simulation and 16s video, 2000 frames / 8*2s = 125fps)
-        self.dt[None] = 0.2 * self.ps.support_radius / self.usound  # CFL
+        self.dt[None] = 0.2 * self.ps.smoothing_len / self.usound  # CFL
         self.epsilon = 1e-16
+
+    @ti.kernel
+    def init_value(self):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] < 10:
+                self.ps.val[p_i] = 0.0
 
     ###########################################################################
     # Kernel functions
@@ -47,9 +53,9 @@ class SPHSolver:
     def cubic_kernel(self, r):
         res = ti.cast(0.0, ti.f32)
         k = 4 / 3 if self.ps.dim == 1 else 40 / 7 / np.pi if self.ps.dim == 2 else 8 / np.pi
-        k /= self.ps.support_radius**self.ps.dim
+        k /= self.ps.smoothing_len**self.ps.dim
         r_norm = r.norm()
-        q = r_norm / self.ps.support_radius
+        q = r_norm / self.ps.smoothing_len
         if q <= 1.0:
             if q <= 0.5:
                 q2 = q * q
@@ -63,11 +69,11 @@ class SPHSolver:
     def cubic_kernel_derivative(self, r):
         res = ti.Vector([0.0 for _ in range(self.ps.dim)])
         k = 4 / 3 if self.ps.dim == 1 else 40 / 7 / np.pi if self.ps.dim == 2 else 8 / np.pi
-        k *= 6. / self.ps.support_radius**self.ps.dim
+        k *= 6. / self.ps.smoothing_len**self.ps.dim
         r_norm = r.norm()
-        q = r_norm / self.ps.support_radius
+        q = r_norm / self.ps.smoothing_len
         if r_norm > self.epsilon and q <= 1.0:
-            grad_q = r / (r_norm * self.ps.support_radius)
+            grad_q = r / (r_norm * self.ps.smoothing_len)
             if q <= 0.5:
                 res = k * q * (3.0 * q - 2.0) * grad_q
             else:
@@ -79,8 +85,8 @@ class SPHSolver:
     @ti.func
     def WendlandC2_kernel(self, r):
         res = ti.cast(0.0, ti.f32)
-        h1 = 1 / self.ps.support_radius
-        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else None
+        h1 = 1 / self.ps.smoothing_len
+        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else 0.0
         k *= h1**self.ps.dim
         r_norm = r.norm()
         q = r_norm * h1
@@ -92,8 +98,8 @@ class SPHSolver:
     @ti.func
     def WendlandC2_kernel_derivative(self, r):
         res = ti.Vector([0.0 for _ in range(self.ps.dim)])
-        h1 = 1 / self.ps.support_radius
-        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else None
+        h1 = 1 / self.ps.smoothing_len
+        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else 0.0
         k *= h1**self.ps.dim
         r_norm = r.norm()
         q = r_norm * h1

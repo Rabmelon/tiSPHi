@@ -1,6 +1,6 @@
 import taichi as ti
 
-# TODO: add coolwarm colormap
+# TODO: (just have a try) add coolwarm colormap
 # TODO: try new struct_class of taichi to make some choices of colormap
 
 # color map is copy from: https://forum.taichi.graphics/t/vortex-method-demo/775
@@ -40,9 +40,14 @@ bwrR = ColorMap(1.0, .25, 1, .5)
 bwrG = ColorMap(1.0, .5, .5, .5)
 bwrB = ColorMap(1.0, 1, .25, .5)
 
+coolwarmR = ColorMap(0.9, .25, 1, .5)
+coolwarmG = ColorMap(0.9, .5, .5, .5)
+coolwarmB = ColorMap(0.9, 1, .25, .5)
+
 @ti.func
 def color_map(c):
     # return ti.Vector([R.map(c), G.map(c), B.map(c)])
-    return ti.Vector([jetR.map(c), jetG.map(c), jetB.map(c)])
+    # return ti.Vector([jetR.map(c), jetG.map(c), jetB.map(c)])
     # return ti.Vector([bwrR.map(c), bwrG.map(c), bwrB.map(c)])
+    return ti.Vector([coolwarmR.map(c), coolwarmG.map(c), coolwarmB.map(c)])
 

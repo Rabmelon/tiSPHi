@@ -28,8 +28,10 @@ class ParticleSystem:
         # Basic particle property 粒子的基本属性
         self.particle_radius = radius
         self.particle_diameter = 2.0 * self.particle_radius
-        self.kh = 6.0   # times the support domain radius to the particle radius. Should be adapted automaticlly soon
-        self.support_radius = self.kh * self.particle_radius
+        self.kappa = 2.0
+        self.kh = 1.2   # times the support domain radius to the particle radius. Should be adapted automaticlly soon
+        self.smoothing_len = self.kh * self.particle_diameter
+        self.support_radius = self.kappa * self.smoothing_len
         self.m_V = self.particle_diameter**self.dim     # m2 or m3 for cubic discrete
         self.particle_max_num = 2**16  # the max number of all particles, as 65536
         self.particle_max_num_per_cell = 100  # the max number of particles in each cell
@@ -37,9 +39,8 @@ class ParticleSystem:
         self.particle_num = ti.field(int, shape=())  # record the number of current particles
 
         # Grid property 背景格网的基本属性
-        self.grid_size = 2 * self.support_radius  # 令格网边长为2倍的支持域半径，这样只需遍历4个grid就可以获取邻域粒子【不好使！】at the same equals to padding width
-        # self.grid_size = self.support_radius + 1e-5 # 支持域半径加一个微小量
-        self.bound = [[-self.grid_size, -self.grid_size], [i + self.grid_size for i in world]]    # Simply create a rectangular range
+        self.grid_size = ti.ceil(self.kappa * self.kh) * self.particle_diameter
+        self.bound = [[-self.grid_size, -self.grid_size], [i + self.grid_size for i in world]]    # Simply create a rectangular range, down-left and up-right
         self.range = np.array([self.bound[1][0] - self.bound[0][0], self.bound[1][1] - self.bound[0][1]])    # Simply create a rectangular range
         self.grid_num = np.ceil(self.range / self.grid_size).astype(int)  # 格网总数
         self.grid_particles_num = ti.field(int)  # 每个格网中的粒子总数
@@ -243,14 +244,14 @@ class ParticleSystem:
         # Dummy_color = 0x9999FF
         Dummy_type = 10
         Dummy_off = self.particle_diameter
-        Dummy_cube_d_dl = np.array([i + self.grid_size - self.support_radius for i in self.bound[0]])
-        Dummy_cube_d_tr = np.array([self.bound[1][0] - self.grid_size + self.support_radius, 0])
-        Dummy_cube_u_dl = np.array([self.bound[0][0] + self.grid_size - self.support_radius, self.bound[1][1] - self.grid_size])
-        Dummy_cube_u_tr = np.array([i - self.grid_size + self.support_radius for i in self.bound[1]])
-        Dummy_cube_l_dl = np.array([self.bound[0][0] + self.grid_size - self.support_radius, 0])
-        Dummy_cube_l_tr = np.array([self.bound[0][0] + self.grid_size, self.bound[1][1] - self.grid_size])
+        Dummy_cube_d_dl = np.array(self.bound[0])
+        Dummy_cube_d_tr = np.array([self.bound[1][0], 0])
+        Dummy_cube_u_dl = np.array([self.bound[0][0], self.bound[1][1] - self.grid_size])
+        Dummy_cube_u_tr = np.array(self.bound[1])
+        Dummy_cube_l_dl = np.array([self.bound[0][0], 0])
+        Dummy_cube_l_tr = np.array([0, self.bound[1][1] - self.grid_size])
         Dummy_cube_r_dl = np.array([self.bound[1][0] - self.grid_size, 0])
-        Dummy_cube_r_tr = np.array([self.bound[1][0] - self.grid_size + self.support_radius, self.bound[1][1] - self.grid_size])
+        Dummy_cube_r_tr = np.array([self.bound[1][0], self.bound[1][1] - self.grid_size])
         self.gen_one_rangeary_cube(Dummy_cube_d_dl, Dummy_cube_d_tr, Dummy_color, Dummy_type, Dummy_off)
         self.gen_one_rangeary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type, Dummy_off)
         self.gen_one_rangeary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type, Dummy_off)

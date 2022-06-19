@@ -5,49 +5,58 @@
 ### The integral estimation
 > @Chalk2019 4.2
 
-The integral approximation involves representing a function $f(x)$ as an integral:
+The integral approximation involves representing a function $f(\boldsymbol{x})$ as an integral:
 
-$$f(x)=\int_{\Omega}f(x')\delta(x-x'){\rm d}x'$$
+$$f(\boldsymbol{x})=\int_{\Omega}f(\boldsymbol{x}')\delta(\boldsymbol{x}-\boldsymbol{x}'){\rm d}\boldsymbol{x}'$$
 
-where $\Omega$ donates the integral domain and $\delta(x-x')$ is the Dirac delta function defined as:
+where $\Omega$ donates the integral domain and $\delta(\boldsymbol{x}-\boldsymbol{x}')$ is the Dirac delta function defined as:
 
-$$\delta(x-x')=\begin{cases}
-  1, &x=x' \\ 0, &x\neq x'
+$$\delta(\boldsymbol{x}-\boldsymbol{x}')=\begin{cases}
+  1, &\boldsymbol{x}=\boldsymbol{x}' \\ 0, &\boldsymbol{x}\neq\boldsymbol{x}'
 \end{cases} $$
 
 In the derivation of SPH, the integral approximation is obtained by replacing the Dirac delta with a smoothing function $W$:
 
-$$\langle f(x)\rangle=\int_{\Omega}f(x')W(x-x', h){\rm d}x' $$
+$$\langle f(\boldsymbol{x})\rangle=\int_{\Omega}f(\boldsymbol{x}')W(\boldsymbol{x}-\boldsymbol{x}', h){\rm d}\boldsymbol{x}' $$
 
 The smoothing function, or kernel, must satisfy three conditions:
 
 $$\begin{aligned}
     \begin{array}{rl}
-    Normalisation\ condition: &\int_{\Omega}W(x-x',h){\rm d}x'=1 \\
-    Compact\ support: &W(x-x',h)=0\ when\ |x-x'|>\kappa h \\
-    Satisfy\ the\ Dirac\ delta\ function\ condition: &\underset{h\rightarrow0}{\lim}W(x-x',h)=\delta(x-x')
+    Normalisation\ condition: &\int_{\Omega}W(\boldsymbol{x}-\boldsymbol{x}',h){\rm d}\boldsymbol{x}'=1 \\
+    Compact\ support: &W(\boldsymbol{x}-\boldsymbol{x}',h)=0\ when\ |\boldsymbol{x}-\boldsymbol{x}'|>\kappa h \\
+    Satisfy\ the\ \delta\ function\ condition: &\underset{h\rightarrow0}{\lim}W(\boldsymbol{x}-\boldsymbol{x}',h)=\delta(\boldsymbol{x}-\boldsymbol{x}')
     \end{array}
 \end{aligned} $$
 
 With these conditions for the smoothing kernel, the integral approximation is of second order accuracy, so that:
 
-$$f(x)=\int_{\Omega}f(x')W(x-x',h){\rm d}x'+O(h^2) $$
+$$f(\boldsymbol{x})=\int_{\Omega}f(\boldsymbol{x}')W(\boldsymbol{x}-\boldsymbol{x}',h){\rm d}\boldsymbol{x}'+O(h^2) $$
 
 ### Particle approximations
 The particle approximation is utilised to discretise the integral equation over a set of particles. This involves writing the integral approximation in discrete form using a summation approach:
 
-$$\langle f(x)\rangle\approx\sum_{j=1}^Nf(x_j)W(x-x_j,h)V_j $$
+$$\langle f(\boldsymbol{x})\rangle=\sum_{j=1}^Nf(\boldsymbol{x}_j)W(\boldsymbol{x}-\boldsymbol{x}_j,h)V_j $$
 
-where $V_j$ is the discrete volume at each point and $N$ is the total number of particles within the region defined by $W$ and $h$. Here, the function $f(x)$ is approximated by summing over all discrete particles $j$ within the domain of influence at the position $x$. So the summation approach can be expressed for a specific particle $i$ as:
+where $V_j$ is the discrete volume at each point and $N$ is the total number of particles within the region defined by $W$ and $h$. Here, the function $f(\boldsymbol{x})$ is approximated by summing over all discrete particles $j$ within the domain of influence at the position $\boldsymbol{x}$. So the summation approach can be expressed for a specific particle $i$ as:
 
-$$f(x_i)=\sum_{j=1}^N\frac{m_j}{\rho_j}f(x_j)W(x_i-x_j,h) $$
+$$f(\boldsymbol{x}_i)\approx\sum_{j=1}^N V_jf(\boldsymbol{x}_j)W(\boldsymbol{x}_i-\boldsymbol{x}_j,h) $$
 
 This equation describes the SPH evaluation of a function or variable at a particle $i$.
+
+Now, replace $f\equiv\nabla f$, we have:
+
+$$\nabla f(\boldsymbol{x}_i)\approx\sum_{j=1}^N V_j\nabla f(\boldsymbol{x}_j)W(\boldsymbol{x}_i-\boldsymbol{x}_j,h) $$
+
+Applying the Gaussian theorem (in a symmetric and positive weighting function, ${\rm d}V=\vec n\cdot{\rm d}S$, and also $\partial W/\partial \boldsymbol{x}_i=-\partial W/\partial \boldsymbol{x}_j$):
+
+$$\nabla f(\boldsymbol{x}_i)\approx\sum_{j=1}^N V_jf(\boldsymbol{x}_j)\nabla_i W(\boldsymbol{x}_i-\boldsymbol{x}_j,h) $$
+
 
 ### Spatial derivatives
 > @taichiCourse01-10 PPT p59 and 72
 
-Approximate a function $f(x)$ using finite probes $f(x_j)$, and the degree of freedom $(x)$ goes inside the kernel functions (**anti-sym** and **sym**).
+Approximate a function $f(\boldsymbol{x})$ using finite probes $f(\boldsymbol{x}_j)$, and the degree of freedom $(\boldsymbol{x})$ goes inside the kernel functions (**anti-sym** and **sym**).
 * SPH discretization:
 
 $$f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j)W(x-x_j, h) $$
@@ -56,78 +65,20 @@ $$f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j)W(x-x_j, h) $$
 
 $${\color{Salmon} \nabla} f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla\cdot} \boldsymbol{F}(x) \approx \sum_j \frac{m_j}{\rho_j}\boldsymbol{F}(x_j){\color{Salmon} \cdot\nabla}W(x-x_j, h)  $$
+$${\color{Salmon} \nabla\cdot} \boldsymbol{f}(x) \approx \sum_j \frac{m_j}{\rho_j}\boldsymbol{f}(x_j){\color{Salmon} \cdot\nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla\times} \boldsymbol{F}(x) \approx -\sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \times\nabla}W(x-x_j, h)  $$
+$${\color{Salmon} \nabla\times} \boldsymbol{f}(x) \approx -\sum_j \frac{m_j}{\rho_j}\boldsymbol{f}(x_j){\color{Salmon} \times\nabla}W(x-x_j, h)  $$
 
 $${\color{Salmon} \nabla^2} f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \nabla^2}W(x-x_j, h)  $$
 
-with $W(x_i-x_j, h) = W_{ij}$ in discrete view, and:
+with $W(\boldsymbol{x}_i-\boldsymbol{x}_j, h) = W_{ij}$ in discrete view, and:
 
-$$\nabla W_{ij}=\frac{\partial W_{ij}}{\partial x_i} $$
+$$\nabla W_{ij}=\frac{\partial W_{ij}}{\partial \boldsymbol{x}_i} $$
 
-$$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial x_i^2} $$
+$$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} $$
 
 > **QUESTIONS**
 > 1. How to calculate $\nabla W$ and $\nabla^2 W$? **ANSWER**: just directly take the partial derivative!
-
-### Kernel functions
-
-#### The cubic spline kernel
-> @bui2021
-
-$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
-  \frac{2}{3}-q^2+\frac{1}{2}q^3, &0\leq q \leq 1 \\ \frac{1}{6}(2-q)^3, &1 < q \leq 2 \\ 0, &otherwise
-\end{cases} $$
-
-where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{1}{h}$, $k_2=\frac{15}{7\pi h^2}$, $k_3=\frac{3}{2\pi h^3}$. The kernel is $C^2$ continuous.
-
-> @koschierSmoothedParticleHydrodynamics2019
-
-$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
-  6(q^3-q^2)+1, &0\leq q \leq 0.5 \\ 2(1-q)^3, &0.5 < q \leq 1 \\ 0, &otherwise
-\end{cases} $$
-
-where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{4}{3h}$, $k_2=\frac{40}{7\pi h^2}$, $k_3=\frac{8}{\pi h^3}$. The kernel is $C^2$ continuous.
-
-The first-order derivation:
-
-$$\nabla W_{ij}=\frac{\partial W}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert},\ \boldsymbol{r}=x_i-x_j $$
-
-$$\frac{\partial W}{\partial q}=k_d\begin{cases}
-  6(3q^2-2q), &0\leq q \leq 0.5 \\ -6(1-q)^2, &0.5 < q \leq 1 \\ 0, &otherwise
-\end{cases} $$
-
-The second-order derivation:
-
-$$\nabla^2W_{ij}=\frac{\partial^2 W}{\partial x_i^2}=\frac{\partial}{\partial x_i}(\frac{\partial W}{\partial x_i})=\frac{\partial^2 W}{\partial q^2}\cdot(\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i})^2=\frac{\partial^2 W}{\partial q^2}\cdot\frac{1}{h^2}\cdot\frac{(x_i-x_j)^2}{\Vert\boldsymbol{r}\Vert^2} $$
-
-$$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
-  6(6q-2), &0\leq q \leq 0.5 \\ 12(1-q), &0.5 < q \leq 1 \\ 0, &otherwise
-\end{cases} $$
-
-> **QUESTIONS**
-> 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
-> 2. Where is the fault?
-> 3. Why $0<q<2$? The support domain should be $h$, or $2h$? It only depends on the choice and should be $2$ in kernel function but $h$ in neighbor search?
-
-#### The Wendland C2 kernel
-> @bui2021 2.3
-
-$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
-  (1-0.5q)^4(1+2q), &0\leq q \leq 2 \\ 0, &otherwise
-\end{cases} $$
-
-where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=2,3$ and $k_2=\frac{7}{4\pi h^2}$, $k_3=\frac{21}{2\pi h^3}$. For 1d, the formulation is changed. The kernel is $C^2$ continuous.
-
-The first-order derivation:
-
-$$\nabla W_{ij}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert} $$
-
-The second-order derivation:
-
-???
-
 
 ### Improving approximations for spatial derivatives
 > @taichiCourse01-10 PPT p60-70
@@ -148,6 +99,109 @@ The second-order derivation:
     * When $n=-1$: $\nabla f(r) \approx \rho\sum_j m_j(\frac{f(r_j)}{\rho_j^2}+\frac{f(r)}{\rho^2})\nabla W(r-r_j, h)$, we call it the **symmetric form**
 
 * 通常会使用一些反对称(**anti-sym**)或对称型(**sym**)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当$f(r)$是一个力的时候，从动量守恒的角度去推导，使用**sym**更好；当做散度、需要投影的时候，使用**anti-sym**更好。
+    * 或许可以说，当$f$是粒子$i$和$j$的相互作用时，用对称型；当$f$是粒子本身的属性时，用反对称型？
+
+> @bui2021
+
+After doing the Taylor expansion of $f_j$:
+
+$$f_j=f_i+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}+O(h^2)$$
+
+We have:
+
+$$\nabla^{\beta}f_i\approx\sum_jV_jf_j\nabla^{\beta}_iW_{ij}\approx f_i{\color{Salmon} \sum_jV_j\nabla^{\beta}_iW_{ij}}+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}{\color{Green} \sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}}+O(h^2)$$
+
+where the term ${\color{Salmon} 1}$ should be $0$ and the term ${\color{Green} 2}$ should be $1$ or $\delta^{\alpha\beta}$.
+
+To completely eliminate these errors, one could subtract the ${\color{Salmon} 1}$ term and then divide the ${\color{Green} 2}$ term, leading to the normalised SPH formulation for the kernel derivative:
+
+$$\nabla f_i\approx\boldsymbol{L_{ij}}\sum_{j=1}^N V_j(f_j-f_i)\nabla_i W_{ij}=\sum_{j=1}^N V_j(f_j-f_i)\nabla_i\widetilde{W}_{ij} $$
+
+$$\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}]^{-1}$$
+
+$\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second order accuracy. Additionally, it also removes the boundary effects. But although it is a good operator, it also may become a bad one. Such as in formulations that DO NOT conserve linear momentum like force and stress. So we need an operator to conserve both linear and angular momenta.
+
+
+> **QUESTIONS**
+> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij} $?
+
+## Kernel functions
+
+### Pairing instability
+> @bui lecture
+
+A commmon misconception of SPH:
+
+Wrong choice of kernel function lead to "pairing instability" and this was often cited as SPH instability issue!
+
+The source of pairing instability in SPH comes from the gradient term $\nabla_iW_{ij}$:
+
+1. Each kernel function **could only accomodate** a certain number of particles, which means forcing more particles in a kernel approximation cause SPH errors.
+2. Each kernel function has **a inflection point** (i.e. zero kernel gradient), which means particles at this point would not gain enough repulsive force due to SPH errors.
+3. However, the appropriate choice of kernel function and its parameters would **completely eliminate pairing instability** issues.
+
+**Remarks**:
+
+* Pairing instability issue only occurs in a situation where there are more neighbouring particles in the influence domain that a kernel function can accodomate.
+* Kernel functions whose Fourier transformation is negative for some wave vectors will trigger pairing instability at sufficient large number of neighbouring particles. (So that's why Wendland C2 kernel function wins, because all of its Fourier transformations for wave vectors are positive.)
+* If we actually use a suitable kernel function with a suitable supporting length, we don't have the problem of pairing instability, and this issue is not because SPH instability.
+
+
+### The cubic spline kernel
+> @bui2021
+
+$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  \frac{2}{3}-q^2+\frac{1}{2}q^3, &0\leq q \leq 1 \\ \frac{1}{6}(2-q)^3, &1 < q \leq 2 \\ 0, &otherwise
+\end{cases} $$
+
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{1}{h}$, $k_2=\frac{15}{7\pi h^2}$, $k_3=\frac{3}{2\pi h^3}$.
+
+> @koschierSmoothedParticleHydrodynamics2019
+
+$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  6(q^3-q^2)+1, &0\leq q \leq 0.5 \\ 2(1-q)^3, &0.5 < q \leq 1 \\ 0, &otherwise
+\end{cases} $$
+
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{4}{3h}$, $k_2=\frac{40}{7\pi h^2}$, $k_3=\frac{8}{\pi h^3}$.
+
+The first-order derivation:
+
+$$\nabla W_{ij}=\frac{\partial W}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert},\ \boldsymbol{r}=x_i-x_j $$
+
+$$\frac{\partial W}{\partial q}=k_d\begin{cases}
+  6(3q^2-2q), &0\leq q \leq 0.5 \\ -6(1-q)^2, &0.5 < q \leq 1 \\ 0, &otherwise
+\end{cases} $$
+
+The second-order derivation:
+
+$$\nabla^2W_{ij}=\frac{\partial^2 W}{\partial x_i^2}=\frac{\partial}{\partial x_i}(\frac{\partial W}{\partial x_i})=\frac{\partial^2 W}{\partial q^2}\cdot(\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i})^2=\frac{\partial^2 W}{\partial q^2}\cdot\frac{1}{h^2}\cdot\frac{(x_i-x_j)^2}{\Vert\boldsymbol{r}\Vert^2} $$
+
+$$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
+  6(6q-2), &0\leq q \leq 0.5 \\ 12(1-q), &0.5 < q \leq 1 \\ 0, &otherwise
+\end{cases} $$
+
+> **QUESTIONS**
+> 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
+> 2. Where is the fault?
+> 3. Why $0<q<2$? The support domain should be $h$, or $2h$? It only depends on the choice and should be $2$ in kernel function but $h$ in neighbor search? **ANSWER**: $h$ is called "smoothing length" and controls the shape of kernel function, $\kappa h$ is the compact support radius determining the region of support domain, also the neighbour search condition should be $|\boldsymbol{x}_i-\boldsymbol{x}_j|\le\kappa h $. $\kappa$ is usually taking as $2$. from @peng lecture.
+
+### The Wendland C2 kernel
+> @bui2021 2.3
+
+$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  (1-0.5q)^4(1+2q), &0\leq q \leq 2 \\ 0, &otherwise
+\end{cases} $$
+
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=2,3$ and $k_2=\frac{7}{4\pi h^2}$, $k_3=\frac{21}{2\pi h^3}$. For 1d, the formulation is changed. The kernel is $C^2$ continuous.
+
+The first-order derivation:
+
+$$\nabla W_{ij}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert} $$
+
+The second-order derivation:
+
+???
+
 
 ## Neighbour search
 

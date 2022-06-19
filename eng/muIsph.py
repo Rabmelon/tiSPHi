@@ -39,7 +39,7 @@ class MCmuISPHSolver(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 tmp = self.mass * (self.ps.u[p_i] - self.ps.u[p_j]) / self.ps.density[p_j]
-                dd += tmp.transpose() @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                dd += tmp.transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             self.d_density[p_i] = self.ps.density[p_i] * dd[0]
 
     @ti.kernel
@@ -57,7 +57,7 @@ class MCmuISPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-                self.u_grad[p_i] += self.mass / self.ps.density[p_j] * (self.ps.u[p_j] - self.ps.u[p_i]) @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]).transpose()
+                self.u_grad[p_i] += self.mass / self.ps.density[p_j] * (self.ps.u[p_j] - self.ps.u[p_i]) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]).transpose()
 
     @ti.kernel
     def cal_strain(self):
@@ -84,7 +84,7 @@ class MCmuISPHSolver(SPHSolver):
                 continue
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-                du += (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ self.cubic_kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                du += (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             du *= self.mass
             if self.ps.dim == 2:
                 du += ti.Vector([0, self.g])

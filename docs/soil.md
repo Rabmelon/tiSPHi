@@ -279,11 +279,29 @@ The final form in Lagrangian method of density: (left 为微团密度的变化�
 
 $$\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{u}$$
 
+> @bui2021
+
+The original form ($\rho=\sum_j m_jW_{ij} $) of SPH mass equation operator is not suitable because the density will drop in the boundary of calculating domain, not like astrophysics in which there is an infinite domain.
+
+On the other hand, we use $\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij} $ to solve homogenous problem and use $\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij} $ to solve non-homogenous problem.
+
 ### Conservation of momentum
 
 [Cauchy momentum equation](https://en.wikipedia.org/wiki/Cauchy_momentum_equation) is a vector partial differential equation that describes the non-relativistic momentum transport in any continuum. And in convective (or Lagrangian) form is written as:
 
 $$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\frac{1}{\rho}\nabla\cdot\boldsymbol{\sigma}+\boldsymbol{f}$$
+
+> @bui2021
+
+To exactly conserve momentum, we should use the symmetric form:
+
+$$\frac{{\rm D}\boldsymbol{u}_i}{{\rm D}t}=\frac{1}{\rho_i}\sum_jV_j(\boldsymbol{\sigma}_j+\boldsymbol{\sigma}_i)\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
+
+or
+
+$$\frac{{\rm D}\boldsymbol{u}_i}{{\rm D}t}=\sum_jV_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
+
+
 
 ### Constitutive equation
 

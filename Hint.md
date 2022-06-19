@@ -1,8 +1,10 @@
 
 
+22.06.19.
+1. Finally be clear of the support domain radius $\kappa h$ and smoothing length $h$!
+
 22.06.15.
 1. the explode problem might be caused by the wrong kernel value!
-
 
 
 22.05.10.
