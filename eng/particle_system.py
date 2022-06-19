@@ -5,7 +5,8 @@ from eng.colormap import *
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
 # TODO: --ok Unify all coordinate systems and put padding area outside the real world.
-# TODO: still warnings in NS, offset loop die for endless
+# TODO: --ok still warnings in NS, offset loop die for endless
+# TODO: use hashgrid method to do NS
 # TODO: better method of update kh
 
 @ti.data_oriented
@@ -118,13 +119,7 @@ class ParticleSystem:
                 continue
             center_cell = self.pos_to_index(self.x[p_i])
             cnt = 0
-            offset_check = 0
             for offset in ti.grouped(ti.ndrange(*((-1, 2),) * self.dim)):
-                # assert offset_check > 9, 'My Error 1: offset loop die for endless in NS!'
-                if offset_check > 9:
-                    # print('!!!!My warning: offset loop die for endless in NS!')
-                    break
-                offset_check += 1   # -------------------------
                 if cnt >= self.particle_max_num_neighbors:
                     break
                 cell = center_cell + offset

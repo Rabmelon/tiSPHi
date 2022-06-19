@@ -17,30 +17,30 @@ $$\delta(x-x')=\begin{cases}
 
 In the derivation of SPH, the integral approximation is obtained by replacing the Dirac delta with a smoothing function $W$:
 
-$$\langle f(x)\rangle=\int_{\Omega}f(x')W(x-x', h_s){\rm d}x' $$
+$$\langle f(x)\rangle=\int_{\Omega}f(x')W(x-x', h){\rm d}x' $$
 
 The smoothing function, or kernel, must satisfy three conditions:
 
 $$\begin{aligned}
     \begin{array}{rl}
-    Normalisation\ condition: &\int_{\Omega}W(x-x',h_s){\rm d}x'=1 \\
-    Compact\ support: &W(x-x',h_s)=0\ when\ |x-x'|>\kappa h_s \\
-    Satisfy\ the\ Dirac\ delta\ function\ condition: &\underset{h\rightarrow0}{\lim}W(x-x',h_s)=\delta(x-x')
+    Normalisation\ condition: &\int_{\Omega}W(x-x',h){\rm d}x'=1 \\
+    Compact\ support: &W(x-x',h)=0\ when\ |x-x'|>\kappa h \\
+    Satisfy\ the\ Dirac\ delta\ function\ condition: &\underset{h\rightarrow0}{\lim}W(x-x',h)=\delta(x-x')
     \end{array}
 \end{aligned} $$
 
 With these conditions for the smoothing kernel, the integral approximation is of second order accuracy, so that:
 
-$$f(x)=\int_{\Omega}f(x')W(x-x',h_s){\rm d}x'+O(h_s^2) $$
+$$f(x)=\int_{\Omega}f(x')W(x-x',h){\rm d}x'+O(h^2) $$
 
 ### Particle approximations
 The particle approximation is utilised to discretise the integral equation over a set of particles. This involves writing the integral approximation in discrete form using a summation approach:
 
-$$\langle f(x)\rangle\approx\sum_{j=1}^Nf(x_j)W(x-x_j,h_s)V_j $$
+$$\langle f(x)\rangle\approx\sum_{j=1}^Nf(x_j)W(x-x_j,h)V_j $$
 
-where $V_j$ is the discrete volume at each point and $N$ is the total number of particles within the region defined by $W$ and $h_s$. Here, the function $f(x)$ is approximated by summing over all discrete particles $j$ within the domain of influence at the position $x$. So the summation approach can be expressed for a specific particle $i$ as:
+where $V_j$ is the discrete volume at each point and $N$ is the total number of particles within the region defined by $W$ and $h$. Here, the function $f(x)$ is approximated by summing over all discrete particles $j$ within the domain of influence at the position $x$. So the summation approach can be expressed for a specific particle $i$ as:
 
-$$f(x_i)=\sum_{j=1}^N\frac{m_j}{\rho_j}f(x_j)W(x_i-x_j,h_s) $$
+$$f(x_i)=\sum_{j=1}^N\frac{m_j}{\rho_j}f(x_j)W(x_i-x_j,h) $$
 
 This equation describes the SPH evaluation of a function or variable at a particle $i$.
 
@@ -109,6 +109,7 @@ $$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
 > **QUESTIONS**
 > 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
 > 2. Where is the fault?
+> 3. Why $0<q<2$? The support domain should be $h$, or $2h$? It only depends on the choice and should be $2$ in kernel function but $h$ in neighbor search?
 
 #### The Wendland C2 kernel
 > @bui2021 2.3
@@ -147,6 +148,12 @@ The second-order derivation:
     * When $n=-1$: $\nabla f(r) \approx \rho\sum_j m_j(\frac{f(r_j)}{\rho_j^2}+\frac{f(r)}{\rho^2})\nabla W(r-r_j, h)$, we call it the **symmetric form**
 
 * 通常会使用一些反对称(**anti-sym**)或对称型(**sym**)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当$f(r)$是一个力的时候，从动量守恒的角度去推导，使用**sym**更好；当做散度、需要投影的时候，使用**anti-sym**更好。
+
+## Neighbour search
+
+### Grid method
+
+### Hash grid method
 
 
 ## Boundary treatment
@@ -233,7 +240,7 @@ The particles that comprise the free surface should satisfy a stress-free condit
 > **QUESTIONS**
 > 1. BUT how does the free surface condition implement?
 
-## Time integration
+## Time integration and advection
 
 ### Courant-Friedrichs-Lewy (CFL)
 > @yang2021
