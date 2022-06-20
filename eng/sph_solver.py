@@ -21,11 +21,26 @@ class SPHSolver:
         self.dt[None] = 0.2 * self.ps.smoothing_len / self.usound  # CFL
         self.epsilon = 1e-16
 
+    ###########################################################################
+    # Assist
+    ###########################################################################
     @ti.kernel
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 self.ps.val[p_i] = 0.0
+
+    @ti.kernel
+    def cal_L(self):
+        for p_i in range(self.ps.particle_num[None]):
+            x_i = self.ps.x[p_i]
+            tmpL = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
+            for j in range(self.ps.particle_neighbors_num[p_i]):
+                p_j = self.ps.particle_neighbors[p_i, j]
+                x_j = self.ps.x[p_j]
+                tmp = self.kernel_derivative(x_i - x_j)
+                tmpL += self.ps.m_V * (x_j - x_i) @ tmp.transpose()
+            self.ps.L[p_i] = tmpL.inverse()
 
     ###########################################################################
     # Kernel functions
@@ -52,33 +67,35 @@ class SPHSolver:
     @ti.func
     def cubic_kernel(self, r):
         res = ti.cast(0.0, ti.f32)
-        k = 4 / 3 if self.ps.dim == 1 else 40 / 7 / np.pi if self.ps.dim == 2 else 8 / np.pi
-        k /= self.ps.smoothing_len**self.ps.dim
+        h1 = 1 / self.ps.smoothing_len
+        k = 1 if self.ps.dim == 1 else 15 / 7 / np.pi if self.ps.dim == 2 else 3 / 2 / np.pi
+        k *= h1**self.ps.dim
         r_norm = r.norm()
-        q = r_norm / self.ps.smoothing_len
-        if q <= 1.0:
-            if q <= 0.5:
+        q = r_norm * h1
+        if r_norm > self.epsilon and q <= 2.0:
+            if q <= 1.0:
                 q2 = q * q
                 q3 = q2 * q
-                res = k * (6.0*q3-6.0*q2+1)
+                res = k * (0.5 * q3 - q2 + 2 / 3)
             else:
-                res = k*2*ti.pow(1-q, 3.0)
+                res = k / 6 * ti.pow(2 - q, 3.0)
         return res
 
     @ti.func
     def cubic_kernel_derivative(self, r):
         res = ti.Vector([0.0 for _ in range(self.ps.dim)])
-        k = 4 / 3 if self.ps.dim == 1 else 40 / 7 / np.pi if self.ps.dim == 2 else 8 / np.pi
-        k *= 6. / self.ps.smoothing_len**self.ps.dim
+        h1 = 1 / self.ps.smoothing_len
+        k = 1 if self.ps.dim == 1 else 15 / 7 / np.pi if self.ps.dim == 2 else 3 / 2 / np.pi
+        k *= 6. * h1**self.ps.dim
         r_norm = r.norm()
-        q = r_norm / self.ps.smoothing_len
-        if r_norm > self.epsilon and q <= 1.0:
-            grad_q = r / (r_norm * self.ps.smoothing_len)
-            if q <= 0.5:
-                res = k * q * (3.0 * q - 2.0) * grad_q
+        q = r_norm * h1
+        if r_norm > self.epsilon and q <= 2.0:
+            grad_q = r / r_norm * h1
+            if q <= 1.0:
+                res = k * q * (3.0 / 2.0 * q - 2.0) * grad_q
             else:
-                factor = 1.0 - q
-                res = k * (-factor * factor) * grad_q
+                factor = 2.0 - q
+                res = k * (-0.5 * factor * factor) * grad_q
         return res
 
     # Wendland C2 kernel
@@ -116,7 +133,7 @@ class SPHSolver:
     def simulate_collisions(self, p_i, vec, d):
         # if self.ps.material[p_i] < 10:
         # assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
-        c_f = 0.7
+        c_f = 0.3
         self.ps.x[p_i] += (1.0 + c_f) * vec * d
         self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec
 

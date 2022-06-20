@@ -6,9 +6,11 @@ In the application of CFD approach to model geomaterials using SPH, the material
 Advanced constitutive models were built on the basis of continuum plasticity theory
 
 ### A simple elastic-perfectly plastic model for soil
+
 > @bui2021 3.2.1.1.
 
 Standard CFD approach for $c-\varphi$ soils. The shear stresses increase linearly with the incresing shear strain and thus cannot capture the plastic response. A simple approach is to restrict the development of shear stresses when the materials enter the plastic flow regime without actually solving the plastic deformation. (即不计算塑性变形，当材料进入塑性流动状态时，直接按照M-C强度准则约束剪应力)
+
 The stress tensor is decomposed into the isotropic pressure $p$ and deviatoric stress $\boldsymbol{s}$:
 
 $$\boldsymbol{\sigma}=p\boldsymbol{I}+\boldsymbol{s}$$
@@ -28,10 +30,13 @@ $$\tau_f=c+p\tan{\varphi}$$
 where $\tau_f=\sqrt{\frac{3}{2}\boldsymbol{s}:\boldsymbol{s}}$ is the maximum shear stress at failure. When the soil enters its plastic flow regime, the shear stress components are scaled back to the yield surface.
 
 ### $\mu(I)$-rheological constitutive model
+
 > @bui2021 3.2.1.2. and yang2021 2.2
 
 The $\mu(I)$-rheological model is one of the most commonl used and widely validated rheological models, developed to capture the rate-dependent and inertial effect of granular materials in the dense flow regime.
+
 It was derived based on the Bingham constitutive relation for non-Newtonian fluids. It assumes the materials behave as a rigid body or stiff elastic response before yielding and then quickly reaching their plastic flow behaviour. (假设材料在屈服前表现为刚体或刚性弹性响应？然后迅速达到其塑性流动状态即屈服后的临界状态)
+
 It separates the stress tensor into an isotropic pressure and viscous shear stress tensor, and the viscous shear stress is then defined as a function of total strain-rate:
 
 $$\boldsymbol{\sigma}=-p\boldsymbol{I}+\boldsymbol{\tau}$$
@@ -39,9 +44,13 @@ $$\boldsymbol{\sigma}=-p\boldsymbol{I}+\boldsymbol{\tau}$$
 $$\boldsymbol{\tau}=2\eta\dot{\boldsymbol{\varepsilon}},\ \eta=\frac{\mu(I)p}{\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}},\ \mu(I)=\mu_s+\frac{\mu_2-\mu_s}{I_0/I+1}$$
 
 where $\eta$ is an effective viscosity, when $\dot{\boldsymbol{\varepsilon}}\rightarrow0$, it diverges to infinity and this ensures the material behaviour is rigid or very stiff when the strain rate is very small or at the static condition and thus guaranteeing the existence of a field criterion;
+
 $\dot{\boldsymbol{\varepsilon}}$ is the total strain-rate tensor;
+
 $\mu$ is a frictional function dependent on the inertial number $I=d_s\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}/\sqrt{p/\rho_s}$ with $d_s$ being the grain diameter, $\rho_s$ being the solid density;
+
 $\mu_2$ and $I_0$ are both materials constants with $\mu_2$ being the critical friction angle at very high $I$;
+
 and $\mu_s$ is the sratic friction coefficient, corresponding to the state of no plastic flow.
 
 Under the condition of the strain rate tensor in the limit of 0 ($I\rightarrow0$), the second component of $\mu(I)$ will approach 0. This suggests that, under static condition, $\mu(I)=\mu_s$, which defines a yielding threshold above which yielding occurs. Accordingly, the following yield criterion, which takes the form of the Drucker-Prager-like criterion, can be defined:
@@ -79,14 +88,19 @@ The above modified Bingham model can be thought of as a precursor to the $\mu(I)
 **NOTE**: the $\mu(I)$ model need the difference of density to generate pressure, so it is wrong to keep a constant density.
 
 ### Drucker-Prager yield criteria
+
 Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
+
 For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
 
 $$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
 
 And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis $\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$. $g$ is the plastic potential function (塑性势函数).
+
 And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
+
 The Von Mises and D-P yield criteria are illustrated in two dimensions:
+
 <div align="center">
   <img width="400px" src="/img/Yield_criterias.png">
 </div>
@@ -96,6 +110,7 @@ Here we difine the firse invariant of the stress tensor $I_1$ and the second inv
 $$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
 
 > **QUESTIONS**
+>
 > 1. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" two 2nd rank tensors and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
 
 The increment of the yield function after plastic loading or unloading:
@@ -105,6 +120,7 @@ $${\rm d}f=\frac{\partial f}{\partial \boldsymbol{\sigma}} {\rm d}\boldsymbol{\s
 The stress state is not allowed to exceed the yield surface, and the yield function increment cannot be greater than 0. ${\rm d}f=0$ ensures that the stress state remains on the yield surface during plastic loading.
 
 > **QUESTIONS**
+>
 > 1. How to calculate ${\rm d}f$? **ANSWER**: ${\rm d}f = f^*-f$ in advection.
 
 And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
@@ -118,6 +134,7 @@ $$\dot{\boldsymbol{\varepsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\n
 where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
 
 > **QUESTIONS**
+>
 > 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive. **Answer**: Generally it's negtive. When it is positive, the meaning is the average normal stress $\sigma_m = -p$.
 
 The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
@@ -135,6 +152,7 @@ In the elastoplastic model, the stress state is not allowed to exceed the yield 
 > @Bui2008 Section 3.3.1 and Chalk2019 Section 4.3.1
 
 But the stress state is not allowed to exceed the yield surfae. The stress must be checked at every step and adapted if it does not lie within a valid range.
+
 <div align="center">
   <img width="800px" src="/img/Adaptation_stress_states.png">
 </div>
@@ -154,6 +172,7 @@ In the SPH implementation of the elastoplastic model, the two corrective treatme
 
 
 ## Governing equations for DP
+
 Conservation of mass:
 
 $$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{u}$$
@@ -231,8 +250,11 @@ $$\begin{aligned} \boldsymbol{D}^e = D^e_{pq} = \frac{E}{(1+\nu)(1-2\nu)} \left 
 \end{array}\right) \end{aligned}$$
 
 $D^e_{pq}$ is the **elastic constitutive tensor**, also the ealstic constitutive matrix reduces in plane strain condition.
+
 $\boldsymbol{\tilde{\sigma}}$ is the **Jaumann stress-rate**, which is adopted to achieve an invariant stress rate with respect to rigid-body rotation for large deformation analysis.
+
 $\dot{\omega}_{\alpha\beta}$ is the **spin rate tensor**.
+
 And $\boldsymbol{g}^{\varepsilon^p}$ is a vector containing the plastic terms which is the only difference responsible for plastic deformations between the **elastoplastic** and **Perzyna** constitutive models. In both models, the plastic terms are functions of the plastic strain rate, which is dependent on the state of stress and material parameters.
 
 For the elastoplastic model,
@@ -243,7 +265,7 @@ which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${
 
 $$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{G}$$
 
-and $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
+$G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
 
 And for the Perzyna model,
 
@@ -252,6 +274,7 @@ $$\boldsymbol{g}^{\varepsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\
 which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion). And $\hat{N}$ is a model parameter.
 
 > **QUESTIONS**
+>
 > 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models. **ANSWER**: as it shows
 > 2. How does $\dot{\lambda}$ calculated? **ANSWER**: as it shows
 > 3. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
@@ -259,6 +282,7 @@ which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield 
 > 5. What's the difference between $\dot{\boldsymbol{\varepsilon}}$ and $\dot{\boldsymbol{\varepsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{u}$.
 
 ### Conservation of mass
+
 > @mit fluids lectures [f10](https://web.mit.edu/16.unified/www/FALL/fluids/Lectures/f10.pdf)
 
 All the governing equations of fluid motion which were derived using control volume concepts can be recast in terms of the substantial derivative. We will employ the following general vector identity:
@@ -281,9 +305,9 @@ $$\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{u}$$
 
 > @bui2021
 
-The original form ($\rho=\sum_j m_jW_{ij} $) of SPH mass equation operator is not suitable because the density will drop in the boundary of calculating domain, not like astrophysics in which there is an infinite domain.
+The original form ($\rho=\sum_j m_jW_{ij}$) of SPH mass equation operator is not suitable because the density will drop in the boundary of calculating domain, not like astrophysics in which there is an infinite domain.
 
-On the other hand, we use $\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij} $ to solve homogenous problem and use $\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij} $ to solve non-homogenous problem.
+On the other hand, we use $\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij}$ to solve homogenous problem and use $\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij}$ to solve non-homogenous problem.
 
 ### Conservation of momentum
 
@@ -301,8 +325,6 @@ or
 
 $$\frac{{\rm D}\boldsymbol{u}_i}{{\rm D}t}=\sum_jV_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
 
-
-
 ### Constitutive equation
 
 Unlike the CFD approach, the general elastoplastic constitutive modelling approach evolves the stress tensor over time using a unique stress-strain relationship that relates the stress-increment to the strain-increment. It is assumed that for an elastoplastic material, the total strain-increment tensor ${\rm d}\boldsymbol{\varepsilon}$ is decomposed into elastic and plastic components: ${\rm d}\boldsymbol{\varepsilon}={\rm d}\boldsymbol{\varepsilon}_e+{\rm d}\boldsymbol{\varepsilon}_p$
@@ -310,11 +332,13 @@ Unlike the CFD approach, the general elastoplastic constitutive modelling approa
 The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol{\sigma}=\boldsymbol{D}^{ep}:{\rm d}\boldsymbol{\varepsilon}$
 
 > **QUESTIONS**:
+>
 > 1. Is the stress derivative ? deviation? divergancy? the material derivative or partial derivative? It should be $\partial\sigma/\partial t$? Or the stress is also proper to be described in material derivative?
 
 ## Standard DP soil SPH
 
 ### Discretization
+
 > @chalk2020 Section 3.1
 
 The discrete governing equations of soil motion in the framework of standard SPH are therefore:
@@ -340,6 +364,7 @@ In the current work, each SPH particle is assigned the same, constant density fo
 
 
 ### RK4 for standard soil SPH
+
 > @Chalk2020, Appendix B.
 
 The considered governing SPH equations are summarised as:

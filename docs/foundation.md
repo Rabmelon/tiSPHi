@@ -3,6 +3,7 @@
 ## Basic formulations
 
 ### The integral estimation
+
 > @Chalk2019 4.2
 
 The integral approximation involves representing a function $f(\boldsymbol{x})$ as an integral:
@@ -34,6 +35,7 @@ With these conditions for the smoothing kernel, the integral approximation is of
 $$f(\boldsymbol{x})=\int_{\Omega}f(\boldsymbol{x}')W(\boldsymbol{x}-\boldsymbol{x}',h){\rm d}\boldsymbol{x}'+O(h^2) $$
 
 ### Particle approximations
+
 The particle approximation is utilised to discretise the integral equation over a set of particles. This involves writing the integral approximation in discrete form using a summation approach:
 
 $$\langle f(\boldsymbol{x})\rangle=\sum_{j=1}^Nf(\boldsymbol{x}_j)W(\boldsymbol{x}-\boldsymbol{x}_j,h)V_j $$
@@ -54,9 +56,11 @@ $$\nabla f(\boldsymbol{x}_i)\approx\sum_{j=1}^N V_jf(\boldsymbol{x}_j)\nabla_i W
 
 
 ### Spatial derivatives
+
 > @taichiCourse01-10 PPT p59 and 72
 
 Approximate a function $f(\boldsymbol{x})$ using finite probes $f(\boldsymbol{x}_j)$, and the degree of freedom $(\boldsymbol{x})$ goes inside the kernel functions (**anti-sym** and **sym**).
+
 * SPH discretization:
 
 $$f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j)W(x-x_j, h) $$
@@ -78,9 +82,11 @@ $$\nabla W_{ij}=\frac{\partial W_{ij}}{\partial \boldsymbol{x}_i} $$
 $$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} $$
 
 > **QUESTIONS**
+>
 > 1. How to calculate $\nabla W$ and $\nabla^2 W$? **ANSWER**: just directly take the partial derivative!
 
 ### Improving approximations for spatial derivatives
+
 > @taichiCourse01-10 PPT p60-70
 
 * Let $f(r) \equiv 1$, we have:
@@ -121,13 +127,14 @@ $$\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nab
 
 $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second order accuracy. Additionally, it also removes the boundary effects. But although it is a good operator, it also may become a bad one. Such as in formulations that DO NOT conserve linear momentum like force and stress. So we need an operator to conserve both linear and angular momenta.
 
-
 > **QUESTIONS**
-> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij} $?
+>
+> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij}$?
 
 ## Kernel functions
 
 ### Pairing instability
+
 > @bui lecture
 
 A commmon misconception of SPH:
@@ -147,6 +154,7 @@ The source of pairing instability in SPH comes from the gradient term $\nabla_iW
 * If we actually use a suitable kernel function with a suitable supporting length, we don't have the problem of pairing instability, and this issue is not because SPH instability.
 
 
+
 ### The cubic spline kernel
 > @bui2021
 
@@ -156,6 +164,27 @@ $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
 
 where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{1}{h}$, $k_2=\frac{15}{7\pi h^2}$, $k_3=\frac{3}{2\pi h^3}$.
 
+The first-order derivation:
+
+$$\nabla W_{ij}=\frac{\partial W}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert},\ \boldsymbol{r}=x_i-x_j $$
+
+$$\frac{\partial W}{\partial q}=k_d\begin{cases}
+  \frac{3}{2}q^2-2q, &0\leq q \leq 1 \\ -\frac{1}{2}(2-q)^2, &1 < q \leq 2 \\ 0, &otherwise
+\end{cases} $$
+
+The second-order derivation:
+
+$$\nabla^2W_{ij}=\frac{\partial^2 W}{\partial x_i^2}=\frac{\partial}{\partial x_i}(\frac{\partial W}{\partial x_i})=\frac{\partial^2 W}{\partial q^2}\cdot(\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i})^2=\frac{\partial^2 W}{\partial q^2}\cdot\frac{1}{h^2}\cdot\frac{(x_i-x_j)^2}{\Vert\boldsymbol{r}\Vert^2} $$
+
+$$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
+  3q-2, &0\leq q \leq 1 \\ 2-q, &1 < q \leq 2 \\ 0, &otherwise
+\end{cases} $$
+
+> **QUESTIONS**
+>
+> 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
+> 2. Why $0<q<2$? The support domain should be $h$, or $2h$? It only depends on the choice and should be $2$ in kernel function but $h$ in neighbor search? **ANSWER**: @peng lecture. $h$ is called "smoothing length" and controls the shape of kernel function, $\kappa h$ is the compact support radius determining the region of support domain, also the neighbour search condition should be $|\boldsymbol{x}_i-\boldsymbol{x}_j|\le\kappa h$. $\kappa$ is usually taking as $2$.
+
 > @koschierSmoothedParticleHydrodynamics2019
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
@@ -164,28 +193,8 @@ $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
 
 where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{4}{3h}$, $k_2=\frac{40}{7\pi h^2}$, $k_3=\frac{8}{\pi h^3}$.
 
-The first-order derivation:
-
-$$\nabla W_{ij}=\frac{\partial W}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert},\ \boldsymbol{r}=x_i-x_j $$
-
-$$\frac{\partial W}{\partial q}=k_d\begin{cases}
-  6(3q^2-2q), &0\leq q \leq 0.5 \\ -6(1-q)^2, &0.5 < q \leq 1 \\ 0, &otherwise
-\end{cases} $$
-
-The second-order derivation:
-
-$$\nabla^2W_{ij}=\frac{\partial^2 W}{\partial x_i^2}=\frac{\partial}{\partial x_i}(\frac{\partial W}{\partial x_i})=\frac{\partial^2 W}{\partial q^2}\cdot(\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i})^2=\frac{\partial^2 W}{\partial q^2}\cdot\frac{1}{h^2}\cdot\frac{(x_i-x_j)^2}{\Vert\boldsymbol{r}\Vert^2} $$
-
-$$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
-  6(6q-2), &0\leq q \leq 0.5 \\ 12(1-q), &0.5 < q \leq 1 \\ 0, &otherwise
-\end{cases} $$
-
-> **QUESTIONS**
-> 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
-> 2. Where is the fault?
-> 3. Why $0<q<2$? The support domain should be $h$, or $2h$? It only depends on the choice and should be $2$ in kernel function but $h$ in neighbor search? **ANSWER**: $h$ is called "smoothing length" and controls the shape of kernel function, $\kappa h$ is the compact support radius determining the region of support domain, also the neighbour search condition should be $|\boldsymbol{x}_i-\boldsymbol{x}_j|\le\kappa h $. $\kappa$ is usually taking as $2$. from @peng lecture.
-
 ### The Wendland C2 kernel
+
 > @bui2021 2.3
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
@@ -196,7 +205,7 @@ where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factor
 
 The first-order derivation:
 
-$$\nabla W_{ij}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert} $$
+$$\nabla W_{ij}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert}$$
 
 The second-order derivation:
 
@@ -213,6 +222,7 @@ The second-order derivation:
 ## Boundary treatment
 
 ### Basic methods
+
 > @taichiCourse01-10 PPT p43 and 79-85
 
 * Mainly two styles: **free surface** and **solid boundary**
@@ -229,9 +239,11 @@ The second-order derivation:
         2. Pad a layer of solid particles (or called ghost particles) underneath the boundaries with $\rho_{solid} = \rho_0$ and $v_{solid} = 0$. 总体来说比方法1稳定，但可能会导致边界附近粒子的数值黏滞。
 
 > **QUESTIONS**
+>
 > 1. 多介质的流体混合时，多介质的界面？？？
 
 ### Complex boundary treatment
+
 > @Chalk2020
 
 虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。
@@ -241,6 +253,7 @@ The second-order derivation:
 First, choose the method to solve boundary problems. I want to update the behaviour of particles without just invert the operator but with some rules that are suitable for soil dynamics problems.
 
 The dummy particle method is used to represent the wall boundary. For dummy and repulsive particles at the wall boundary, they are spaced apart by $\Delta x/2$. For other dummy particles, are $\Delta x$.
+
 <div align="center">
   <img width="300px" src="/img/Dummy_particles.png">
 </div>
@@ -285,18 +298,22 @@ $\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $
 And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the $\boldsymbol{f}^{\sigma}$ term) on the interior particles in the equation of momentum through the particle-dummy interaction.
 
 > **QUESTIONS**
+>
 > 1. How about the mass of repulsive particles? **ANSWER**: maybe the mass of repulsive particel = 0!
 > 2. How to add repulsive forces in boundary particles?
 
 #### For free surface problems
+
 The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.
 
 > **QUESTIONS**
+>
 > 1. BUT how does the free surface condition implement?
 
 ## Time integration and advection
 
 ### Courant-Friedrichs-Lewy (CFL)
+
 > @yang2021
 
 The size of $\Delta t$ is determined using the Courant-Friedrichs-Lewy (CFL) stability condition, which, for SPH states that:
@@ -307,11 +324,13 @@ where a suitable value for $C_{CFL}$ was found to be 0.2.
 $h$ is the smoothing length and $c$ is the speed of sound is the smoothing length and $c$ is the speed of sound.
 
 ### Symp Euler - Symplectic Euler (SE)
+
 > @taichiCourse01-10 PPT p77
 
 $$u_i^* = u_i+\Delta t\frac{{\rm d}u_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tu_i^*$$
 
 ### Leap-Frog (LF)
+
 > @yang2021
 
 Leap-Frog(LF) time-integration scheme is sufficiently stable, accurate, and fast due to only requiring one calculation of forces for each timestep. For a given time-step, the density and velocity are brought forward to the mid-increment using material derivatives from the previous timestep(if available), and the position is updated at full-increments:
@@ -327,6 +346,7 @@ $$\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{u}_{n+1}$$
 
 
 ### RK4 - 4th order Runge-Kutta (RK4)
+
 > @Chalk2020 Appendix B.
 
 The RK4 scheme has fourth order accuracy and relatively simple implementation.
@@ -343,6 +363,7 @@ $$k_1=f(\phi_1),\ k_2=f(\phi_2),\ k_3=f(\phi_3),\ k_4=f(\phi_4)$$
 $$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\Delta tk_3$$
 
 ### XSPH
+
 In addition to the velocity and stress, the position vectors of each particle $\boldsymbol{x}_i$ are updated via the XSPH method at the end of each time step as:
 
 $$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{u}_i + \varepsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij}$$

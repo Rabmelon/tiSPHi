@@ -9,6 +9,13 @@ sim*/*
 *.dwl2
 *.bak
 
+# screenshot folder
+screenshots/
+
+# matlab backup file
+*.asv
+"site/"
+
 # Pycharm
 .idea
 
@@ -161,7 +168,3 @@ desktop.ini
 
 # gitbak
 *.gitbak
-
-# matlab backup file
-*.asv
-"site/" 

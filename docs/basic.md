@@ -2,10 +2,12 @@
 # Basic mathematics and mechanics
 
 ## Tensor
+
 Tensors are simply mathematical objects that can be used to describe physical properties, a tensor is something that transforms like a tensor. The laws of physics described in tensor automatically guarantee this property of being invariant with the reference frame.
 The rank (or order) of a tensor is defined by the number of directions required to describe it. A scalar is a 0 rank tensor, a vector is a first rank tensor, a matrix is a two rank tensor. In general, in a 3D space, an $n^{th}$ rank tensor can be described by $3^n$ coefficients.
 
 ### Einstein summation convention
+
 Einstein summation convention is a notational convention that implies summation over a set of indexed terms in a formula, thus achieving brevity.
 * **Summation index (dummy index)**: an index that is summed over.
   $i$ in $y=\sum_{i=1}^3c_ix_i=c_1x_1+c_2x_2+c_3x_3=c_ix_i$
@@ -35,6 +37,7 @@ $$
 
 
 ## The spatial derivative operators in 3D
+
 $\nabla$ 算子的三个语义:
 
 $$\nabla=\boldsymbol{i}\frac{\partial}{\partial x}+\boldsymbol{j}\frac{\partial}{\partial y}+\boldsymbol{k}\frac{\partial}{\partial z}$$
@@ -70,6 +73,7 @@ is **material derivative** in fluid mechanics, total derivative in math. 数学�
 中科院的李新亮研究员给出了一个更加形象的例子：高铁的电子显示屏上会实时显示车外的温度，如果我们将高铁看作是一个流体微元，它早上从北京出发，中午到达上海，显示屏上记录的室外温度的变化就是物质导数，它包含了两个部分，一是从北京到上海的地理位置的变化所带来的温度变化，即对流导数；二是由于早上到中午由于时间不同而引起的温度变化，即当地导数。)
 
 ## Fluid and solid
+
 **Solid**: Applied tengential force/area (or shear stress) $\tau$ produces a proportional deformation angle (or strain) $\theta$. The constant of proportionality $G$ is called the *elastic modulus* and has the units of $force/area$.
 
 $$\tau=G\theta$$
@@ -83,6 +87,7 @@ $$\tau=\mu\dot\theta$$
 </div>
 
 ## Stress, strain and strain-rate tensor
+
 > @[wiki: strain-rate tensor](https://en.wikipedia.org/wiki/Strain-rate_tensor#)
 
 In continuum mechanics, the gradient $\nabla\boldsymbol{u}$ of the celocity is a second-order tensor:

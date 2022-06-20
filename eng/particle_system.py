@@ -50,6 +50,7 @@ class ParticleSystem:
         # Basic
         self.x = ti.Vector.field(self.dim, dtype=float)     # position
         self.pos2vis = ti.Vector.field(self.dim, dtype=float)   # position to visualization
+        self.L = ti.Matrix.field(self.dim, self.dim, dtype=float)     # the normalised matrix
         self.val = ti.field(dtype=float)                      # store a value
         self.particle_neighbors_num = ti.field(int)         # total number of neighbour particles
         self.particle_neighbors = ti.field(int)             # index of neighbour particles
@@ -70,7 +71,7 @@ class ParticleSystem:
 
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
-        self.particles_node.place(self.x, self.pos2vis, self.val, self.material, self.color)
+        self.particles_node.place(self.x, self.pos2vis, self.L, self.val, self.material, self.color)
         self.particles_node.place(self.density, self.u, self.stress, self.strain)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储

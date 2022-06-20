@@ -11,11 +11,10 @@ class ChkKernel(SPHSolver):
         super().__init__(particle_system, TDmethod, kernel)
         print("Class check kernel starts to serve!")
         self.fv = ti.field(dtype=float)
-        self.L = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
         self.d_fv = ti.Vector.field(self.ps.dim, dtype=float)
         self.g_fv = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.fv, self.L, self.d_fv, self.g_fv)
+        particle_node.place(self.fv, self.d_fv, self.g_fv)
 
     @ti.kernel
     def init_value(self):
@@ -23,20 +22,9 @@ class ChkKernel(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.x[p_i].sum()
                 # self.ps.val[p_i] = self.fv[p_i]
-                # self.ps.val[p_i] = self.d_fv[p_i].norm()
-                self.ps.val[p_i] = self.g_fv[p_i][0,0]
-
-    @ti.func
-    def cal_L(self):
-        for p_i in range(self.ps.particle_num[None]):
-            x_i = self.ps.x[p_i]
-            self.L[p_i] = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
-            for j in range(self.ps.particle_neighbors_num[p_i]):
-                p_j = self.ps.particle_neighbors[p_i, j]
-                x_j = self.ps.x[p_j]
-                tmp = self.kernel_derivative(x_i - x_j)
-                self.L[p_i] += self.ps.m_V * (x_j - x_i) @ tmp.transpose()
-
+                # self.ps.val[p_i] = self.d_fv[p_i][0]
+                self.ps.val[p_i] = self.d_fv[p_i].norm()
+                # self.ps.val[p_i] = self.g_fv[p_i][0,0]
 
     @ti.kernel
     def cal_f(self):
@@ -58,7 +46,7 @@ class ChkKernel(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                self.d_fv[p_i] += self.ps.m_V * self.kernel_derivative(x_i - x_j)
+                self.d_fv[p_i] += self.ps.m_V * (x_j.sum()-x_i.sum()) * (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
 
 
     @ti.kernel
@@ -69,26 +57,28 @@ class ChkKernel(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                tmp = self.kernel_derivative(x_i - x_j)
+                tmp = self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j)
                 self.g_fv[p_i] += self.ps.m_V * (x_j - x_i) @ tmp.transpose()
 
     def step(self):
         self.ps.initialize_particle_system()
+        self.cal_L()
         # self.cal_f()
-        # self.cal_grad_f()
-        self.cal_f2()
+        self.cal_grad_f()
+        # self.cal_f2()
 
 if __name__ == "__main__":
     print("hallo test kernel function accuracy!")
 
-    screen_to_world_ratio = 6   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [140, 100]   # a rectangle world start from (0, 0) to this pos
+    screen_to_world_ratio = 4   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    rec_world = [135, 105]   # a rectangle world start from (0, 0) to this pos
     particle_radius = 2
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.add_cube(lower_corner=[0, 0], cube_size=[80, 80], material=1)
 
     solver = ChkKernel(case1, 1, 1)
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, kradius=1.05, color_title="f=x+y")
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, kradius=1.05, color_title="f=x+y, |f'|, WLC2")
+    # f=x+y, f, f'[0,0], WLC2, CS, Gaus
 
 
 

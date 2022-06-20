@@ -4,14 +4,13 @@
   <img width="200px" src="/img/tiSPHi_logo_squre.png">
 </div>
 
-For full documentation visit [tiSPHi github](https://github.com/Rabmelon/tiSPHi).
+For full introduction please visit [tiSPHi github](https://github.com/Rabmelon/tiSPHi).
 
-## Commands
+## Prerequisites
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+### Python
+
+3.6 / 3.7 / 3.8 / 3.9 / 3.10 (64-bit)
 
 ## Project layout
 

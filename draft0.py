@@ -16,10 +16,10 @@ if __name__ == "__main__":
     print("hallo tiSPHi!")
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
-    screen_to_world_ratio = 1200   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [0.6, 0.75]   # a rectangle world start from (0, 0) to this pos
+    screen_to_world_ratio = 800   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    rec_world = [0.8, 0.8]   # a rectangle world start from (0, 0) to this pos
     particle_radius = 0.002
-    cube_size = [0.15, 0.3]
+    cube_size = [0.2, 0.4]
 
     mat = 1
     rho = 1000.0
