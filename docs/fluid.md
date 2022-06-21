@@ -99,9 +99,9 @@ In WCSPH:
 
         $$\nu\nabla^2u_i = \nu\sum_j m_j \frac{u_j-u_i}{\rho_j}\nabla^2W_{ij}$$
 
-        in taichiWCSPH code it's a approximation from @monaghan2005 :
+        in taichiWCSPH code it's an approximation from @monaghan2005 :
 
-        $$\nu\nabla^2u_i = 2\nu(dimension+2)\sum_j \frac{m_j}{\rho_j}(\frac{u_{ij}\cdot r_{ij}}{\|r_{ij}\|^2+0.01h^2})\nabla W_{ij}$$
+        $$\nu\nabla^2u_i = 2\nu(dim+2)\sum_j \frac{m_j}{\rho_j}(\frac{u_{ij}\cdot r_{ij}}{\|r_{ij}\|^2+0.01h^2})\nabla W_{ij}$$
 
     * Evaluate pressure gradient (**sym**), where $p = k(\rho-\rho_0)$
 

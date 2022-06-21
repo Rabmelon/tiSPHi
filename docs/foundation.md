@@ -121,7 +121,7 @@ where the term ${\color{Salmon} 1}$ should be $0$ and the term ${\color{Green} 2
 
 To completely eliminate these errors, one could subtract the ${\color{Salmon} 1}$ term and then divide the ${\color{Green} 2}$ term, leading to the normalised SPH formulation for the kernel derivative:
 
-$$\nabla f_i\approx\boldsymbol{L_{ij}}\sum_{j=1}^N V_j(f_j-f_i)\nabla_i W_{ij}=\sum_{j=1}^N V_j(f_j-f_i)\nabla_i\widetilde{W}_{ij} $$
+$$\nabla f_i\approx\sum_{j=1}^N V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1}^N V_j(f_j-f_i)\nabla_i\widetilde{W}_{ij} $$
 
 $$\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}]^{-1}$$
 

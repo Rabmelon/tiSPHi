@@ -18,7 +18,7 @@ class SPHSolver:
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
         # self.dt[None] = 2e-5    # "ti video -f125" will be good to make the video 2 times slower than calculation (8s simulation and 16s video, 2000 frames / 8*2s = 125fps)
-        self.dt[None] = 0.2 * self.ps.smoothing_len / self.usound  # CFL
+        self.dt[None] = ti.max(1e-6, 0.2 * self.ps.smoothing_len / self.usound)  # CFL
         self.epsilon = 1e-16
 
     ###########################################################################
@@ -132,12 +132,11 @@ class SPHSolver:
     @ti.func
     def simulate_collisions(self, p_i, vec, d):
         # if self.ps.material[p_i] < 10:
-        # assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
-        c_f = 0.3
+        assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
+        c_f = 0.7
         self.ps.x[p_i] += (1.0 + c_f) * vec * d
         self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec
 
-    # Treat the boundary problems
     @ti.kernel
     def enforce_boundary(self):
         for p_i in range(self.ps.particle_num[None]):
@@ -159,8 +158,23 @@ class SPHSolver:
     def substep_SympEuler(self):
         pass
 
-    def substep_RK4(self):
+    def RK4_one_step(self, m):
+        # compute one step RK4 functions here
+        # self.compute_F(m)
         pass
+
+    def advect_RK4(self):
+        for m in ti.static(range(4)):
+            if m == 0:
+                self.update_v_1(m)
+            elif m < 4:
+                self.update_v_234(m)
+            self.RK4_one_step(m)
+        # self.update_vel_pos()
+
+    def substep_RK4(self):
+        # init F and other paras
+        self.advect_RK4()
 
     def step(self):
         self.ps.initialize_particle_system()
