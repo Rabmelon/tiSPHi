@@ -56,7 +56,7 @@ class WCSESPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
                 r = x_i - x_j
-                d_v += 2 * (self.ps.dim + 2) * self.viscosity * self.ps.m_V * (self.ps.u[p_i]-self.ps.u[p_j]) / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_derivative(r)
+                d_v += 2 * (self.ps.dim + 2) * self.viscosity * self.ps.m_V * (self.ps.u[p_i]-self.ps.u[p_j]).dot(r) / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_derivative(r)
 
             # Add body force
             if self.ps.material[p_i] == self.ps.material_fluid:
@@ -78,7 +78,8 @@ class WCSESPHSolver(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                d_v += -self.ps.m_V * self.ps.density[p_i] * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * self.kernel_derivative(x_i - x_j)
+                tmp = -self.ps.m_V * self.ps.density[p_j] * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2)
+                d_v += tmp * self.kernel_derivative(x_i - x_j)
             self.d_velocity[p_i] += d_v
 
     # Symplectic Euler
@@ -91,7 +92,7 @@ class WCSESPHSolver(SPHSolver):
                 self.ps.x[p_i] += self.dt[None] * self.ps.u[p_i]
 
     def substep_SympEuler(self):
-        self.cal_d_density()
-        self.compute_non_pressure_forces()
+        # self.cal_d_density()
+        # self.compute_non_pressure_forces()
         self.compute_pressure_forces()
         self.advect()

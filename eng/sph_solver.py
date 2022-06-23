@@ -178,6 +178,7 @@ class SPHSolver:
 
     def step(self):
         self.ps.initialize_particle_system()
+        self.cal_L()
         if self.TDmethod == 1:
             self.substep_SympEuler()
         elif self.TDmethod == 2:
