@@ -12,19 +12,19 @@ r = (-kshow*h:0.001:kshow*h)';
 W = zeros(size(r));
 grad_W = zeros(size(r));
 lapl_W = zeros(size(r));
-W = cal_kn_cubicspline(r, h);
-grad_W = cal_kn_grad_cubicspline(r, h);
-lapl_W = cal_kn_lapl_cubicspline(r, h);
-% W = cal_kn_WendlandC2(r, h);
-% grad_W = cal_kn_grad_WendlandC2(r, h);
-% lapl_W = cal_kn_lapl_WendlandC2(r, h);
+% W = cal_kn_cubicspline(r, h);
+% grad_W = cal_kn_grad_cubicspline(r, h);
+% lapl_W = cal_kn_lapl_cubicspline(r, h);
+W = cal_kn_WendlandC2(r, h);
+grad_W = cal_kn_grad_WendlandC2(r, h);
+lapl_W = cal_kn_lapl_WendlandC2(r, h);
 
 figure(1)
 cla; hold on; grid on; axis tight;
 xlabel("q"); ylabel("f(q)");
 plot(r/h, W, 'b')
 plot(r/h, grad_W, 'g')
-plot(r/h, lapl_W, 'r')
+% plot(r/h, lapl_W, 'r')
 legend('W', '∇W', '∇2W');
 
 % end of main function

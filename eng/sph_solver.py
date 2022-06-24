@@ -132,7 +132,7 @@ class SPHSolver:
     @ti.func
     def simulate_collisions(self, p_i, vec, d):
         # if self.ps.material[p_i] < 10:
-        assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
+        # assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
         c_f = 0.7
         self.ps.x[p_i] += (1.0 + c_f) * vec * d
         self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec

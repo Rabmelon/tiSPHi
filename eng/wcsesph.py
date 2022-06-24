@@ -9,6 +9,11 @@ class WCSESPHSolver(SPHSolver):
         # Basic paras
         self.density_0 = 1000.0  # reference density
         self.viscosity = visco  # viscosity
+        self.mass = self.ps.m_V * self.density_0
+
+        # Two paras in taichiWCSPH code
+        self.stiffness = stiff   # k1
+        self.exponent = expo     # k2
 
         self.d_density = ti.field(dtype=float)
         self.pressure = ti.field(dtype=float)
@@ -16,22 +21,19 @@ class WCSESPHSolver(SPHSolver):
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
         particle_node.place(self.d_density, self.pressure, self.d_velocity)
 
-        # Two paras in taichiWCSPH code
-        self.stiffness = stiff   # k1
-        self.exponent = expo     # k2
-
     @ti.kernel
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                # self.ps.val[p_i] = self.ps.density[p_i]
-                self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
+    #######################################################
     @ti.kernel
-    def cal_d_density(self):
+    def compute_d_density(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_fluid:
                 continue
@@ -73,13 +75,10 @@ class WCSESPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_fluid:
                 continue
-            x_i = self.ps.x[p_i]
             d_v = ti.Vector([0.0 for _ in range(self.ps.dim)])
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-                x_j = self.ps.x[p_j]
-                tmp = -self.ps.m_V * self.ps.density[p_j] * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2)
-                d_v += tmp * self.kernel_derivative(x_i - x_j)
+                d_v += -self.ps.m_V * self.ps.density[p_j] * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             self.d_velocity[p_i] += d_v
 
     # Symplectic Euler
@@ -92,7 +91,7 @@ class WCSESPHSolver(SPHSolver):
                 self.ps.x[p_i] += self.dt[None] * self.ps.u[p_i]
 
     def substep_SympEuler(self):
-        # self.cal_d_density()
-        # self.compute_non_pressure_forces()
+        self.compute_d_density()
+        self.compute_non_pressure_forces()
         self.compute_pressure_forces()
         self.advect()

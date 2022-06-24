@@ -1,3 +1,4 @@
+import sys
 import taichi as ti
 import numpy as np
 from eng.guishow import *
@@ -9,7 +10,8 @@ from eng.wcsesph import *
 
 # TODO: make unit testing for basic functions of SPH
 
-ti.init(arch=ti.cpu, debug=True)
+sys.tracebacklimit = 0
+ti.init(arch=ti.cpu, debug=True, cpu_max_num_threads=1)
 # ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
 # ti.init(arch=ti.vulkan)
 
@@ -35,6 +37,6 @@ if __name__ == "__main__":
     elif mat == 2:
         solver = MCmuISPHSolver(case1, TDmethod, flag_kernel, rho, 0, 29, 0)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, color_title="pressure Pa", kradius=1.25, write_to_disk=0)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, color_title="density N/m3", kradius=1.25, write_to_disk=0)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;
