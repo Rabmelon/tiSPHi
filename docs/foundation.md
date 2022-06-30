@@ -129,7 +129,7 @@ $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second orde
 
 > **QUESTIONS**
 >
-> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij}$?
+> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij}$? **ANSWER**: normalised derivative of kernel function!
 
 ## Kernel functions
 

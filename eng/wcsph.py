@@ -29,8 +29,8 @@ class WCSPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                # self.ps.val[p_i] = self.ps.density[p_i]
-                self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
@@ -61,32 +61,6 @@ class WCSPHSolver(SPHSolver):
                 print('p_i =', p_i)
                 continue
             self.v1234[p_i] = self.ps.u[p_i] + 0.5 * self.dt[None] * self.F[p_i, m-1]
-
-    @ti.func
-    def cal_d_BA(self, p_i, p_j):
-        x_i = self.ps.x[p_i]
-        x_j = self.ps.x[p_j]
-        boundary = ti.Vector([
-            self.ps.bound[1][1] - self.ps.grid_size, self.ps.grid_size,
-            self.ps.bound[1][0] - self.ps.grid_size, self.ps.grid_size])
-        db_i = ti.Vector([x_i[1] - boundary[0], x_i[1] - boundary[1], x_i[0] - boundary[2], x_i[0] - boundary[3]])
-        db_j = ti.Vector([x_j[1] - boundary[0], x_j[1] - boundary[1], x_j[0] - boundary[2], x_j[0] - boundary[3]])
-
-        flag_b = db_i * db_j
-        flag_dir = flag_b < 0
-
-        if flag_dir.sum() > 1:
-            flag_choose = abs(flag_dir * db_i)
-            tmp_max = 0
-            for i in ti.static(range(4)):
-                tmp_max = max(tmp_max, flag_choose[i])
-            flag_choose -= tmp_max
-            flag_choose = flag_choose == 0.0
-            flag_dir -= flag_choose     # will cause a warning: Local store may lose precision & Atomic add (i32 to f32) may lose precision
-
-        d_A = abs(db_i.dot(flag_dir))
-        d_B = abs(db_j.dot(flag_dir))
-        return d_B / d_A
 
     @ti.func
     def update_boundary_particles(self, p_i, p_j):

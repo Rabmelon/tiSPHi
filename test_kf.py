@@ -20,15 +20,17 @@ class ChkKernel(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
+                self.ps.val[p_i] = 1.0
                 # self.ps.val[p_i] = self.ps.x[p_i].sum()
                 # self.ps.val[p_i] = self.fv[p_i]
-                self.ps.val[p_i] = self.d_fv[p_i][0]
+                # self.ps.val[p_i] = self.d_fv[p_i][0]
                 # self.ps.val[p_i] = self.d_fv[p_i].norm()
                 # self.ps.val[p_i] = self.g_fv[p_i][0,0]
 
     @ti.func
     def ff(self, x):
-        res = (x**2).sum()
+        # res = (x**2).sum()
+        res = x.sum()
         return res
 
     @ti.kernel
@@ -62,7 +64,7 @@ class ChkKernel(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
                 tmp = self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j)
-                self.g_fv[p_i] += self.ps.m_V * (x_j - x_i) @ tmp.transpose()
+                self.g_fv[p_i] += self.ps.m_V * (self.ff(x_j) - self.ff(x_i)) @ tmp.transpose()
 
     def step(self):
         self.ps.initialize_particle_system()
@@ -75,11 +77,11 @@ if __name__ == "__main__":
     print("hallo test kernel function accuracy!")
 
     screen_to_world_ratio = 4   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [135, 105]   # a rectangle world start from (0, 0) to this pos
+    rec_world = [120, 100]   # a rectangle world start from (0, 0) to this pos
     particle_radius = 2
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.add_cube(lower_corner=[0, 0], cube_size=[80, 80], material=1)
 
-    solver = ChkKernel(case1, 1, 2)
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, kradius=1.05, color_title="f=x2+y2, f'x, WLC2")
+    solver = ChkKernel(case1, 1, 1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, kradius=1.05, color_title="f=x+y, f'x, aim")
     # f=x+y, f, |f'|, f'[0,0], CS, WLC2, Gaus

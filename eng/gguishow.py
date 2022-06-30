@@ -7,7 +7,7 @@ from datetime import datetime
 # TODO: debug a stable colorbar -- Now with an unupdatable max and min value
 # TODO: add different color choice
 
-def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", color_particle=-1, write_to_disk=False, stepwise=20, iparticle=None):
+def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", color_particle=-1, pause=True, write_to_disk=False, stepwise=20, iparticle=None):
     print("ggui starts to serve!")
 
     drawworld = [i + 2 * case.grid_size for i in world]
@@ -16,7 +16,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", c
     canvas = window.get_canvas()
     canvas.set_background_color((1,1,1))
 
-    flag_pause = True
+    flag_pause = pause
     flag_step = 0
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]
@@ -35,7 +35,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", c
             if iparticle is None:
                 print('---- step %d' % (flag_step))
             else:
-                print('---- step %d, p[%d]: x = (%.3f, %.3f), u = (%.3f, %.3f)' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1]))
+                print('---- step %d, p[%d]: x=(%.3f, %.3f), u=(%.3f, %.3f), rho=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
             for i in range(stepwise):
                 solver.step()
                 flag_step += 1

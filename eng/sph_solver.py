@@ -10,7 +10,7 @@ class SPHSolver:
     def __init__(self, particle_system, TDmethod, kernel):
         print("Class SPH Solver starts to serve!")
         self.ps = particle_system
-        self.TDmethod = TDmethod # 1 for Symp Euler, 2 for RK4
+        self.TDmethod = TDmethod # 1 for Symp Euler, 2 for LF, 4 for RK4
         self.flag_kernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
         self.g = -9.81          # gravity, m/s2
         self.usound = 60        # speed of sound, m/s
@@ -152,11 +152,51 @@ class SPHSolver:
                     if pos[1] < 0:
                         self.simulate_collisions(p_i, ti.Vector([0.0, 1.0]), -pos[1])
 
+    @ti.func
+    def cal_d_BA(self, p_i, p_j):
+        x_i = self.ps.x[p_i]
+        x_j = self.ps.x[p_j]
+        boundary = ti.Vector([
+            self.ps.bound[1][1] - self.ps.grid_size, self.ps.grid_size,
+            self.ps.bound[1][0] - self.ps.grid_size, self.ps.grid_size])
+        db_i = ti.Vector([x_i[1] - boundary[0], x_i[1] - boundary[1], x_i[0] - boundary[2], x_i[0] - boundary[3]])
+        db_j = ti.Vector([x_j[1] - boundary[0], x_j[1] - boundary[1], x_j[0] - boundary[2], x_j[0] - boundary[3]])
+
+        flag_b = db_i * db_j
+        flag_dir = flag_b < 0
+
+        if flag_dir.sum() > 1:
+            flag_choose = abs(flag_dir * db_i)
+            tmp_max = 0
+            for i in ti.static(range(4)):
+                tmp_max = max(tmp_max, flag_choose[i])
+            flag_choose -= tmp_max
+            flag_choose = flag_choose == 0.0
+            flag_dir -= flag_choose     # will cause a warning: Local store may lose precision & Atomic add (i32 to f32) may lose precision
+
+        d_A = abs(db_i.dot(flag_dir))
+        d_B = abs(db_j.dot(flag_dir))
+        return d_B / d_A
+
     ###########################################################################
     # Time integration
     ###########################################################################
     def substep_SympEuler(self):
+        # one single pipeline
         pass
+
+    def substep_LeapFrog(self):
+        # cal rho and u after 0.5dt
+        # cal drho du
+        # update all in dt
+        pass
+
+    def LF_one_step(self):
+        pass
+
+    def substep_RK4(self):
+        # init F and other paras
+        self.advect_RK4()
 
     def RK4_one_step(self, m):
         # compute one step RK4 functions here
@@ -172,15 +212,13 @@ class SPHSolver:
             self.RK4_one_step(m)
         # self.update_vel_pos()
 
-    def substep_RK4(self):
-        # init F and other paras
-        self.advect_RK4()
-
     def step(self):
         self.ps.initialize_particle_system()
         self.cal_L()
         if self.TDmethod == 1:
             self.substep_SympEuler()
         elif self.TDmethod == 2:
+            self.substep_LeapFrog()
+        elif self.TDmethod == 4:
             self.substep_RK4()
         self.enforce_boundary()
