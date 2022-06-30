@@ -20,10 +20,10 @@ class ChkKernel(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = 1.0
+                # self.ps.val[p_i] = 1.0
                 # self.ps.val[p_i] = self.ps.x[p_i].sum()
                 # self.ps.val[p_i] = self.fv[p_i]
-                # self.ps.val[p_i] = self.d_fv[p_i][0]
+                self.ps.val[p_i] = self.d_fv[p_i][0]
                 # self.ps.val[p_i] = self.d_fv[p_i].norm()
                 # self.ps.val[p_i] = self.g_fv[p_i][0,0]
 
@@ -53,7 +53,8 @@ class ChkKernel(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                self.d_fv[p_i] += self.ps.m_V * (self.ff(x_j)-self.ff(x_i)) * (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
+                self.d_fv[p_i] += self.ps.m_V * (self.ff(x_j)-self.ff(x_i)) * (self.kernel_derivative(x_i - x_j))
+                # self.d_fv[p_i] += self.ps.m_V * (self.ff(x_j)-self.ff(x_i)) * (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
 
     @ti.kernel
     def cal_f2(self):
@@ -63,7 +64,8 @@ class ChkKernel(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                tmp = self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j)
+                tmp = self.kernel_derivative(x_i - x_j)
+                # tmp = self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j)
                 self.g_fv[p_i] += self.ps.m_V * (self.ff(x_j) - self.ff(x_i)) @ tmp.transpose()
 
     def step(self):
@@ -82,6 +84,6 @@ if __name__ == "__main__":
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.add_cube(lower_corner=[0, 0], cube_size=[80, 80], material=1)
 
-    solver = ChkKernel(case1, 1, 1)
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, kradius=1.05, color_title="f=x+y, f'x, aim")
+    solver = ChkKernel(case1, 1, 2)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, pause=False, iparticle=None, kradius=1.05, color_title="f=x+y, f'x, WLC2")
     # f=x+y, f, |f'|, f'[0,0], CS, WLC2, Gaus
