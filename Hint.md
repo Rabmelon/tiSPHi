@@ -1,5 +1,9 @@
 
 
+
+22.07.01.
+1. Post a question in [taichi forum](https://forum.taichi.graphics/t/wcsph-accessing-field/2704)
+
 22.06.19.
 1. Finally be clear of the support domain radius $\kappa h$ and smoothing length $h$!
 

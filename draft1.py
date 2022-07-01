@@ -12,8 +12,8 @@ from eng.muIlfsph import *
 # TODO: make unit testing for basic functions of SPH
 
 sys.tracebacklimit = 0
-# ti.init(arch=ti.cpu, debug=True)
-ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
+ti.init(arch=ti.cpu, debug=True)
+# ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
 # ti.init(arch=ti.vulkan)
 
 if __name__ == "__main__":
@@ -27,27 +27,33 @@ if __name__ == "__main__":
 
     mat = 1
     rho = 1000.0
-    TDmethod = 4    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 1    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.add_cube(lower_corner=[0.0, 0], cube_size=cube_size, material=mat, density=rho)
 
     if mat == 1:
+        viscosity = 0.00005
+        stiffness = 50000
+        powcomp = 7
         if TDmethod == 1:
-            solver = WCSPHSolver(case1, TDmethod, flag_kernel, 0.00005, 50000, 7)
+            solver = WCSESPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
         elif TDmethod == 2:
             pass
         elif TDmethod == 4:
-            solver = WCSPHSolver(case1, TDmethod, flag_kernel, 0.00005, 50000, 7)
+            solver = WCSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
     elif mat == 2:
+        coh = 0
+        fric = 29
+        eta0 = 0
         if TDmethod == 1:
-            solver = MCmuISESPHSolver(case1, TDmethod, flag_kernel, rho, 0, 29, 0)
+            solver = MCmuISESPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
         elif TDmethod == 2:
-            solver = MCmuILFSPHSolver(case1, TDmethod, flag_kernel, rho, 0, 29, 0)
+            solver = MCmuILFSPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
         elif TDmethod == 4:
             pass
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, color_title="pressure Pa", kradius=1.25, write_to_disk=1, pause=False)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=None, color_title="density N/m3", kradius=1.5, write_to_disk=1, pause=False)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;

@@ -41,8 +41,8 @@ class ChkKernel(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                self.fv[p_i] += self.ps.m_V * self.kernel(x_i - x_j) * self.ff(x_i)
-                # self.fv[p_i] += self.kernel(x_i - x_j)
+                # self.fv[p_i] += self.ps.m_V * self.kernel(x_i - x_j) * self.ff(x_i)
+                self.fv[p_i] += self.kernel(x_i - x_j)
 
 
     @ti.kernel
@@ -53,8 +53,8 @@ class ChkKernel(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                self.d_fv[p_i] += self.ps.m_V * (self.ff(x_j)-self.ff(x_i)) * (self.kernel_derivative(x_i - x_j))
-                # self.d_fv[p_i] += self.ps.m_V * (self.ff(x_j)-self.ff(x_i)) * (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
+                # self.d_fv[p_i] += self.ps.m_V * (self.ff(x_j)-self.ff(x_i)) * (self.kernel_derivative(x_i - x_j))
+                self.d_fv[p_i] += self.ps.m_V * (self.ff(x_j)-self.ff(x_i)) * (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
 
     @ti.kernel
     def cal_f2(self):
@@ -64,8 +64,8 @@ class ChkKernel(SPHSolver):
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 x_j = self.ps.x[p_j]
-                tmp = self.kernel_derivative(x_i - x_j)
-                # tmp = self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j)
+                # tmp = self.kernel_derivative(x_i - x_j)
+                tmp = self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j)
                 self.g_fv[p_i] += self.ps.m_V * (self.ff(x_j) - self.ff(x_i)) @ tmp.transpose()
 
     def step(self):

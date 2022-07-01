@@ -50,7 +50,8 @@ class WCSESPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
+                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)   # ! no normalisation
+                # tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))    # ! normalised
                 drho += self.ps.density[p_j] * self.ps.m_V * tmp[0]
             self.d_density[p_i] = drho
 
@@ -74,7 +75,8 @@ class WCSESPHSolver(SPHSolver):
     @ti.func
     def viscosity_force(self, p_i, p_j, r):
         v_xy = (self.ps.u[p_i] - self.ps.u[p_j]).dot(r)
-        res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))
+        res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_derivative(r)   # ! no normalisation
+        # res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))    # ! normalised
         return res
 
     # Evaluate viscosity and add gravity
@@ -95,16 +97,15 @@ class WCSESPHSolver(SPHSolver):
             # Add body force
             if self.ps.material[p_i] == self.ps.material_fluid:
                 # d_v += ti.Vector([0.0, self.g] if self.ps.dim == 2 else [0.0, 0.0, self.g])
-                if self.ps.dim == 2:
-                    d_v += ti.Vector([0.0, self.g])
-                else:
-                    print("!!!!!My Error: cannot used in 3D now!")
+                assert self.ps.dim == 2, "!!!!!My Error: cannot used in 3D now!"
+                d_v += ti.Vector([0.0, self.g])
             self.d_velocity[p_i] = d_v
 
     # Compute the pressure force contribution, Symmetric formula
     @ti.func
     def pressure_force(self, p_i, p_j, r):
-        res = -self.mass * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))
+        res = -self.mass * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * self.kernel_derivative(r)   # ! no normalisation
+        # res = -self.mass * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))    # ! normalised
         return res
 
     # Evaluate pressure force

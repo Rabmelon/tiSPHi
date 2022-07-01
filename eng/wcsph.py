@@ -30,8 +30,8 @@ class WCSPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                # self.ps.val[p_i] = self.ps.density[p_i]
-                self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
@@ -239,9 +239,9 @@ class WCSPHSolver(SPHSolver):
 
     def substep_SympEuler(self):
         self.update_v_1(0)
-        self.compute_densities()
-        # self.compute_d_density()
-        # self.advect_density()
+        # self.compute_densities()
+        self.compute_d_density()
+        self.advect_density()
         self.compute_non_pressure_forces()
         self.compute_pressure_forces()
         self.advect()

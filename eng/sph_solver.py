@@ -32,6 +32,7 @@ class SPHSolver:
 
     @ti.kernel
     def cal_L(self):
+        # calculate the normalisation matrix @bui2021, equation 21 (https://doi.org/10.1016/j.compgeo.2021.104315)
         for p_i in range(self.ps.particle_num[None]):
             x_i = self.ps.x[p_i]
             tmpL = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
@@ -154,6 +155,7 @@ class SPHSolver:
 
     @ti.func
     def cal_d_BA(self, p_i, p_j):
+        # assign an artificial velocity uB to the dummy particle B when calculating fluid particle A
         x_i = self.ps.x[p_i]
         x_j = self.ps.x[p_j]
         boundary = ti.Vector([
