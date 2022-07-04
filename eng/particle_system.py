@@ -281,7 +281,7 @@ class ParticleSystem:
         num_new_particles = reduce(lambda x, y: x * y, [len(n) for n in num_dim])
         assert self.particle_num[None] + num_new_particles <= self.particle_max_num, 'My Error: exceed the maximum number of particles!'
 
-        new_positions = np.array(np.meshgrid(*num_dim, sparse=False, indexing='ij' if self.dim == 2 else 'ijk'), dtype=np.float32)
+        new_positions = np.array(np.meshgrid(*num_dim, sparse=False, indexing='ij'), dtype=np.float32)
         new_positions = new_positions.reshape(-1, reduce(lambda x, y: x * y, list(new_positions.shape[1:]))).transpose()
         print("New cube's number and dim: ", new_positions.shape)
 

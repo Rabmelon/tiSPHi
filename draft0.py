@@ -20,7 +20,7 @@ if __name__ == "__main__":
     print("hallo tiSPHi!")
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
-    screen_to_world_ratio = 800   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    screen_to_world_ratio = 1200   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
     rec_world = [0.8, 0.8]   # a rectangle world start from (0, 0) to this pos
     particle_radius = 0.001
     cube_size = [0.4, 0.2]
@@ -35,18 +35,18 @@ if __name__ == "__main__":
 
     if mat == 1:
         viscosity = 0.00005
-        stiffness = 50000
-        powcomp = 7
+        stiffness = 50000.0
+        powcomp = 7.0
         if TDmethod == 1:
             solver = WCSESPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
         elif TDmethod == 2:
-            pass
+            solver = WCLFSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
         elif TDmethod == 4:
             solver = WCSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
     elif mat == 2:
-        coh = 0
-        fric = 29
-        eta0 = 0
+        coh = 0.0
+        fric = 29.0
+        eta0 = 0.0
         if TDmethod == 1:
             solver = MCmuISESPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
         elif TDmethod == 2:
@@ -55,6 +55,7 @@ if __name__ == "__main__":
             pass
 
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, stepwise=20, iparticle=7344, color_title="density N/m3", kradius=1.5, write_to_disk=0, pause=False)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="pressure Pa",
+             kradius=1.5, stepwise=20, iparticle=None, write_to_disk=1, pause=True)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;

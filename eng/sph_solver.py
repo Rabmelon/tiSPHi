@@ -7,13 +7,13 @@ import numpy as np
 
 @ti.data_oriented
 class SPHSolver:
-    def __init__(self, particle_system, TDmethod, kernel):
+    def __init__(self, particleSystem, TDmethod, kernel):
         print("Class SPH Solver starts to serve!")
-        self.ps = particle_system
+        self.ps = particleSystem
         self.TDmethod = TDmethod # 1 for Symp Euler, 2 for LF, 4 for RK4
-        self.flag_kernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
+        self.flagKernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
         self.g = -9.81          # gravity, m/s2
-        self.usound = 60        # speed of sound, m/s
+        self.usound = 60.0        # speed of sound, m/s
         self.usound2 = self.usound ** 2
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
@@ -32,7 +32,6 @@ class SPHSolver:
 
     @ti.kernel
     def cal_L(self):
-        # calculate the normalisation matrix @bui2021, equation 21 (https://doi.org/10.1016/j.compgeo.2021.104315)
         for p_i in range(self.ps.particle_num[None]):
             x_i = self.ps.x[p_i]
             tmpL = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
@@ -49,18 +48,18 @@ class SPHSolver:
     @ti.func
     def kernel(self, r):
         res = ti.cast(0.0, ti.f32)
-        if self.flag_kernel == 1:
+        if self.flagKernel == 1:
             res = self.cubic_kernel(r)
-        elif self.flag_kernel == 2:
+        elif self.flagKernel == 2:
             res = self.WendlandC2_kernel(r)
         return res
 
     @ti.func
     def kernel_derivative(self, r):
         res = ti.Vector([0.0 for _ in range(self.ps.dim)])
-        if self.flag_kernel == 1:
+        if self.flagKernel == 1:
             res = self.cubic_kernel_derivative(r)
-        elif self.flag_kernel == 2:
+        elif self.flagKernel == 2:
             res = self.WendlandC2_kernel_derivative(r)
         return res
 
@@ -68,8 +67,8 @@ class SPHSolver:
     @ti.func
     def cubic_kernel(self, r):
         res = ti.cast(0.0, ti.f32)
-        h1 = 1 / self.ps.smoothing_len
-        k = 1 if self.ps.dim == 1 else 15 / 7 / np.pi if self.ps.dim == 2 else 3 / 2 / np.pi
+        h1 = 1.0 / self.ps.smoothing_len
+        k = 1.0 if self.ps.dim == 1 else 15.0 / 7.0 / np.pi if self.ps.dim == 2 else 3.0 / 2.0 / np.pi
         k *= h1**self.ps.dim
         r_norm = r.norm()
         q = r_norm * h1
@@ -77,17 +76,17 @@ class SPHSolver:
             if q <= 1.0:
                 q2 = q * q
                 q3 = q2 * q
-                res = k * (0.5 * q3 - q2 + 2 / 3)
+                res = k * (0.5 * q3 - q2 + 2.0 / 3.0)
             else:
-                res = k / 6 * ti.pow(2 - q, 3.0)
+                res = k / 6.0 * ti.pow(2.0 - q, 3.0)
         return res
 
     @ti.func
     def cubic_kernel_derivative(self, r):
         res = ti.Vector([0.0 for _ in range(self.ps.dim)])
-        h1 = 1 / self.ps.smoothing_len
-        k = 1 if self.ps.dim == 1 else 15 / 7 / np.pi if self.ps.dim == 2 else 3 / 2 / np.pi
-        k *= 6. * h1**self.ps.dim
+        h1 = 1.0 / self.ps.smoothing_len
+        k = 1.0 if self.ps.dim == 1 else 15.0 / 7.0 / np.pi if self.ps.dim == 2 else 3.0 / 2.0 / np.pi
+        k *= 6.0 * h1**self.ps.dim
         r_norm = r.norm()
         q = r_norm * h1
         if r_norm > self.epsilon and q <= 2.0:
@@ -103,27 +102,27 @@ class SPHSolver:
     @ti.func
     def WendlandC2_kernel(self, r):
         res = ti.cast(0.0, ti.f32)
-        h1 = 1 / self.ps.smoothing_len
-        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else 0.0
+        h1 = 1.0 / self.ps.smoothing_len
+        k = 7.0 / (4.0 * np.pi) if self.ps.dim == 2 else 21.0 / (2.0 * np.pi) if self.ps.dim == 3 else 0.0
         k *= h1**self.ps.dim
         r_norm = r.norm()
         q = r_norm * h1
         if r_norm > self.epsilon and q <= 2.0:
-            q1 = 1 - 0.5 * q
-            res = k * ti.pow(q1, 4) * (1 + 2 * q)
+            q1 = 1.0 - 0.5 * q
+            res = k * ti.pow(q1, 4.0) * (1.0 + 2.0 * q)
         return res
 
     @ti.func
     def WendlandC2_kernel_derivative(self, r):
         res = ti.Vector([0.0 for _ in range(self.ps.dim)])
-        h1 = 1 / self.ps.smoothing_len
-        k = 7 / (4 * np.pi) if self.ps.dim == 2 else 21 / (2 * np.pi) if self.ps.dim == 3 else 0.0
+        h1 = 1.0 / self.ps.smoothing_len
+        k = 7.0 / (4.0 * np.pi) if self.ps.dim == 2 else 21.0 / (2.0 * np.pi) if self.ps.dim == 3 else 0.0
         k *= h1**self.ps.dim
         r_norm = r.norm()
         q = r_norm * h1
         if r_norm > self.epsilon and q <= 2.0:
-            q1 = 1 - 0.5 * q
-            res = k * ti.pow(q1, 3) * (-5 * q) * h1 * r / r_norm
+            q1 = 1.0 - 0.5 * q
+            res = k * ti.pow(q1, 3.0) * (-5.0 * q) * h1 * r / r_norm
         return res
 
     ###########################################################################
@@ -155,7 +154,6 @@ class SPHSolver:
 
     @ti.func
     def cal_d_BA(self, p_i, p_j):
-        # assign an artificial velocity uB to the dummy particle B when calculating fluid particle A
         x_i = self.ps.x[p_i]
         x_j = self.ps.x[p_j]
         boundary = ti.Vector([
@@ -169,7 +167,7 @@ class SPHSolver:
 
         if flag_dir.sum() > 1:
             flag_choose = abs(flag_dir * db_i)
-            tmp_max = 0
+            tmp_max = 0.0
             for i in ti.static(range(4)):
                 tmp_max = max(tmp_max, flag_choose[i])
             flag_choose -= tmp_max
