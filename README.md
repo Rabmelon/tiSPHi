@@ -1,6 +1,6 @@
 # tiSPHi: from 0.1 to 1
 <div align="center">
-  <img width="200px" src="./img/tiSPHi_logo.jpg">
+  <img width="200px" src="./docs/img/tiSPHi_logo.jpg">
 </div>
 
 ## Background
@@ -23,7 +23,7 @@ TODOs:
 
 ## Sources
 ### Idea
-My research subject!
+My research subject.
 
 ### Code
 1. [taichiCoourse01, wcsph code by Mingrui Zhang](https://github.com/erizmr/SPH_Taichi)
@@ -55,33 +55,6 @@ My research subject!
 2. `ESC`停止并退出模拟
 
 ## Presentation
-### my WCSPH
-Advect with Symplectic Euler
-[Video of WCSPH with Symp Euler](./data/20220103_174214_SEuler_wcsph.mp4)
-
-Advect with RK4
-[Video of WCSPH with RK4](./data/20220103_153121_RK4_wcsph.mp4)
-
-Compare the specific frames of these two result: (RK4 on the left and Symp Euler on the right)
-![frame 05000](./img/Compare_wcsph_RK4_SEuler_05000.png)
-![frame 10000](./img/Compare_wcsph_RK4_SEuler_10000.png)
-![frame 15000](./img/Compare_wcsph_RK4_SEuler_15000.png)
-![frame 20000](./img/Compare_wcsph_RK4_SEuler_20000.png)
-![frame 26000](./img/Compare_wcsph_RK4_SEuler_26000.png)
-![frame 30000](./img/Compare_wcsph_RK4_SEuler_30000.png)
-![frame 35000](./img/Compare_wcsph_RK4_SEuler_35000.png)
-![frame 40000](./img/Compare_wcsph_RK4_SEuler_40000.png)
-
-(I think the RK4 advection represents a better result, :smile: **BUT** really it is very very very very very slow!!!)
-
-### SPlisHSPlasH
-WCSPH in SPlisHSPlasH (also I think my wcsph simulation looks better than that in SPlisHSPlasH)
-[Video of WCSPH in SPlisHSPlasH](./data/20220103_141306_SPlisHSPlasH_wcsph.mp4)
-![Screenshot of WCSPH in SPlisHSPlasH](./img/SPlisHSPlasH_wcsph_13s.jpg)
-
-DFSPH in SPlisHSPlasH (but still not as good as DFSPH)
-[Video of DFSPH in SPlisHSPlasH](./data/20220103_141559_SPlisHSPlasH_dfsph.mp4)
-![Screenshot of DFSPH in SPlisHSPlasH](./img/SPlisHSPlasH_dfsph_13s.jpg)
 
 
 ## Project structure
