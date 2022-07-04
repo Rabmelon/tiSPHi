@@ -40,6 +40,12 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", c
                 solver.step()
                 flag_step += 1
 
+        # draw world
+
+        # draw grids
+
+
+
         # draw particles
         case.copy2vis(s2w_ratio, max_res)
         solver.init_value()
@@ -47,8 +53,6 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.25, color_title="Null", c
         case.set_color()
         draw_radius = case.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)
-
-        # draw world
 
 
         # show text

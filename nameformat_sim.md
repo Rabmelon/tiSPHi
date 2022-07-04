@@ -14,10 +14,14 @@ comment
 # Detail
 ## Choices:
 case name:
-dambreak0: default dambreak case, 0.2\*0.4 in 0.8\*0.8
-dambreak01: default dambreak case, 0.4\*0.2 in 0.8\*0.8
-dambreak1: experiment in xu2021partI, 0.146\*0.292 in 0.584\*0.2 (0.8)
-dambreak2: experiment in xu2021partI, 0.146\*0.292 in 0.584\*0.2 (0.8)
+db-dambreak, cc-column collapse,
+
+db0: default dambreak case, 0.2\*0.4 in 0.8\*0.8
+db01: default dambreak case, 0.4\*0.2 in 0.8\*0.8
+
+db1: water, experiment in xu2021partI, 0.146\*0.292 in 0.584\*0.2 (0.8)
+
+cc0: sand, experiment in Nguyen2017, 0.2\*0.1 in 0.5\*0.2 (0.5)
 
 
 # model:
