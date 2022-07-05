@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
     screen_to_world_ratio = 1600   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [0.5, 0.5]   # a rectangle world start from (0, 0) to this pos
-    particle_radius = 0.001
+    rec_world = [0.50, 0.50]   # a rectangle world start from (0, 0) to this pos
+    particle_radius = 0.0005
     cube_size = [0.2, 0.1]
 
     mat = 2
@@ -55,6 +55,6 @@ if __name__ == "__main__":
             pass
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="velocity m/s",
-             kradius=1.5, stepwise=20, iparticle=None, write_to_disk=0, pause=True)
+             kradius=1.5, stepwise=20, iparticle=None, save_png=1, pause=True, grid_line=0.1)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;

@@ -12,12 +12,12 @@ sim_*/*
 # screenshot folder
 screenshots/
 
+# temp
+temp/
+
 # matlab backup file
 *.asv
 "site/"
-
-# vscode
-.vscode/
 
 # Pycharm
 .idea
