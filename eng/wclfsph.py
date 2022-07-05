@@ -28,9 +28,9 @@ class WCLFSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
@@ -147,24 +147,26 @@ class WCLFSPHSolver(SPHSolver):
     def advect_LF_half(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_fluid:
-                self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
+                # self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
                 self.u2[p_i] += self.d_velocity[p_i] * self.dt[None] * 0.5
 
     @ti.kernel
     def advect_LF(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_fluid:
-                self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
+                # self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
+                self.ps.density[p_i] = self.density2[p_i]
                 self.ps.u[p_i] += self.d_velocity[p_i] * self.dt[None]
                 self.ps.x[p_i] += self.ps.u[p_i] * self.dt[None]
 
     def LF_one_step(self):
-        self.compute_d_density()
+        # self.compute_d_density()
         self.compute_non_pressure_forces()
         self.compute_pressure_forces()
 
     def substep_LeapFrog(self):
         self.init_LF_f()
+        self.compute_densities()
         self.LF_one_step()
         self.advect_LF_half()
         self.LF_one_step()

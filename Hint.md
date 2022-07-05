@@ -1,5 +1,7 @@
 
 
+22.07.05.
+1. The stress in muI, which is for positive compoment? tensile or compressive? Notice that compressive should be positive in geotechnic while negative in other areas. And now in muI, stress is negative.
 
 22.07.01.
 1. Post a question in [taichi forum](https://forum.taichi.graphics/t/wcsph-accessing-field/2704)

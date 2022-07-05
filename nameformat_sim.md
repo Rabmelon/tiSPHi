@@ -14,7 +14,7 @@ comment
 # Detail
 ## Choices:
 case name:
-db-dambreak, cc-column collapse,
+db-dambreak, cc-column collapse, st-shear test, is-initial stress
 
 db0: default dambreak case, 0.2\*0.4 in 0.8\*0.8
 db01: default dambreak case, 0.4\*0.2 in 0.8\*0.8
@@ -23,6 +23,7 @@ db1: water, experiment in xu2021partI, 0.146\*0.292 in 0.584\*0.2 (0.8)
 
 cc0: sand, experiment in Nguyen2017, 0.2\*0.1 in 0.5\*0.2 (0.5)
 
+is0: default initial stress case, 0.2\*0.1 in 0.2\*0.2
 
 # model:
 water: WC

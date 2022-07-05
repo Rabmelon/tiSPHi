@@ -39,11 +39,14 @@ class TmpParticleSystem:
         for i in range(self.particle_num[None]):
             self.x[i] = ti.Vector([ti.random(), ti.random()]) * self.world.min()
 
+    # TODO: trying to create a rectangular window, wrong in transfering tuple 'res'
     @ti.kernel
-    def copy2vis(self, s2w_ratio: float, max_res: float):
+    def copy2vis(self, s2w_ratio: float, res: ti.ext_arr()):
         for i in range(self.particle_num[None]):
+            # self.pos2vis[i][0] = (self.x[i][0] + self.grid_size) * s2w_ratio / res_x
+            # self.pos2vis[i][1] = (self.x[i][1] + self.grid_size) * s2w_ratio / res_y
             for j in ti.static(range(2)):
-                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
+                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / res[j]
 
     @ti.kernel
     def ge_line_indices(self):
@@ -84,7 +87,7 @@ def gen_grid_line_2d(world, grid_line, canvas, ld_size, w2s, width=0.0025, color
             np_pos_line[i + sum(num_grid_point[0:id])][id] = (i + 1) * grid_line
             np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id] = (i + 1) * grid_line
             np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id2] = world[id2]
-            print(id, i, np_pos_line[i + id * num_grid_point[id]], np_pos_line[i + id * num_grid_point[id] + num_all_grid_point])
+            # print(id, i, np_pos_line[i + id * num_grid_point[id]], np_pos_line[i + id * num_grid_point[id] + num_all_grid_point])
     pos_line.from_numpy((np_pos_line + ld_size) * w2s)
     indices_line.from_numpy(np_indices_line)
     canvas.lines(pos_line, width, indices_line, color)
@@ -92,8 +95,9 @@ def gen_grid_line_2d(world, grid_line, canvas, ld_size, w2s, width=0.0025, color
 
 def gguishow(case, world, s2w_ratio, grid_line=None):
     drawworld = [i + 2 * case.grid_size for i in world]
-    res = (np.array(drawworld) * s2w_ratio).astype(int)
-    window = ti.ui.Window('window', res=(res.max(), res.max()))
+    res = tuple((np.array(drawworld) * s2w_ratio).astype(int))
+    resv = ti.Vector(res)
+    window = ti.ui.Window('window', res=res)
     canvas = window.get_canvas()
     canvas.set_background_color((1,1,1))
     show_pos = [0.0, 0.0]
@@ -102,10 +106,10 @@ def gguishow(case, world, s2w_ratio, grid_line=None):
     while window.running:
         # draw grid line
         if grid_line is not None:
-            gen_grid_line_2d(world, grid_line, canvas, case.grid_size, w2s=s2w_ratio / res.max())
+            gen_grid_line_2d(world, grid_line, canvas, case.grid_size, w2s=s2w_ratio / max(res))
 
         # draw main part
-        case.copy2vis(s2w_ratio, max(res).astype(float))
+        case.copy2vis(s2w_ratio, resv)
         canvas.lines(case.pos2vis, 0.005, indices=case.line_indices, color=(0.5,1,0.5))
         canvas.circles(case.pos2vis, radius=case.radius * s2w_ratio / max(res), per_vertex_color=case.color)
 

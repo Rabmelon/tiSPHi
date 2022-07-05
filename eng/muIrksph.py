@@ -5,7 +5,7 @@ from .sph_solver import SPHSolver
 # TODO: need to add damping?
 # TODO: need to init the stress state when starting the simulation?
 
-class MCmuILFSPHSolver(SPHSolver):
+class MCmuIRKSPHSolver(SPHSolver):
     def __init__(self, particle_system, TDmethod, kernel, density, cohesion, friction, eta_0):
         super().__init__(particle_system, TDmethod, kernel)
         print("Class M-C μ(I) Soil SPH Solver starts to serve!")
@@ -43,10 +43,9 @@ class MCmuILFSPHSolver(SPHSolver):
                 # self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
-                # self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.u[p_i][0]
-                # self.ps.val[p_i] = self.ps.x[p_i][1]
-                self.ps.val[p_i] = self.ps.stress[p_i][1,1]
+                # self.ps.val[p_i] = self.ps.stress[p_i][1,1]
 
     @ti.kernel
     def init_LF_f(self):

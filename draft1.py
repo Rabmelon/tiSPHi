@@ -7,10 +7,11 @@ from eng.particle_system import *
 from eng.wcsph import *
 from eng.wcsesph import *
 from eng.wclfsph import *
+from eng.wcrksph import *
 from eng.muIsesph import *
 from eng.muIlfsph import *
 
-# TODO: make unit testing for basic functions of SPH
+# TODO: water db here
 
 sys.tracebacklimit = 0
 # ti.init(arch=ti.cpu, debug=True)
@@ -28,14 +29,14 @@ if __name__ == "__main__":
 
     mat = 1
     rho = 1000.0
-    TDmethod = 2    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 1    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.add_cube(lower_corner=[0.0, 0], cube_size=cube_size, material=mat, density=rho)
 
     if mat == 1:
-        viscosity = 0.000005
+        viscosity = 0.00005
         stiffness = 50000
         powcomp = 7
         if TDmethod == 1:
@@ -43,7 +44,7 @@ if __name__ == "__main__":
         elif TDmethod == 2:
             solver = WCLFSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
         elif TDmethod == 4:
-            solver = WCSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
+            solver = WCRKSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
     elif mat == 2:
         coh = 0
         fric = 29
@@ -55,7 +56,7 @@ if __name__ == "__main__":
         elif TDmethod == 4:
             pass
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="density N/m3",
-             kradius=1.5, stepwise=20, iparticle=None, save_png=0, pause=False)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="velocity m/s",
+             kradius=1.5, stepwise=20, iparticle=None, save_png=0, pause=True, grid_line=0.146)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;

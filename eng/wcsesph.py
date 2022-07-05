@@ -25,9 +25,9 @@ class WCSESPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
@@ -69,7 +69,6 @@ class WCSESPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                 self.ps.density[p_i] += self.ps.m_V * self.kernel(x_i - x_j)
             self.ps.density[p_i] *= self.density_0
-            self.ps.density[p_i] = ti.max(self.ps.density[p_i], self.density_0)
 
     # Compute the viscosity force contribution, Anti-symmetric formula
     @ti.func
@@ -135,7 +134,11 @@ class WCSESPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_fluid:
                 self.ps.density[p_i] += self.dt[None] * self.d_density[p_i]
-                self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
+
+    @ti.kernel
+    def chk_density(self):
+        for p_i in range(self.ps.particle_num[None]):
+            self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
             if self.ps.density[p_i] > self.density_0 * 1.25:
                 print("stop because particle", p_i, "has a density", self.ps.density[p_i], "and pressure", self.pressure[p_i], "with neighbour num", self.ps.particle_neighbors_num[p_i])
             assert self.ps.density[p_i] < self.density_0 * 1.25
@@ -148,9 +151,10 @@ class WCSESPHSolver(SPHSolver):
                 self.ps.x[p_i] += self.dt[None] * self.ps.u[p_i]
 
     def substep_SympEuler(self):
-        # self.compute_densities()
-        self.compute_d_density()
-        self.advect_density()
+        self.compute_densities()
+        # self.compute_d_density()
+        # self.advect_density()
+        self.chk_density()
         self.compute_non_pressure_forces()
         self.compute_pressure_forces()
         self.advect()

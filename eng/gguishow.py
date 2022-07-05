@@ -20,7 +20,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
     canvas.set_background_color((1,1,1))
 
     # draw grid line
-    if grid_line is not None:
+    if grid_line is not None and grid_line != 0.0:
         dim = len(world)
         num_grid_point = [int((i - 1e-8) // grid_line) for i in world]
         num_all_grid_point = sum(num_grid_point)
@@ -30,6 +30,13 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         pos_line = ti.Vector.field(dim, float, shape=num_all2_grid_point)
         indices_line = ti.Vector.field(2, int, shape=num_all_grid_point)
         indices_line.from_numpy(np_indices_line)
+        for id in range(dim):
+            id2 = dim - 1 - id
+            for i in range(num_grid_point[id]):
+                np_pos_line[i + sum(num_grid_point[0:id])][id] = (i + 1) * grid_line
+                np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id] = (i + 1) * grid_line
+                np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id2] = world[id2]
+        pos_line.from_numpy((np_pos_line + case.grid_size) * w2s)
 
     # control paras
     flag_pause = pause
@@ -61,9 +68,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         # draw world
 
         # draw grids
-        if grid_line is not None:
-            np_pos_line = gen_grid_line_2d(world, grid_line, num_grid_point, num_all_grid_point, np_pos_line)
-            pos_line.from_numpy((np_pos_line + case.grid_size) * w2s)
+        if grid_line is not None and grid_line != 0.0:
             canvas.lines(pos_line, 0.0025, indices_line, (0.8, 0.8, 0.8))
 
         # draw particles
@@ -105,15 +110,3 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
             window.write_image(f"{flag_step:06d}.png")
 
         window.show()
-
-def gen_grid_line_2d(world, grid_line, num_grid_point, num_all_grid_point, np_pos_line):
-    dim = len(world)
-    for id in range(dim):
-        id2 = dim - 1 - id
-        for i in range(num_grid_point[id]):
-            np_pos_line[i + sum(num_grid_point[0:id])][id] = (i + 1) * grid_line
-            np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id] = (i + 1) * grid_line
-            np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id2] = world[id2]
-            # print(id, i, np_pos_line[i + id * num_grid_point[id]], np_pos_line[i + id * num_grid_point[id] + num_all_grid_point])
-    return np_pos_line
-

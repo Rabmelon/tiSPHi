@@ -28,9 +28,9 @@ class WCRKSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
@@ -82,7 +82,8 @@ class WCRKSPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
+                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
+                # tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
                 drho += self.ps.density[p_j] * self.ps.m_V * tmp[0]
             self.d_density[p_i] = drho
 
@@ -107,7 +108,8 @@ class WCRKSPHSolver(SPHSolver):
     @ti.func
     def viscosity_force(self, p_i, p_j, r):
         v_xy = (self.v1234[p_i] - self.v1234[p_j]).dot(r)
-        res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))
+        res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_derivative(r)
+        # res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))
         return res
 
     # Add repulsive forces
@@ -158,7 +160,7 @@ class WCRKSPHSolver(SPHSolver):
     # Compute the pressure force contribution, Symmetric formula
     @ti.func
     def pressure_force(self, p_i, p_j, r):
-        res = -self.mass * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))
+        res = -self.mass * (self.pressure[p_i] / self.ps.density[p_i]**2 + self.pressure[p_j] / self.ps.density[p_j]**2) * self.kernel_derivative(r)
         return res
 
     # Evaluate pressure force
@@ -181,22 +183,18 @@ class WCRKSPHSolver(SPHSolver):
                 d_v += self.pressure_force(p_i, p_j, x_i - x_j)
             self.d_velocity[p_i] += d_v
 
-    # Symplectic Euler
-    @ti.kernel
-    def advect(self):
-        for p_i in range(self.ps.particle_num[None]):
-            if self.ps.material[p_i] == self.ps.material_fluid:
-                self.ps.u[p_i] += self.dt[None] * self.d_velocity[p_i]
-                self.ps.x[p_i] += self.dt[None] * self.ps.u[p_i]
-
     @ti.kernel
     def advect_density(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_fluid:
                 self.ps.density[p_i] += self.dt[None] * self.d_density[p_i]
-                self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
+
+    @ti.kernel
+    def chk_density(self):
+        for p_i in range(self.ps.particle_num[None]):
+            self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
             if self.ps.density[p_i] > self.density_0 * 1.25:
-                print("stop because particle", p_i, "exceed 1250!")
+                print("stop because particle", p_i, "has a density", self.ps.density[p_i], "and pressure", self.pressure[p_i], "with neighbour num", self.ps.particle_neighbors_num[p_i])
             assert self.ps.density[p_i] < self.density_0 * 1.25
 
     # Update v, x through RK4
@@ -235,13 +233,5 @@ class WCRKSPHSolver(SPHSolver):
     def substep_RK4(self):
         self.init_F()
         self.compute_densities()
+        self.chk_density()
         self.advect_RK4()
-
-    def substep_SympEuler(self):
-        self.update_v_1(0)
-        self.compute_densities()
-        # self.compute_d_density()
-        # self.advect_density()
-        self.compute_non_pressure_forces()
-        self.compute_pressure_forces()
-        self.advect()

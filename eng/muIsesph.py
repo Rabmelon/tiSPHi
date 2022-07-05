@@ -33,8 +33,8 @@ class MCmuISESPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
-                self.ps.val[p_i] = self.ps.density[p_i]
+                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.u[p_i][0]
@@ -56,7 +56,8 @@ class MCmuISESPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
+                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                # tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
                 dd += self.mass / self.ps.density[p_j] * tmp[0]
             self.d_density[p_i] = self.ps.density[p_i] * dd
 
@@ -68,12 +69,17 @@ class MCmuISESPHSolver(SPHSolver):
     @ti.kernel
     def cal_u_grad(self):
         for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
+            u_g = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                self.u_grad[p_i] += self.ps.m_V * (self.ps.u[p_j] - self.ps.u[p_i]) @ tmp.transpose()
+                tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                # tmp = self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                u_g += self.ps.m_V * (self.ps.u[p_j] - self.ps.u[p_i]) @ tmp.transpose()
+            self.u_grad[p_i] = u_g
 
     @ti.kernel
     def cal_strain(self):
@@ -102,7 +108,8 @@ class MCmuISESPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                du += self.ps.density[p_j] * self.ps.m_V * (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ (self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
+                du += self.ps.density[p_j] * self.ps.m_V * (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                # du += self.ps.density[p_j] * self.ps.m_V * (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ (self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
             if self.ps.dim == 2:
                 du += ti.Vector([0, self.g])
             else:
@@ -114,10 +121,14 @@ class MCmuISESPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
                 self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
-                self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
-            if self.ps.density[p_i] > self.density_0 * 1.5:
-                print("stop because particle", p_i, "exceed", 1.5 * self.density_0, "!")
-            assert self.ps.density[p_i] < self.density_0 * 1.5
+
+    @ti.kernel
+    def chk_density(self):
+        for p_i in range(self.ps.particle_num[None]):
+            self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
+            if self.ps.density[p_i] > self.density_0 * 1.25:
+                print("stop because particle", p_i, "has a density", self.ps.density[p_i], "and pressure", self.pressure[p_i], "with neighbour num", self.ps.particle_neighbors_num[p_i])
+            assert self.ps.density[p_i] < self.density_0 * 1.25
 
     @ti.kernel
     def advect_SE(self):
@@ -135,5 +146,6 @@ class MCmuISESPHSolver(SPHSolver):
         self.cal_stress()
         self.cal_d_velocity()
         self.cal_density()
+        self.chk_density()
         self.advect_SE()
 
