@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     mat = 1
     rho = 1000.0
-    TDmethod = 1    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 4    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     case1 = ParticleSystem(rec_world, particle_radius)
