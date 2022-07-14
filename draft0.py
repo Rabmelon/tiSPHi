@@ -55,7 +55,7 @@ if __name__ == "__main__":
         elif TDmethod == 4:
             solver = MCmuIRKSPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="stress yy Pa",
-             kradius=1.5, stepwise=20, iparticle=None, save_png=1, pause=True, grid_line=0.1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="density N/m3",
+             kradius=1.5, stepwise=20, iparticle=None, save_png=0, pause=True, grid_line=0.1)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; index
