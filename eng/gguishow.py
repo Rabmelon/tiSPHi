@@ -22,7 +22,9 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
     # draw grid line
     if grid_line is not None and grid_line != 0.0:
         dim = len(world)
-        num_grid_point = [int((i - 1e-8) // grid_line) for i in world]
+        if not isinstance(grid_line,list):
+            grid_line = [grid_line for _ in range(dim)]
+        num_grid_point = [int((world[i] - 1e-8) // grid_line[i]) for i in range(dim)]
         num_all_grid_point = sum(num_grid_point)
         num_all2_grid_point = 2 * num_all_grid_point
         np_pos_line = np.array([[0.0 for _ in range(dim)] for _ in range(num_all2_grid_point)])
@@ -33,8 +35,8 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         for id in range(dim):
             id2 = dim - 1 - id
             for i in range(num_grid_point[id]):
-                np_pos_line[i + sum(num_grid_point[0:id])][id] = (i + 1) * grid_line
-                np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id] = (i + 1) * grid_line
+                np_pos_line[i + sum(num_grid_point[0:id])][id] = (i + 1) * grid_line[id]
+                np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id] = (i + 1) * grid_line[id]
                 np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id2] = world[id2]
         pos_line.from_numpy((np_pos_line + case.grid_size) * w2s)
 

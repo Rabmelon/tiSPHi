@@ -46,8 +46,8 @@ class MCmuILFSPHSolver(SPHSolver):
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.u[p_i][0]
                 # self.ps.val[p_i] = self.ps.x[p_i][1]
-                # self.ps.val[p_i] = -self.ps.stress[p_i][1,1]
-                self.ps.val[p_i] = p_i
+                self.ps.val[p_i] = -self.ps.stress[p_i][1,1]
+                # self.ps.val[p_i] = p_i
 
     @ti.kernel
     def init_LF_f(self):
