@@ -21,7 +21,7 @@ $$p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)$$
 
 On the other hand, the deviatoric shear stress can be estimated using the general Hooke's law for **elastic materials**:
 
-$$\dot{\boldsymbol{s}}=2G(\dot{\boldsymbol{\varepsilon}}-\frac{1}{3}\boldsymbol{I}\dot{\varepsilon}_v)$$
+$$\dot{\boldsymbol{s}}=2G(\dot{\boldsymbol{\epsilon}}-\frac{1}{3}\boldsymbol{I}\dot{\epsilon}_v)$$
 
 The plastic regime for general soils can be determinded by the Mohr-Coulomb failure criterion:
 
@@ -41,13 +41,13 @@ It separates the stress tensor into an isotropic pressure and viscous shear stre
 
 $$\boldsymbol{\sigma}=-p\boldsymbol{I}+\boldsymbol{\tau}$$
 
-$$\boldsymbol{\tau}=2\eta\dot{\boldsymbol{\varepsilon}},\ \eta=\frac{\mu(I)p}{\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}},\ \mu(I)=\mu_s+\frac{\mu_2-\mu_s}{I_0/I+1}$$
+$$\boldsymbol{\tau}=2\eta\dot{\boldsymbol{\epsilon}},\ \eta=\frac{\mu(I)p}{\sqrt{2(\dot{\boldsymbol{\epsilon}}:\dot{\boldsymbol{\epsilon}})}},\ \mu(I)=\mu_s+\frac{\mu_2-\mu_s}{I_0/I+1}$$
 
-where $\eta$ is an effective viscosity, when $\dot{\boldsymbol{\varepsilon}}\rightarrow0$, it diverges to infinity and this ensures the material behaviour is rigid or very stiff when the strain rate is very small or at the static condition and thus guaranteeing the existence of a field criterion;
+where $\eta$ is an effective viscosity, when $\dot{\boldsymbol{\epsilon}}\rightarrow0$, it diverges to infinity and this ensures the material behaviour is rigid or very stiff when the strain rate is very small or at the static condition and thus guaranteeing the existence of a field criterion;
 
-$\dot{\boldsymbol{\varepsilon}}$ is the total strain-rate tensor;
+$\dot{\boldsymbol{\epsilon}}$ is the total strain-rate tensor;
 
-$\mu$ is a frictional function dependent on the inertial number $I=d_s\sqrt{2(\dot{\boldsymbol{\varepsilon}}:\dot{\boldsymbol{\varepsilon}})}/\sqrt{p/\rho_s}$ with $d_s$ being the grain diameter, $\rho_s$ being the solid density;
+$\mu$ is a frictional function dependent on the inertial number $I=d_s\sqrt{2(\dot{\boldsymbol{\epsilon}}:\dot{\boldsymbol{\epsilon}})}/\sqrt{p/\rho_s}$ with $d_s$ being the grain diameter, $\rho_s$ being the solid density;
 
 $\mu_2$ and $I_0$ are both materials constants with $\mu_2$ being the critical friction angle at very high $I$;
 
@@ -73,15 +73,15 @@ $$\tau_y=c+p\tan\varphi$$
 
 where $c$ is cohesion and $\varphi$ is the internal angle of friction. The 1D modified Bingham shear stress:
 
-$$\tau=\eta_0\dot{\boldsymbol{\varepsilon}}+c+p\tan\varphi$$
+$$\tau=\eta_0\dot{\boldsymbol{\epsilon}}+c+p\tan\varphi$$
 
 using an equivalent fluid viscosity, $\eta$, for use in Navier-Stokes solvers:
 
-$$\eta=\eta_0+\frac{c+p\tan\varphi}{\dot{\boldsymbol{\varepsilon}}}$$
+$$\eta=\eta_0+\frac{c+p\tan\varphi}{\dot{\boldsymbol{\epsilon}}}$$
 
 As for 3D simulation, the generalised form of the modified Bingham shear stress:
 
-$$\boldsymbol{\tau}_i=\eta_0\dot{\boldsymbol{\varepsilon}}_i+(c+p\tan\varphi)\frac{\dot{\boldsymbol{\varepsilon}}_i}{\sqrt{\frac{1}{2}\dot{\boldsymbol{\varepsilon}}_i:\dot{\boldsymbol{\varepsilon}}_i}}$$
+$$\boldsymbol{\tau}_i=\eta_0\dot{\boldsymbol{\epsilon}}_i+(c+p\tan\varphi)\frac{\dot{\boldsymbol{\epsilon}}_i}{\sqrt{\frac{1}{2}\dot{\boldsymbol{\epsilon}}_i:\dot{\boldsymbol{\epsilon}}_i}}$$
 
 The above modified Bingham model can be thought of as a precursor to the $\mu(I)$ model, where the $\mu(I)$ model takes the dynamic viscosity $\eta_0$ and the cohesion $c$ as 0, and also exchanges $\tan\varphi$ for a scalar friction value.
 
@@ -129,7 +129,7 @@ $$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
 
 We define the **elastic strains** according to the **generalised Hooke's law**:
 
-$$\dot{\boldsymbol{\varepsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
+$$\dot{\boldsymbol{\epsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
 
 where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
 
@@ -137,13 +137,13 @@ where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}
 >
 > 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive. **Answer**: Generally it's negtive. When it is positive, the meaning is the average normal stress $\sigma_m = -p$.
 
-The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\varepsilon}$ can be divided into an elastic and a plastic component:
+The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\epsilon}$ can be divided into an elastic and a plastic component:
 
-$$\boldsymbol{\dot\varepsilon} = \boldsymbol{\dot\varepsilon}^e+\boldsymbol{\dot\varepsilon}^p$$
+$$\boldsymbol{\dot\epsilon} = \boldsymbol{\dot\epsilon}^e+\boldsymbol{\dot\epsilon}^p$$
 
 With an assumption of a kinematic condition between the *total strain rate* and the *velocity gradients*.
 
-$$\dot{\varepsilon}_{\alpha\beta} = \frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}})$$
+$$\dot{\epsilon}_{\alpha\beta} = \frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}})$$
 
 Consider both a **Von Mises** and a **D-P** yield criterion to distinguish between elastic and plastic material behaviour.
 
@@ -183,7 +183,7 @@ $$\frac{{\rm D} \boldsymbol{u}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol
 
 Constitutive equation:
 
-$$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\varepsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\epsilon^p}$$
 
 where:
 
@@ -223,22 +223,22 @@ $$\begin{aligned} \boldsymbol{f}^u = \left (\begin{array}{cc}
     D^e_{33}u_y    &D^e_{33}u_x\\ D^e_{41}u_x    &D^e_{42}u_y
 \end{array}\right)\end{aligned}
 ,
-\begin{aligned} \boldsymbol{g}^{\varepsilon^p} = \left(\begin{array}{c}
-      g^{\varepsilon^p}_{xx}(\boldsymbol{\dot \varepsilon}^p)\\
-      g^{\varepsilon^p}_{yy}(\boldsymbol{\dot \varepsilon}^p)\\
-      g^{\varepsilon^p}_{xy}(\boldsymbol{\dot \varepsilon}^p)\\
-      g^{\varepsilon^p}_{zz}(\boldsymbol{\dot \varepsilon}^p)
+\begin{aligned} \boldsymbol{g}^{\epsilon^p} = \left(\begin{array}{c}
+      g^{\epsilon^p}_{xx}(\boldsymbol{\dot \epsilon}^p)\\
+      g^{\epsilon^p}_{yy}(\boldsymbol{\dot \epsilon}^p)\\
+      g^{\epsilon^p}_{xy}(\boldsymbol{\dot \epsilon}^p)\\
+      g^{\epsilon^p}_{zz}(\boldsymbol{\dot \epsilon}^p)
 \end{array} \right) \end{aligned}
 ,
-\begin{aligned} \boldsymbol{\dot \varepsilon}^p = \left(\begin{array}{c}
-      \dot \varepsilon^p_{xx}\\ \dot \varepsilon^p_{yy}\\
-      \dot \varepsilon^p_{xy}\\ 0
+\begin{aligned} \boldsymbol{\dot \epsilon}^p = \left(\begin{array}{c}
+      \dot \epsilon^p_{xx}\\ \dot \epsilon^p_{yy}\\
+      \dot \epsilon^p_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
-$$\dot\varepsilon_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}}),\
-\dot{\boldsymbol{\varepsilon}} = \begin{aligned} \left(\begin{array}{c}
-      \dot \varepsilon_{xx}\\ \dot \varepsilon_{yy}\\
-      \dot \varepsilon_{xy}\\ 0
+$$\dot\epsilon_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}}),\
+\dot{\boldsymbol{\epsilon}} = \begin{aligned} \left(\begin{array}{c}
+      \dot \epsilon_{xx}\\ \dot \epsilon_{yy}\\
+      \dot \epsilon_{xy}\\ 0
 \end{array} \right) \end{aligned} = \begin{aligned} \left(\begin{array}{c}
       \frac{\partial u_x}{\partial x}\\ \frac{\partial u_y}{\partial y}\\
       \frac{1}{2}(\frac{\partial u_x}{\partial y}+\frac{\partial u_y}{\partial x})\\ 0
@@ -255,31 +255,29 @@ $\boldsymbol{\tilde{\sigma}}$ is the **Jaumann stress-rate**, which is adopted t
 
 $\dot{\omega}_{\alpha\beta}$ is the **spin rate tensor**.
 
-And $\boldsymbol{g}^{\varepsilon^p}$ is a vector containing the plastic terms which is the only difference responsible for plastic deformations between the **elastoplastic** and **Perzyna** constitutive models. In both models, the plastic terms are functions of the plastic strain rate, which is dependent on the state of stress and material parameters.
+And $\boldsymbol{g}^{\epsilon^p}$ is a vector containing the plastic terms which is the only difference responsible for plastic deformations between the **elastoplastic** and **Perzyna** constitutive models. In both models, the plastic terms are functions of the plastic strain rate, which is dependent on the state of stress and material parameters.
 
 For the elastoplastic model,
 
-$$\boldsymbol{g}^{\varepsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s}}$$
+$$\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s}}$$
 
 which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the D-P yield criterion, where:
 
-$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\varepsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\varepsilon}}}{G}$$
-
-$G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus** (although $K$ is not used here).
+$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\epsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\epsilon}}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\epsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\epsilon}}}{G}$$
 
 And for the Perzyna model,
 
-$$\boldsymbol{g}^{\varepsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\partial \boldsymbol{\sigma}}(\frac{\sqrt{3J_2}-f_c}{f_c})^{\hat{N}}$$
+$$\boldsymbol{g}^{\epsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\partial \boldsymbol{\sigma}}(\frac{\sqrt{3J_2}-f_c}{f_c})^{\hat{N}}$$
 
 which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion). And $\hat{N}$ is a model parameter.
 
 > **QUESTIONS**
 >
-> 1. How does $\boldsymbol{g}^{\varepsilon^p}$ and $\boldsymbol{\dot\varepsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models. **ANSWER**: as it shows
+> 1. How does $\boldsymbol{g}^{\epsilon^p}$ and $\boldsymbol{\dot\epsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models. **ANSWER**: as it shows
 > 2. How does $\dot{\lambda}$ calculated? **ANSWER**: as it shows
 > 3. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
 > 4. What number should $\hat{N}$ choose?
-> 5. What's the difference between $\dot{\boldsymbol{\varepsilon}}$ and $\dot{\boldsymbol{\varepsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{u}$.
+> 5. What's the difference between $\dot{\boldsymbol{\epsilon}}$ and $\dot{\boldsymbol{\epsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{u}$.
 
 ### Conservation of mass
 
@@ -327,9 +325,9 @@ $$\frac{{\rm D}\boldsymbol{u}_i}{{\rm D}t}=\sum_jV_j(\frac{\boldsymbol{\sigma}_j
 
 ### Constitutive equation
 
-Unlike the CFD approach, the general elastoplastic constitutive modelling approach evolves the stress tensor over time using a unique stress-strain relationship that relates the stress-increment to the strain-increment. It is assumed that for an elastoplastic material, the total strain-increment tensor ${\rm d}\boldsymbol{\varepsilon}$ is decomposed into elastic and plastic components: ${\rm d}\boldsymbol{\varepsilon}={\rm d}\boldsymbol{\varepsilon}_e+{\rm d}\boldsymbol{\varepsilon}_p$
+Unlike the CFD approach, the general elastoplastic constitutive modelling approach evolves the stress tensor over time using a unique stress-strain relationship that relates the stress-increment to the strain-increment. It is assumed that for an elastoplastic material, the total strain-increment tensor ${\rm d}\boldsymbol{\epsilon}$ is decomposed into elastic and plastic components: ${\rm d}\boldsymbol{\epsilon}={\rm d}\boldsymbol{\epsilon}_e+{\rm d}\boldsymbol{\epsilon}_p$
 
-The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol{\sigma}=\boldsymbol{D}^{ep}:{\rm d}\boldsymbol{\varepsilon}$
+The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol{\sigma}=\boldsymbol{D}^{ep}:{\rm d}\boldsymbol{\epsilon}$
 
 > **QUESTIONS**:
 >
@@ -347,7 +345,7 @@ $$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}
 
 $$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p}$$
 
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
 
@@ -373,7 +371,7 @@ $$
 \frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)
 $$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\varepsilon^p} = F_2(\boldsymbol{u}_i,\boldsymbol{\sigma}_i)$$
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p} = F_2(\boldsymbol{u}_i,\boldsymbol{\sigma}_i)$$
 
 Using the fourth order Runge-Kutta (RK4) method:
 
@@ -403,8 +401,8 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 * Step 2: update boundary consitions and adapt the stress.
 * Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
 * Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
-* Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\varepsilon^p}_i$.
-    * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\varepsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\varepsilon^p}_i$ is non-zero.
+* Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\epsilon^p}_i$.
+    * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\epsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\epsilon^p}_i$ is non-zero.
     * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
     * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
 * Step 6: compute $F_1$ and $F_2$ on particles.

@@ -88,11 +88,44 @@ $$\tau=\mu\dot\theta$$
 
 ## Stress, strain and strain-rate tensor
 
+### Strain and stress
+For [strain](https://www.continuummechanics.org/strain.html), tensorial shear terms are written as $\epsilon_{ij}$ and are one-half of $\gamma_{ij}$ (*engineering shear strain*) such that $\gamma_{ij}=2\epsilon_{ij}, i\neq j$.
+
+The [true shear strain](https://en.wikipedia.org/wiki/Deformation_(physics)#Engineering_strain) is defined as the change in the angle (in radians) between two material line elements initially perpendicular to each other in the undeformed or initial configuration. The engineering shear strain is defined as the tangent of that angle, and is equal to the length of deformation at its maximum divided by the perpendicular length in the plane of force application which sometimes makes it easier to calculate.
+
+### Hooke's Law
+
+Hooke's Law can be written in matrix notation as:
+
+$$\boldsymbol{\epsilon}=\frac{1}{E}[(1+\nu)\boldsymbol{\sigma}-\nu\boldsymbol{I}{\rm tr}(\boldsymbol{\sigma})]$$
+
+and in tensor notation as:
+
+$$\epsilon_{ij}=\frac{1}{E}[(1+\nu)\sigma_{ij}-\nu\delta_{ij}\sigma_{kk}] $$
+
+The inverting Hooke's Law:
+
+$$\sigma_{ij}=\frac{E}{1+\nu}[\epsilon_{ij}+\frac{\nu}{1-2\nu}\delta_{ij}\epsilon_{kk}] $$
+
+In [Hooke's Law](https://www.continuummechanics.org/hookeslaw.html), we have $\tau_{xy}=G\gamma_{xy}=2G\epsilon_{xy}$ and $\epsilon_{xx}+\epsilon_{yy}+\epsilon_{zz}=\epsilon_{V}=\sigma_m/K=(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})/3K$.
+
+$E$ is the **elastic modulus** or **Young's modulus**, $\nu$ is the **Poisson's ratio**, $G = E/2(1+\nu)$ is the **shear modulus** and $K = E/3(1-2\nu)$ is the **elastic bulk modulus**.
+
+And for stiffness tensor:
+
+$$C_{ijkl}=\frac{E}{1+\nu}[\frac{1}{2}(\delta_{ik}\delta_{jl}+\delta_{jk}\delta_{il})+\frac{\nu}{1-2\nu}\delta_{ij}\delta_{kl}]$$
+
+The deviatoric stress $\boldsymbol{s}=\boldsymbol{\sigma}'$ and strain $\boldsymbol{\epsilon}'$ are directly proportional to each other:
+
+$$s_{ij}=2G\epsilon'_{ij}$$
+
+### Strain-rate
+
 > @[wiki: strain-rate tensor](https://en.wikipedia.org/wiki/Strain-rate_tensor#)
 
-In continuum mechanics, the gradient $\nabla\boldsymbol{u}$ of the celocity is a second-order tensor:
+In continuum mechanics, the gradient $\nabla\boldsymbol{u}$ of the velocity is a second-order tensor:
 
-$$ \boldsymbol{L}=\nabla\boldsymbol{u}=\left[\begin{matrix} \frac{\partial u_x}{\partial x_x} &\frac{\partial u_y}{\partial x_x} &\frac{\partial u_z}{\partial x_x}\\ \frac{\partial u_x}{\partial x_y} &\frac{\partial u_y}{\partial x_y} &\frac{\partial u_z}{\partial x_y}\\ \frac{\partial u_x}{\partial x_z} &\frac{\partial u_y}{\partial x_z} &\frac{\partial u_z}{\partial x_z} \end{matrix}\right]$$
+$$ \boldsymbol{L}=\nabla\boldsymbol{u}=\left[\begin{matrix} \frac{\partial u_x}{\partial x_x} &\frac{\partial u_y}{\partial x_x} &\frac{\partial u_z}{\partial x_x}\\ \frac{\partial u_x}{\partial x_y} &\frac{\partial u_y}{\partial x_y} &\frac{\partial u_z}{\partial x_y}\\ \frac{\partial u_x}{\partial x_z} &\frac{\partial u_y}{\partial x_z} &\frac{\partial u_z}{\partial x_z} \end{matrix}\right]=u_{i,j}$$
 
 $\boldsymbol{L}$ can be decomposed into the sum of a symmetric matrix $\boldsymbol{E}$ and a skew-symmetric matrix $\boldsymbol{W}$:
 
@@ -103,6 +136,8 @@ $$\boldsymbol{W}=\frac{1}{2}(\boldsymbol{L}-\boldsymbol{L}^T)$$
 $\boldsymbol{E}$ is called the strain rate tensor and describes the rate of stretching and shearing. $\boldsymbol{W}$ is called the spin tensor and describes the rate of rotation.
 
 The strain-rate tensor describes the rate of change of the deformation of a material in the neighborhood of a certain point, at a certain moment of time. It can be defined as the derivative of the strain tensor with respect to time, or as the symmetric component of the Jacobian matrix of the flow velocity.
+
+
 
 ## Other mathematical components
 1. $\dot{\#}$ - the accent-dot indicates the time derivative of the vector/tensor quantities. *@Bui2021, 3.2.1.1. p15*

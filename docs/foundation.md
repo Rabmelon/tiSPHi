@@ -366,13 +366,13 @@ $$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Del
 
 In addition to the velocity and stress, the position vectors of each particle $\boldsymbol{x}_i$ are updated via the XSPH method at the end of each time step as:
 
-$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{u}_i + \varepsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij}$$
+$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{u}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij}$$
 
 Alternatively, the discretised XSPH equation is:
 
-$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + \Delta t\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{x}_i^t + \Delta t(\boldsymbol{u}_i^{t+\Delta t} + \varepsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij})$$
+$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + \Delta t\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{x}_i^t + \Delta t(\boldsymbol{u}_i^{t+\Delta t} + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij})$$
 
-where $\varepsilon_x$ is a tuning para, $0\leq\varepsilon_x\leq1$.
+where $\epsilon_x$ is a tuning para, $0\leq\epsilon_x\leq1$.
 
 While, in standard SPH, the simplest way is:
 
