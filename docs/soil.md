@@ -109,6 +109,8 @@ Here we difine the firse invariant of the stress tensor $I_1$ and the second inv
 
 $$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
 
+where $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix
+
 > **QUESTIONS**
 >
 > 1. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" two 2nd rank tensors and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
@@ -131,7 +133,7 @@ We define the **elastic strains** according to the **generalised Hooke's law**:
 
 $$\dot{\boldsymbol{\epsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
 
-where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$, $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix.
+where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$.
 
 > **QUESTIONS**
 >
@@ -140,10 +142,6 @@ where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}
 The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\epsilon}$ can be divided into an elastic and a plastic component:
 
 $$\boldsymbol{\dot\epsilon} = \boldsymbol{\dot\epsilon}^e+\boldsymbol{\dot\epsilon}^p$$
-
-With an assumption of a kinematic condition between the *total strain rate* and the *velocity gradients*.
-
-$$\dot{\epsilon}_{\alpha\beta} = \frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}})$$
 
 Consider both a **Von Mises** and a **D-P** yield criterion to distinguish between elastic and plastic material behaviour.
 
@@ -175,15 +173,15 @@ In the SPH implementation of the elastoplastic model, the two corrective treatme
 
 Conservation of mass:
 
-$$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{u}$$
+$$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{v}$$
 
 Conservation of momentum:
 
-$$\frac{{\rm D} \boldsymbol{u}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{f}^{ext}$$
+$$\frac{{\rm D} \boldsymbol{v}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{f}^{ext}$$
 
 Constitutive equation:
 
-$$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^u-\boldsymbol{g}^{\epsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^v-\boldsymbol{g}^{\epsilon^p}$$
 
 where:
 
@@ -191,8 +189,8 @@ $$\begin{aligned} \boldsymbol{x} = \left (\begin{array}{c}
     x\\ y
 \end{array}\right) \end{aligned}
 ,
-\begin{aligned} \boldsymbol{u} = \left (\begin{array}{c}
-    u_x\\ u_y
+\begin{aligned} \boldsymbol{v} = \left (\begin{array}{c}
+    v_x\\ v_y
 \end{array}\right) \end{aligned}
 ,
 \begin{aligned} \boldsymbol{f}^{\sigma} = \left (\begin{array}{cc}
@@ -216,11 +214,11 @@ $$\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{c}
       (\sigma_{yy}-\sigma_{xx})\dot\omega_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
-$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}-\frac{\partial u_{\beta}}{\partial x_{\alpha}})\ ,\ \dot\omega_{xy} = \frac{1}{2}(\frac{\partial u_x}{\partial x_y}-\frac{\partial u_y}{\partial x_x})$$
+$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial v_{\alpha}}{\partial x_{\beta}}-\frac{\partial v_{\beta}}{\partial x_{\alpha}})\ ,\ \dot\omega_{xy} = \frac{1}{2}(\frac{\partial v_x}{\partial x_y}-\frac{\partial v_y}{\partial x_x})$$
 
-$$\begin{aligned} \boldsymbol{f}^u = \left (\begin{array}{cc}
-    D^e_{11}u_x    &D^e_{12}u_y\\ D^e_{21}u_x    &D^e_{22}u_y\\
-    D^e_{33}u_y    &D^e_{33}u_x\\ D^e_{41}u_x    &D^e_{42}u_y
+$$\begin{aligned} \boldsymbol{f}^v = \left (\begin{array}{cc}
+    D^e_{11}v_x    &D^e_{12}v_y\\ D^e_{21}v_x    &D^e_{22}v_y\\
+    D^e_{33}v_y    &D^e_{33}v_x\\ D^e_{41}v_x    &D^e_{42}v_y
 \end{array}\right)\end{aligned}
 ,
 \begin{aligned} \boldsymbol{g}^{\epsilon^p} = \left(\begin{array}{c}
@@ -235,13 +233,12 @@ $$\begin{aligned} \boldsymbol{f}^u = \left (\begin{array}{cc}
       \dot \epsilon^p_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
-$$\dot\epsilon_{\alpha\beta}=\frac{1}{2}(\frac{\partial u_{\alpha}}{\partial x_{\beta}}+\frac{\partial u_{\beta}}{\partial x_{\alpha}}),\
-\dot{\boldsymbol{\epsilon}} = \begin{aligned} \left(\begin{array}{c}
+$$\dot{\boldsymbol{\epsilon}} = \begin{aligned} \left(\begin{array}{c}
       \dot \epsilon_{xx}\\ \dot \epsilon_{yy}\\
       \dot \epsilon_{xy}\\ 0
 \end{array} \right) \end{aligned} = \begin{aligned} \left(\begin{array}{c}
-      \frac{\partial u_x}{\partial x}\\ \frac{\partial u_y}{\partial y}\\
-      \frac{1}{2}(\frac{\partial u_x}{\partial y}+\frac{\partial u_y}{\partial x})\\ 0
+      \frac{\partial v_x}{\partial x}\\ \frac{\partial v_y}{\partial y}\\
+      \frac{1}{2}(\frac{\partial v_x}{\partial y}+\frac{\partial v_y}{\partial x})\\ 0
 \end{array} \right) \end{aligned}$$
 
 $$\begin{aligned} \boldsymbol{D}^e = D^e_{pq} = \frac{E}{(1+\nu)(1-2\nu)} \left (\begin{array}{cccc}
@@ -277,7 +274,7 @@ which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield 
 > 2. How does $\dot{\lambda}$ calculated? **ANSWER**: as it shows
 > 3. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
 > 4. What number should $\hat{N}$ choose?
-> 5. What's the difference between $\dot{\boldsymbol{\epsilon}}$ and $\dot{\boldsymbol{\epsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{u}$.
+> 5. What's the difference between $\dot{\boldsymbol{\epsilon}}$ and $\dot{\boldsymbol{\epsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{v}$.
 
 ### Conservation of mass
 
@@ -291,37 +288,37 @@ which is valid for any scalar $a$ and any vector $\boldsymbol{u}$.
 
 Beginning with the conservation of mass and the constraint that the density within a moving volume of fluid remains constant, an equivalent condition required for [incompressible flow](https://en.wikipedia.org/wiki/Incompressible_flow) is that the divergence of the flow velocity vanishes. As the loss of mass equals to the net outflow: (控制体内质量的减少=净流出量). So:
 
-$$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho\boldsymbol{u})=0,\ from\ \frac{\partial\rho}{\partial t}=-\nabla\cdot\boldsymbol{J}=0\ and\ \boldsymbol{J}=\rho\boldsymbol{u}$$
+$$\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho\boldsymbol{v})=0,\ from\ \frac{\partial\rho}{\partial t}=-\nabla\cdot\boldsymbol{J}=0\ and\ \boldsymbol{J}=\rho\boldsymbol{v}$$
 
-$$-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm d}y{\rm d}z=[\frac{\partial (\rho u_x)}{\partial x}+\frac{\partial (\rho u_y)}{\partial y}+\frac{\partial (\rho u_z)}{\partial z}]{\rm d}x{\rm d}y{\rm d}z$$
+$$-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm d}y{\rm d}z=[\frac{\partial (\rho v_x)}{\partial x}+\frac{\partial (\rho v_y)}{\partial y}+\frac{\partial (\rho v_z)}{\partial z}]{\rm d}x{\rm d}y{\rm d}z$$
 
-$$\frac{\partial \rho}{\partial t}+\boldsymbol{u}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{u}=0$$
+$$\frac{\partial \rho}{\partial t}+\boldsymbol{v}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{v}=0$$
 
 The final form in Lagrangian method of density: (left 为微团密度的变化，right 为微团体积的变化。)
 
-$$\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{u}$$
+$$\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{v}$$
 
 > @bui2021
 
 The original form ($\rho=\sum_j m_jW_{ij}$) of SPH mass equation operator is not suitable because the density will drop in the boundary of calculating domain, not like astrophysics in which there is an infinite domain.
 
-On the other hand, we use $\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij}$ to solve homogenous problem and use $\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{u}_i-\boldsymbol{u}_j)\cdot\nabla_iW_{ij}$ to solve non-homogenous problem.
+On the other hand, we use $\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}$ to solve homogenous problem and use $\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}$ to solve non-homogenous problem.
 
 ### Conservation of momentum
 
 [Cauchy momentum equation](https://en.wikipedia.org/wiki/Cauchy_momentum_equation) is a vector partial differential equation that describes the non-relativistic momentum transport in any continuum. And in convective (or Lagrangian) form is written as:
 
-$$\frac{{\rm D}\boldsymbol{u}}{{\rm D}t}=\frac{1}{\rho}\nabla\cdot\boldsymbol{\sigma}+\boldsymbol{f}$$
+$$\frac{{\rm D}\boldsymbol{v}}{{\rm D}t}=\frac{1}{\rho}\nabla\cdot\boldsymbol{\sigma}+\boldsymbol{f}$$
 
 > @bui2021
 
 To exactly conserve momentum, we should use the symmetric form:
 
-$$\frac{{\rm D}\boldsymbol{u}_i}{{\rm D}t}=\frac{1}{\rho_i}\sum_jV_j(\boldsymbol{\sigma}_j+\boldsymbol{\sigma}_i)\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
+$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\frac{1}{\rho_i}\sum_jV_j(\boldsymbol{\sigma}_j+\boldsymbol{\sigma}_i)\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
 
 or
 
-$$\frac{{\rm D}\boldsymbol{u}_i}{{\rm D}t}=\sum_jV_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
+$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jV_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
 
 ### Constitutive equation
 
@@ -341,18 +338,18 @@ The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol
 
 The discrete governing equations of soil motion in the framework of standard SPH are therefore:
 
-$$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{u}_j-\boldsymbol{u}_i)\cdot\nabla W_{ij}$$
+$$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{v}_j-\boldsymbol{v}_i)\cdot\nabla W_{ij}$$
 
-$$\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
+$$\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p}$$
 
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
 
 ### Symp-Euler for standard soil SPH
 
 * Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
-* Given $\boldsymbol{x}_i^1$, $\boldsymbol{u}_i^1$, $\boldsymbol{\sigma}_i^1$.
+* Given $\boldsymbol{x}_i^1$, $\boldsymbol{v}_i^1$, $\boldsymbol{\sigma}_i^1$.
 * Update boundary
 * Cal gradient of velocity tensor
 * Cal strain tensor
@@ -368,47 +365,47 @@ In the current work, each SPH particle is assigned the same, constant density fo
 The considered governing SPH equations are summarised as:
 
 $$
-\frac{{\rm D} \boldsymbol{u}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)
+\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)
 $$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^u-\boldsymbol{f}_i^u)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p} = F_2(\boldsymbol{u}_i,\boldsymbol{\sigma}_i)$$
+$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p} = F_2(\boldsymbol{v}_i,\boldsymbol{\sigma}_i)$$
 
 Using the fourth order Runge-Kutta (RK4) method:
 
-$$\boldsymbol{u}_i^{t+\Delta t} = \boldsymbol{u}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}^1_i)+2F_1(\boldsymbol{\sigma}^2_i)+2F_1(\boldsymbol{\sigma}^3_i)+F_1(\boldsymbol{\sigma}^4_i))$$
+$$\boldsymbol{v}_i^{t+\Delta t} = \boldsymbol{v}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}^1_i)+2F_1(\boldsymbol{\sigma}^2_i)+2F_1(\boldsymbol{\sigma}^3_i)+F_1(\boldsymbol{\sigma}^4_i))$$
 
-$$\boldsymbol{\sigma}_i^{t+\Delta t} = \boldsymbol{\sigma}_i^t + \frac{\Delta t}{6}(F_2(\boldsymbol{u}^1_i,\boldsymbol{\sigma}^1_i)+2F_2(\boldsymbol{u}^2_i,\boldsymbol{\sigma}^2_i)+2F_2(\boldsymbol{u}^3_i,\boldsymbol{\sigma}^3_i)+F_2(\boldsymbol{u}^4_i,\boldsymbol{\sigma}^4_i))$$
+$$\boldsymbol{\sigma}_i^{t+\Delta t} = \boldsymbol{\sigma}_i^t + \frac{\Delta t}{6}(F_2(\boldsymbol{v}^1_i,\boldsymbol{\sigma}^1_i)+2F_2(\boldsymbol{v}^2_i,\boldsymbol{\sigma}^2_i)+2F_2(\boldsymbol{v}^3_i,\boldsymbol{\sigma}^3_i)+F_2(\boldsymbol{v}^4_i,\boldsymbol{\sigma}^4_i))$$
 
 where:
 
 $$\begin{aligned}
     \begin{array}{ll}
-      \boldsymbol{u}^1_i = \boldsymbol{u}^t_i &\boldsymbol{\sigma}^1_i = \boldsymbol{\sigma}^t_i\\
-      \boldsymbol{u}^2_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &\boldsymbol{\sigma}^2_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^1_i, \boldsymbol{\sigma}^1_i))\\
-      \boldsymbol{u}^3_i = \boldsymbol{u}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &\boldsymbol{\sigma}^3_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{u}^2_i, \boldsymbol{\sigma}^2_i))\\
-      \boldsymbol{u}^4_i = \boldsymbol{u}^t_i+\Delta t(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{\sigma}^4_i = \boldsymbol{\sigma}^t_i+\Delta t(F_2(\boldsymbol{u}^3_i, \boldsymbol{\sigma}^3_i))
+      \boldsymbol{v}^1_i = \boldsymbol{v}^t_i &\boldsymbol{\sigma}^1_i = \boldsymbol{\sigma}^t_i\\
+      \boldsymbol{v}^2_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &\boldsymbol{\sigma}^2_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^1_i, \boldsymbol{\sigma}^1_i))\\
+      \boldsymbol{v}^3_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &\boldsymbol{\sigma}^3_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^2_i, \boldsymbol{\sigma}^2_i))\\
+      \boldsymbol{v}^4_i = \boldsymbol{v}^t_i+\Delta t(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{\sigma}^4_i = \boldsymbol{\sigma}^t_i+\Delta t(F_2(\boldsymbol{v}^3_i, \boldsymbol{\sigma}^3_i))
     \end{array}
 \end{aligned}$$
 
-In standard SPH, these eight eqs are spatially resolved at each calculation step by calculating $\boldsymbol{u}_i^{t+\Delta t}$ and $\boldsymbol{\sigma}_i^{t+\Delta t}$ at each particle.
+In standard SPH, these eight eqs are spatially resolved at each calculation step by calculating $\boldsymbol{v}_i^{t+\Delta t}$ and $\boldsymbol{\sigma}_i^{t+\Delta t}$ at each particle.
 
 ### Steps
 
 * Key point and aim: update the position, velocity and stress.
 * Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
-* Given $\boldsymbol{x}_i^1$, $\boldsymbol{u}_i^1$, $\boldsymbol{\sigma}_i^1$.
-* Step 1: calculate terms $\boldsymbol{f}^{\sigma}$ and $\boldsymbol{f}^u$.
+* Given $\boldsymbol{x}_i^1$, $\boldsymbol{v}_i^1$, $\boldsymbol{\sigma}_i^1$.
+* Step 1: calculate terms $\boldsymbol{f}^{\sigma}$ and $\boldsymbol{f}^v$.
 * Step 2: update boundary consitions and adapt the stress.
-* Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^u)_i$.
+* Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^v)_i$.
 * Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
 * Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\epsilon^p}_i$.
     * When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range ($f<0$ or $f=0,\ {\rm d}f>0$), then $\boldsymbol{g}^{\epsilon^p}_i = 0$. Otherwise ($f=0,\ {\rm d}f=0$), the plastic term is calculated and $\boldsymbol{g}^{\epsilon^p}_i$ is non-zero.
-    * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{u}$.
-    * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{u}$.
+    * The plastic term is a function of stress $\boldsymbol{\sigma}$ and velocity gradients $\nabla \boldsymbol{v}$.
+    * For large deformation problems, the Jaumann stress rate $\tilde{\boldsymbol{\sigma}}_i$ is also updated. This involves gradients of the velocity $\nabla \boldsymbol{v}$.
 * Step 6: compute $F_1$ and $F_2$ on particles.
-* Step 7: calculate $\boldsymbol{u}_i^2$ and $\boldsymbol{\sigma}_i^2$.
+* Step 7: calculate $\boldsymbol{v}_i^2$ and $\boldsymbol{\sigma}_i^2$.
 * Step 8: if necessary, the boundary conditions and stress state are again updated.
-* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{\sigma}_i^3$, $\boldsymbol{u}_i^4$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{u}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
+* Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{\sigma}_i^3$, $\boldsymbol{v}_i^4$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{v}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
 
 As for the calculation of strain item:
 <div align="center">

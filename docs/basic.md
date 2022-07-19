@@ -48,7 +48,7 @@ $$grad\ f=\nabla f=(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}
 
 作用于张量则张量rank+1
 
-$$\nabla\boldsymbol{u}=\frac{\partial u_i}{\partial x_j}\boldsymbol{e}_i\boldsymbol{e}_j $$
+$$\nabla\boldsymbol{v}=\frac{\partial v_i}{\partial x_j}\boldsymbol{e}_i\boldsymbol{e}_j=v_{i,j} $$
 
 **散度Divergence**：作用于**矢量**$(f_x, f_y, f_z)$得到**标量**。$\mathbb{R}^3\rightarrow\mathbb{R}^1, \nabla\cdot$
 
@@ -64,9 +64,16 @@ $$laplace\ f=div(grad\ f)=\nabla^2f=\frac{\partial^2 f}{\partial x^2} + \frac{\p
 
 ## Material derivative
 
-$$\frac{{\rm D}f}{{\rm D}t}=\frac{\partial f}{\partial t}+\boldsymbol{u}\cdot\nabla f$$
+For a scalar field:
 
-is **material derivative** in fluid mechanics, total derivative in math. 数学上的全导数，流体力学中的物质导数、随体导数，为流体质点在运动时所具有的物理量对时间的全导数。<br>
+$$\frac{{\rm D}f}{{\rm D}t}=\frac{\partial f}{\partial t}+\boldsymbol{v}\cdot\nabla f,\ r=f_{,t}+v_if_{,i}$$
+
+And for a vector field:
+
+$$\frac{{\rm D}\boldsymbol{f}}{{\rm D}t}=\frac{\partial \boldsymbol{f}}{\partial t}+\boldsymbol{v}\cdot\nabla \boldsymbol{f},\ r_i=f_{i,t}+v_kf_{i,k}$$
+
+This is **material derivative** in fluid mechanics, total derivative in math. 数学上的全导数，流体力学中的物质导数、随体导数，为流体质点在运动时所具有的物理量对时间的全导数。
+
 [Wiki](https://en.wikipedia.org/wiki/Material_derivative): In continuum mechanics, the material derivative describes the time rate of change of some physical quantity (like heat or momentum) of a material element that is subjected to a space-and-time-dependent macroscopic velocity field. The material derivative can serve as a link between Eulerian and Lagrangian descriptions of continuum deformation.<br>
 运动的流体微团的物理量随时间的变化率，它等于该物理量由当地时间变化所引起的变化率与由流体对流引起的变化率的和。<br>
 从偏导数全微分的摡念出发，密度变化可以认为是密度分布函数（密度场）的时间偏导数项（不定常）和空间偏导数项（空间不均匀）的和。时间偏导项叫局部导数或就地导数。空间偏导项叫位变导数或对流导数。
@@ -86,14 +93,130 @@ $$\tau=\mu\dot\theta$$
   <img width="400px" src="/img/Solid_Fluid.png">
 </div>
 
-## Stress, strain and strain-rate tensor
+## Strain and strain-rate tensor
 
-### Strain and stress
+### Strain
 For [strain](https://www.continuummechanics.org/strain.html), tensorial shear terms are written as $\epsilon_{ij}$ and are one-half of $\gamma_{ij}$ (*engineering shear strain*) such that $\gamma_{ij}=2\epsilon_{ij}, i\neq j$.
 
 The [true shear strain](https://en.wikipedia.org/wiki/Deformation_(physics)#Engineering_strain) is defined as the change in the angle (in radians) between two material line elements initially perpendicular to each other in the undeformed or initial configuration. The engineering shear strain is defined as the tangent of that angle, and is equal to the length of deformation at its maximum divided by the perpendicular length in the plane of force application which sometimes makes it easier to calculate.
 
-### Hooke's Law
+$$\epsilon_{Eng}=\frac{L_F-L_0}{L_0}=\frac{\Delta L}{L_0}$$
+
+$$\epsilon_{True}=\int^{L_F}_{L_0}\frac{{\rm d}L}{L}=\ln(\frac{L_F}{L_0})$$
+
+and
+
+$$\epsilon_{True}=\ln(1+\epsilon_{Eng})$$
+
+### Small strain
+
+The best defination of [small strain](https://www.continuummechanics.org/smallstrain.html) is based on the deformation gradient, in terms of displacements $\boldsymbol{u}=\boldsymbol{x}-\boldsymbol{x}_0$, it can be written as:
+
+$$\epsilon_{ij}=\frac{1}{2}(u_{i,j}+u_{j,i})$$
+
+or
+
+$$\boldsymbol{\epsilon}=\frac{1}{2}(\boldsymbol{F}+\boldsymbol{F}^T)-\boldsymbol{I} $$
+
+where $\boldsymbol{F}$ is the [deformation gradient](https://www.continuummechanics.org/deformationgradient.html), which $F_{ij}=x_{i,j}=\delta_{ij}+u_{i,j}$. And $\boldsymbol{F}$ is a Lagrangian quantity.
+
+But it is limited to applications involving small rotations and can only be used to calculate small strains without rotation or within very small rotation (like 5° may cause 3% differences).
+
+### $\boldsymbol{U}−\boldsymbol{I}$ strain
+
+In fact, a perfectly acceptable definition of strain, even for very large strains and rotations will be:
+
+$$\boldsymbol{\epsilon}=\boldsymbol{U}-\boldsymbol{I}$$
+
+where $\boldsymbol{U}$ is the stretch tensor and independent of rigid body rotation (because they are all contained in $\boldsymbol{R}$).
+
+### Green strain tensor
+
+But as $\boldsymbol{U}$ is very difficult to compute, **[Green strain tensor](https://www.continuummechanics.org/greenstrain.html)** is needed that is easy to calculate and is not corrupted by rigid body rotations:
+
+$$E_{ij}=\frac{1}{2}(F_{ki}F_{kj}-\delta_{ij})=\frac{1}{2}(u_{i,j}+u_{j,i}+u_{k,i}u_{k,j})$$
+
+or
+
+$$\boldsymbol{E}=\frac{1}{2}(\boldsymbol{F}^T\cdot\boldsymbol{F}-\boldsymbol{I})$$
+
+The terms can be grouped into *Green strain = Small strain terms + Quadratic terms*. The quadratic terms are what gives the Green strain tensor its rotation independence.
+
+For smaller strains still, the **Green strain tensor** and $\boldsymbol{U}−\boldsymbol{I}$ will become very close to each other, regardless of the level of rotation. But the quadratic terms will affect actual strains when the strains are large.
+
+### Hydrostatic strain
+
+[Hydrostatic strain](https://www.continuummechanics.org/hydrodeviatoricstrain.html) is simply the average of the three normal strains of any strain tensor.
+
+$$\epsilon_H=\frac{1}{3}\epsilon_{kk}$$
+
+Note that hydrostatic strain is in fact a mathematical construct more than a direct physical measure of volume and its change. After all, it is the determinant of the deformation gradient that is the true measure of volume change, and hydrostatic strain is only a convenient approximation of that when the strains are small. Hydrostatic strain is only an approximation of volume change, not an exact measure.
+
+At large strains, hydrostatic strain loses its link to volume because it is no longer an approximation of its change. It is reduced to a mere mathematical property of a strain tensor.
+
+### Volumetric strain
+
+The [volumetric strain](https://www.continuummechanics.org/hydrodeviatoricstrain.html) is defined from the volume change as:
+
+$$\epsilon_{V}=\frac{\Delta V}{V_0}$$
+
+For all strains, there is always the relationship between volumetric strain and principal strain:
+
+$$\epsilon_{V}=(1+\epsilon_1)(1+\epsilon_2)(1+\epsilon_3)=\det(\boldsymbol{F})$$
+
+Here $\det(\boldsymbol{F})$ gives a special symbol, $J$, and a special name, the *Jacobian*.
+
+And for small strains, the relationship between volumetric strain and hydrostatic strain is:
+
+$$\epsilon_{V}=\epsilon_1+\epsilon_2+\epsilon_3=\epsilon_H$$
+
+### Deviatoric strain
+
+[Deviatoric strain](https://www.continuummechanics.org/hydrodeviatoricstrain.html) means all the deformations that cause a shape change without changing the volume if the strains are small.
+
+$$\epsilon_{ij}'=\epsilon_{ij}-\frac{1}{3}\delta_{ij}\epsilon_{kk} $$
+
+### Strain-rate tensor
+
+> @[wiki: strain-rate tensor](https://en.wikipedia.org/wiki/Strain-rate_tensor#)
+
+In continuum mechanics, the [gradient of the velocity](https://www.continuummechanics.org/velocitygradient.html) $\nabla\boldsymbol{v}$ is a second-order tensor:
+
+$$\boldsymbol{L}=\nabla\boldsymbol{v}=\frac{\partial\boldsymbol{v}}{\partial\boldsymbol{x}}=\left[\begin{matrix} \frac{\partial v_x}{\partial x} &\frac{\partial v_x}{\partial y} &\frac{\partial v_x}{\partial z}\\ \frac{\partial v_y}{\partial x} &\frac{\partial v_y}{\partial y} &\frac{\partial v_y}{\partial z}\\ \frac{\partial v_z}{\partial x} &\frac{\partial v_z}{\partial y} &\frac{\partial v_z}{\partial z} \end{matrix}\right]$$
+
+or
+
+$$L_{ij}=\frac{\partial v_i}{\partial x_j}=v_{i,j} $$
+
+$\boldsymbol{L}$ is an Eulerian quantity and can be decomposed into the sum of a symmetric matrix $\boldsymbol{E}$ and a skew-symmetric matrix $\boldsymbol{W}$:
+
+$$\boldsymbol{E}=\frac{1}{2}(\boldsymbol{L}+\boldsymbol{L}^T)$$
+
+$$\boldsymbol{W}=\frac{1}{2}(\boldsymbol{L}-\boldsymbol{L}^T)$$
+
+$\boldsymbol{E}$ is called the **strain rate tensor** or the rate of deformation tensor and describes the rate of stretching and shearing. $\boldsymbol{W}$ is called the **spin tensor** and describes the rate of rotation.
+
+Also, the strain-rate tensor can be noted as $\dot{\boldsymbol{\epsilon}}$ or $\dot{\epsilon}_{ij}$, and the spin tensor as $\dot{\boldsymbol{\omega}}$ or $\dot{\omega}_{ij}$.
+
+And the rate of deformation equals the rate of [true strain](https://www.continuummechanics.org/truestrain.html): $\int E{\rm d}t=\epsilon_{True}$ and $E=\dot{\epsilon}_{True}$. However, things get complicated when the rate of deformation tensor is integrated over time to obtain true strain while rigid body rotations are present. But we can compute $\boldsymbol{\epsilon}_{True}=\int \boldsymbol{R}^T\cdot\boldsymbol{E}\cdot\boldsymbol{R}{\rm d}t$ instead of directly calculate $\int \boldsymbol{E}{\rm d}t$ when rotations are present. This gives a true strain result that is in the initial reference orientation.
+
+For compressible materials, since the ratio of initial to final volume is $\epsilon_V^{True}$:
+
+$$\epsilon_1^{True}+\epsilon_2^{True}+\epsilon_3^{True}=\epsilon_V^{True}$$
+
+Also:
+
+$$\dot{\epsilon}_1^{True}+\dot{\epsilon}_2^{True}+\dot{\epsilon}_3^{True}=\dot{\epsilon}_V^{True}$$
+
+which means:
+
+$$E_{kk}=\dot{\epsilon}_V^{True}$$
+
+For incompressible materials, just take $\epsilon_V^{True}=0$ ($V_F/V_0=1$) and $\dot{\epsilon}_V^{True}=0$. And this above applies for finite strains, not just infinitesimal ones, and not just in principal orientations.
+
+The strain-rate tensor describes the rate of change of the deformation of a material in the neighborhood of a certain point, at a certain moment of time. It can be defined as the derivative of the strain tensor with respect to time, or as the symmetric component of the Jacobian matrix of the flow velocity.
+
+## Hooke's Law
 
 Hooke's Law can be written in matrix notation as:
 
@@ -118,26 +241,6 @@ $$C_{ijkl}=\frac{E}{1+\nu}[\frac{1}{2}(\delta_{ik}\delta_{jl}+\delta_{jk}\delta_
 The deviatoric stress $\boldsymbol{s}=\boldsymbol{\sigma}'$ and strain $\boldsymbol{\epsilon}'$ are directly proportional to each other:
 
 $$s_{ij}=2G\epsilon'_{ij}$$
-
-### Strain-rate
-
-> @[wiki: strain-rate tensor](https://en.wikipedia.org/wiki/Strain-rate_tensor#)
-
-In continuum mechanics, the gradient $\nabla\boldsymbol{u}$ of the velocity is a second-order tensor:
-
-$$ \boldsymbol{L}=\nabla\boldsymbol{u}=\left[\begin{matrix} \frac{\partial u_x}{\partial x_x} &\frac{\partial u_y}{\partial x_x} &\frac{\partial u_z}{\partial x_x}\\ \frac{\partial u_x}{\partial x_y} &\frac{\partial u_y}{\partial x_y} &\frac{\partial u_z}{\partial x_y}\\ \frac{\partial u_x}{\partial x_z} &\frac{\partial u_y}{\partial x_z} &\frac{\partial u_z}{\partial x_z} \end{matrix}\right]=u_{i,j}$$
-
-$\boldsymbol{L}$ can be decomposed into the sum of a symmetric matrix $\boldsymbol{E}$ and a skew-symmetric matrix $\boldsymbol{W}$:
-
-$$\boldsymbol{E}=\frac{1}{2}(\boldsymbol{L}+\boldsymbol{L}^T)$$
-
-$$\boldsymbol{W}=\frac{1}{2}(\boldsymbol{L}-\boldsymbol{L}^T)$$
-
-$\boldsymbol{E}$ is called the strain rate tensor and describes the rate of stretching and shearing. $\boldsymbol{W}$ is called the spin tensor and describes the rate of rotation.
-
-The strain-rate tensor describes the rate of change of the deformation of a material in the neighborhood of a certain point, at a certain moment of time. It can be defined as the derivative of the strain tensor with respect to time, or as the symmetric component of the Jacobian matrix of the flow velocity.
-
-
 
 ## Other mathematical components
 1. $\dot{\#}$ - the accent-dot indicates the time derivative of the vector/tensor quantities. *@Bui2021, 3.2.1.1. p15*

@@ -285,13 +285,13 @@ And this soft repulsive force has been applied to simulations of water flow and 
 
 > **HINT**: Not yet add the repulsive force
 
-For an interior particle A (circle) that contains a dummy particle B (square and triangle) within its neighbourhood, the normal distances $d_A$ and $d_B$ to the wall are calculated. An artificial velocity $\boldsymbol{u}_B$ is then assigned to the dummy particle:
+For an interior particle A (circle) that contains a dummy particle B (square and triangle) within its neighbourhood, the normal distances $d_A$ and $d_B$ to the wall are calculated. An artificial velocity $\boldsymbol{v}_B$ is then assigned to the dummy particle:
 
-$$\boldsymbol{u}_B = -\frac{d_B}{d_A}\boldsymbol{u}_A$$
+$$\boldsymbol{v}_B = -\frac{d_B}{d_A}\boldsymbol{v}_A$$
 
 To account for extremely large values of the dummy particle velocity when an interior particle approaches the boundary (and $d_A$ approaches 0), a parameter $\beta$ is introduced:
 
-$$\boldsymbol{u}_B = (1-\beta)\boldsymbol{u}_A+\beta\boldsymbol{u}_{wall}\ ,\ \beta = min(\beta_{max}, 1+\frac{d_B}{d_A})$$
+$$\boldsymbol{v}_B = (1-\beta)\boldsymbol{v}_A+\beta\boldsymbol{v}_{wall}\ ,\ \beta = min(\beta_{max}, 1+\frac{d_B}{d_A})$$
 
 $\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $\beta_{max}=1.5$.
 
@@ -327,7 +327,7 @@ $h$ is the smoothing length and $c$ is the speed of sound is the smoothing lengt
 
 > @taichiCourse01-10 PPT p77
 
-$$u_i^* = u_i+\Delta t\frac{{\rm d}u_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tu_i^*$$
+$$v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*$$
 
 ### Leap-Frog (LF)
 
@@ -366,24 +366,24 @@ $$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Del
 
 In addition to the velocity and stress, the position vectors of each particle $\boldsymbol{x}_i$ are updated via the XSPH method at the end of each time step as:
 
-$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{u}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij}$$
+$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij}$$
 
 Alternatively, the discretised XSPH equation is:
 
-$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + \Delta t\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{x}_i^t + \Delta t(\boldsymbol{u}_i^{t+\Delta t} + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{u}_j - \boldsymbol{u}_i)\nabla W_{ij})$$
+$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + \Delta t\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{x}_i^t + \Delta t(\boldsymbol{v}_i^{t+\Delta t} + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij})$$
 
 where $\epsilon_x$ is a tuning para, $0\leq\epsilon_x\leq1$.
 
 While, in standard SPH, the simplest way is:
 
-$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{u}_i$$
+$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i$$
 
-And for the particle position update:
+And for the particle position update (Leap-Frog):
 
-$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_i^{t+\frac{\Delta t}{2}}\ and\ \boldsymbol{u}_i^{t+\frac{\Delta t}{2}} = \frac{1}{2}(\boldsymbol{u}_i^{t+\Delta t}+\boldsymbol{u}_i^t)$$
+$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{v}_i^{t+\frac{\Delta t}{2}}\ and\ \boldsymbol{v}_i^{t+\frac{\Delta t}{2}} = \frac{1}{2}(\boldsymbol{v}_i^{t+\Delta t}+\boldsymbol{v}_i^t)$$
 
 or just Symplectic Euler:
 
-$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{u}_i^{t+\Delta t}$$
+$$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{v}_i^{t+\Delta t}$$
 
 ## Tensile instability
