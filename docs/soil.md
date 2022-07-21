@@ -2,8 +2,11 @@
 
 ## Constitutive model of soil
 
+Constitutive model is a core component of a computational framework used to describe how a material behaves under external loads. A constitutive equation is required to relate the soil stresses to the strain rates.
+
 In the application of CFD approach to model geomaterials using SPH, the materials are considered to either be fluid-like materials (i.e. liquefied materials) or have reached its critical state. However, the key drawback of this type of constitutive model is that it cannot describe complex responses of geomaterials, including the hardening or/and softening processes before reaching the critical state of soils.
-Advanced constitutive models were built on the basis of continuum plasticity theory
+
+Advanced constitutive models were built on the basis of continuum plasticity theory.
 
 ### A simple elastic-perfectly plastic model for soil
 
@@ -87,33 +90,63 @@ The above modified Bingham model can be thought of as a precursor to the $\mu(I)
 
 **NOTE**: the $\mu(I)$ model need the difference of density to generate pressure, so it is wrong to keep a constant density.
 
-### Drucker-Prager yield criteria
+### Elastoplastic model
 
-Constitutive model is to relate the soil stresses to the strain rates in the plane strain condition.
+> @bui2021 3.2.2.
 
-For **Drucker-Prager** yield criteria: $f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$ and functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
+This model was built on basis of continuum plasticity theory, in which a single mathematical relationship that relates the stress-increment to the strain-increment was established for a homogenous representative volume element which is assumed to remain homogenous. A yield surface and a plastic potential function $g$ (or dilatancy rule) are then used to control the hardening or/and softening processes commonly observed in the materials. Elastic and plastic material behaviour are distinguished according to a specified yield function $f$.
+
+The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\epsilon}$ can be divided into an elastic and a plastic component:
+
+$$\boldsymbol{\dot\epsilon} = \boldsymbol{\dot\epsilon}^e+\boldsymbol{\dot\epsilon}^p$$
+
+The stress increment is then calculated from the generalised Hooke's Law:
+
+$$\dot{\boldsymbol{\sigma}}=\boldsymbol{D}^e:\dot{\boldsymbol{\epsilon}}^e=\boldsymbol{D}^{ep}:\dot{\boldsymbol{\epsilon}}$$
+
+We define the elastic strains according to the generalised Hooke's Law:
+
+$$\dot{\boldsymbol{\epsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{mm}\boldsymbol{I},\ \dot{\sigma}_{mm}=\dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$$
+
+And in plasticity-based models, the plastic srtain rate is defined via the plastic flow rule:
+
+$$\dot{\boldsymbol{\epsilon}}^p=\dot{\lambda}\frac{\partial g}{\partial \boldsymbol{\sigma}}$$
+
+where $\dot{\lambda}$ is the so-called *consistency parameter*, a positive plastic-multiplier, and $g$ is the *plastic potential function*. The plastic potential function describes the direction of plastic flow as a function of the stress tensor. For $g=f$, the flow rule is said to be associated. otherwise, it is non-associated.
+
+And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
+
+$$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
+
+> **QUESTIONS**
+>
+> 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive. *STRETCH* for positive and *COMPRESS* for negative? **Answer**: Generally it's negtive. When it is positive, the meaning is the average normal stress $\sigma_m = -p$.
+
+#### Yield criteria
+
+For **Drucker-Prager** yield criteria:
+
+$$f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0$$
+
+where the functions of the Coulomb material constants - the soil internal friction $\varphi$ and cohesion $c$:
 
 $$\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}$$
 
-And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*, $g=\sqrt{J_2}+3I_1\cdot\sin\psi$, where $\psi$ is dilatancy angle and in Chalk's thesis $\psi=0$. Of *associated flow rule*, $g=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c$. $g$ is the plastic potential function (塑性势函数).
+And for the elastoplastic constitutive equation of Drucker-Prager and *non-associated flow rule*
 
-And the **Von Mises** criterion is: $f = \sqrt{3J_2}-f_c$.
+$$g=\sqrt{J_2}+3I_1\sin\psi$$
+
+where $\psi$ is dilatancy angle and in Chalk's thesis $\psi=0$.
+
+And the **Von Mises** criterion is:
+
+$$f = \sqrt{3J_2}-f_c$$
 
 The Von Mises and D-P yield criteria are illustrated in two dimensions:
 
 <div align="center">
   <img width="400px" src="/img/Yield_criterias.png">
 </div>
-
-Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
-
-$$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
-
-where $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix
-
-> **QUESTIONS**
->
-> 1. How does the operator : calculated? **Answer**: double dot product of tensors, also a double tensorial contraction. The double dots operator "eats" two 2nd rank tensors and "spits out" a scalar. As for $\boldsymbol{s}:\boldsymbol{s}$, it represents the sum of squares of each element in $\boldsymbol{s}$.
 
 The increment of the yield function after plastic loading or unloading:
 
@@ -125,31 +158,29 @@ The stress state is not allowed to exceed the yield surface, and the yield funct
 >
 > 1. How to calculate ${\rm d}f$? **ANSWER**: ${\rm d}f = f^*-f$ in advection.
 
-And in soil mechanics, the soil pressure $p$ is obtained directly from the equation for **hydrostatic pressure**:
+#### The elastoplastic constitutive equation
 
-$$p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})$$
+After rearranging:
 
-We define the **elastic strains** according to the **generalised Hooke's law**:
+$$\frac{\partial \sigma_{ij}}{\partial t}=2G\dot{e}_{ij}+K\dot{\epsilon}_{mm}\delta_{ij}-\dot{\lambda}((K-\frac{2}{3}G)\frac{\partial g}{\partial \sigma_{kl}}\delta_{kl}\delta_{ij}+2G\frac{\partial g}{\partial \sigma_{ij}})$$
 
-$$\dot{\boldsymbol{\epsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{kk}\boldsymbol{I}$$
+The first two terms on the right hand side describe the elastic strain, while the latter term describes the plastic deformations (which is non-zero when plastic flow occurs).
 
-where $\dot{\sigma}_{kk} = \dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}$.
+Upon substitution of plastic potential function and the Drucker-Prager yield function into the equation above:
 
-> **QUESTIONS**
->
-> 1. the hydrostatic pressure $p$, is positive or negtive? $\boldsymbol{s}$ is only correct when $p$ is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, $p$ is negtive. **Answer**: Generally it's negtive. When it is positive, the meaning is the average normal stress $\sigma_m = -p$.
+$$\frac{\partial \sigma_{ij}}{\partial t}=2G\dot{e}_{ij}+K\dot{\epsilon}_{mm}\delta_{ij}-\dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}s_{ij}}) $$
 
-The fundamental assumption of plasticity is that the total soil strain rate $\boldsymbol{\dot\epsilon}$ can be divided into an elastic and a plastic component:
+where
 
-$$\boldsymbol{\dot\epsilon} = \boldsymbol{\dot\epsilon}^e+\boldsymbol{\dot\epsilon}^p$$
+$$\dot{\lambda}=\frac{3\alpha_{\varphi}\dot{\epsilon}_{mm}+(G/\sqrt{J_2})s_{ij}\dot{\epsilon}_{ij}}{27\alpha_{\varphi}K\sin\psi+G} $$
 
-Consider both a **Von Mises** and a **D-P** yield criterion to distinguish between elastic and plastic material behaviour.
-
-In the elastoplastic model, the stress state is not allowed to exceed the yield surface and I should apply a stress adaptation to particles, after every calculation step. And the elastic and plastic behaviour are distinguished via a stress-dependent yield criterion.
+#### Stress adaptation
 
 > @Bui2008 Section 3.3.1 and Chalk2019 Section 4.3.1
 
-But the stress state is not allowed to exceed the yield surfae. The stress must be checked at every step and adapted if it does not lie within a valid range.
+Consider both a **Von Mises** and a **Drucker-Prager** yield criterion to distinguish between elastic and plastic material behaviour.
+
+In the elastoplastic model, the stress state is not allowed to exceed the yield surface and we should apply a stress adaptation to particles, after every calculation step. The stress must be checked at every step and adapted if it does not lie within a valid range.
 
 <div align="center">
   <img width="800px" src="/img/Adaptation_stress_states.png">
@@ -157,19 +188,71 @@ But the stress state is not allowed to exceed the yield surfae. The stress must 
 
 First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as **tension cracking**, in the movement of the stress state at point E to point F. Tension cracking occurss when: $-\alpha_{\varphi}I_1+k_c<0$. And in such circumstances, the hydrostatic stress $I_1$ must be shifted back to the apex of the yield surface by adapting the normal stress components:
 
-$$\hat{\sigma}_{\alpha\alpha} = \sigma_{\alpha\alpha}-\frac{1}{3}(I_1-\frac{k_c}{\alpha_{\varphi}})$$
+$$\hat{\boldsymbol{\sigma}} = \boldsymbol{\sigma}-\frac{1}{3}(I_1-\frac{k_c}{\alpha_{\varphi}})$$
 
 The second corrective stress treatment must be performed when the stress state exceeds the yield surface during plastic loading, as shown by the path A to B. For the D-P yield criterion, this occurs when: $-\alpha_{\varphi}I_1+k_c<\sqrt{J_2}$. And the stress state must be scaleld back appropriately. For this, a scaling factor $r_{\sigma}$ is introduced: $r_{\sigma} = (-\alpha_{\varphi}I_1+k_c) / \sqrt{J_2}$. The deviatoric shear stress is then reduced via this scaling factor for all components of the stress tensor:
 
-$$\hat{\sigma}_{\alpha\alpha} = r_{\sigma}s_{\alpha\alpha}+\frac{1}{3}I_1$$
+$$\hat{\sigma}_{ii} = r_{\sigma}s_{ii}+\frac{1}{3}I_1$$
 
-$$\hat{\sigma}_{\alpha\beta} = r_{\sigma}s_{\alpha\beta}$$
+$$\hat{\sigma}_{ij} = r_{\sigma}s_{ij}$$
 
 The procedure of applying these two equations is referred to as the stress-scaling back procedure, or stress modification.
+
 In the SPH implementation of the elastoplastic model, the two corrective treatments described above are applied to the particles that have a stress state outside of the valid range.
 
+### Viscoplastic Perzyna model
 
-## Governing equations for DP
+The consistency parameter $\dot{\lambda}$ is defined as:
+
+$$\dot{\lambda}=\gamma\langle\phi(F)\rangle$$
+
+where $\gamma$ is a fluidity parameter (acts as the reciprocal of viscosity) and $\phi(F)$ is a yield-type function. The $\langle...\rangle$ symbol represents the Macaulay brackets:
+
+$$\langle\phi\rangle=\begin{cases} \phi,\,\,\phi\ge0\\ 0,\,\,\phi<0\\ \end{cases}$$
+
+The function $\phi(F)$ is therefore defined as:
+
+$$\phi(F)=(\frac{F-F_0}{F_0})^N$$
+
+where $N$ is a model parameter, $F$ is a function of the stress state (related to the yield function), and $F_0$ defines a critical stress value for plastic strains. Plastic flow occurs then $F>F_0$ (the function $F$ exceeds the critical value $F_0$) and plastic strains are non-zero.
+
+... ...
+
+In summary, the Perzyna constitutive model is defined as:
+
+$$\frac{\partial \sigma_{ij}}{\partial t}=D^e_{ijkl}(\dot{\epsilon}_{kl}-\gamma\frac{\partial g}{\partial\sigma_{kl}}(\frac{F-F_0}{F_0})^N)$$
+
+The implementation of the Von Mises yield criterion, with an associated flow rule ($f=g$):
+
+$$F=\sqrt{3J_2},\ F_0=f_c$$
+
+### A generalised system of equations
+
+The general elastoplastic and viscoplastic Perzyna constitutive equations can be written in the following compact form:
+
+$$\frac{\partial\sigma_{ij}}{\partial t}=D^e_{ijkl}\dot{\epsilon}_{kl}-g_{ij}^{\epsilon^p}$$
+
+where $g_{ij}^{\epsilon^p}$ is a function of the plastic strain, depending on the choice of constitutive model:
+
+$$g_{ij}^{\epsilon^p}=\dot{\lambda}((K-\frac{2}{3}G)\frac{\partial g}{\partial \sigma_{kl}}\delta_{kl}\delta_{ij}+2G\frac{\partial g}{\partial \sigma_{ij}})$$
+
+or
+
+$$g_{ij}^{\epsilon^p}=D^e_{ijkl}\gamma\frac{\partial g}{\partial\sigma_{kl}}(\frac{F-F_0}{F_0})^N$$
+
+And for large deformation problems, the rate of stress must be adapted so that it is invariant with respect to large body rotations. The standard stress rate is replaced with the Jaumann stress rate:
+
+$$\dot{\tilde{\sigma}}_{ij}=\dot{\sigma}_{ij}-\sigma_{im}\dot{\omega}_{jm}-\sigma_{mj}\dot{\omega}_{im}$$
+
+or
+
+$$\dot{\tilde{\boldsymbol{\sigma}}}=\dot{\boldsymbol{\sigma}}-\boldsymbol{\omega}\boldsymbol{\sigma}-\boldsymbol{\sigma}\boldsymbol{\omega}^T $$
+
+Then the equation becomes:
+
+$$\frac{\partial\sigma_{ij}}{\partial t}=\sigma_{im}\dot{\omega}_{jm}-\sigma_{mj}\dot{\omega}_{im}+D^e_{ijkl}\dot{\epsilon}_{kl}-g_{ij}^{\epsilon^p}$$
+
+## Governing equations
 
 Conservation of mass:
 
@@ -177,11 +260,11 @@ $$\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{v}$$
 
 Conservation of momentum:
 
-$$\frac{{\rm D} \boldsymbol{v}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{f}^{\sigma}+\boldsymbol{f}^{ext}$$
+$$\frac{{\rm D} \boldsymbol{v}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{\sigma}+\boldsymbol{f}^{ext}$$
 
-Constitutive equation:
+Constitutive equation (in compact form):
 
-$$\frac{{\rm D} \boldsymbol{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^v-\boldsymbol{g}^{\epsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{f}^{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^v-\boldsymbol{g}^{\epsilon^p}$$
 
 where:
 
@@ -193,7 +276,7 @@ $$\begin{aligned} \boldsymbol{x} = \left (\begin{array}{c}
     v_x\\ v_y
 \end{array}\right) \end{aligned}
 ,
-\begin{aligned} \boldsymbol{f}^{\sigma} = \left (\begin{array}{cc}
+\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{cc}
     \sigma_{xx}    &\sigma_{xy}\\    \sigma_{xy}    &\sigma_{yy}
 \end{array}\right) \end{aligned}
 ,
@@ -201,7 +284,7 @@ $$\begin{aligned} \boldsymbol{x} = \left (\begin{array}{c}
     f^{ext}_x\\ f^{ext}_y
 \end{array}\right) \end{aligned}$$
 
-$$\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{c}
+$$\begin{aligned} \boldsymbol{f}^{\sigma} = \left (\begin{array}{c}
     \sigma_{xx}\\ \sigma_{yy}\\ \sigma_{xy}\\ \sigma_{zz}
 \end{array} \right) \end{aligned}
 ,
@@ -213,8 +296,6 @@ $$\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{c}
       2\sigma_{xy}\dot\omega_{xy}\\ -2\sigma_{xy}\dot\omega_{xy}\\
       (\sigma_{yy}-\sigma_{xx})\dot\omega_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
-
-$$\dot\omega_{\alpha\beta}=\frac{1}{2}(\frac{\partial v_{\alpha}}{\partial x_{\beta}}-\frac{\partial v_{\beta}}{\partial x_{\alpha}})\ ,\ \dot\omega_{xy} = \frac{1}{2}(\frac{\partial v_x}{\partial x_y}-\frac{\partial v_y}{\partial x_x})$$
 
 $$\begin{aligned} \boldsymbol{f}^v = \left (\begin{array}{cc}
     D^e_{11}v_x    &D^e_{12}v_y\\ D^e_{21}v_x    &D^e_{22}v_y\\
@@ -228,12 +309,12 @@ $$\begin{aligned} \boldsymbol{f}^v = \left (\begin{array}{cc}
       g^{\epsilon^p}_{zz}(\boldsymbol{\dot \epsilon}^p)
 \end{array} \right) \end{aligned}
 ,
-\begin{aligned} \boldsymbol{\dot \epsilon}^p = \left(\begin{array}{c}
+\begin{aligned} \dot{\boldsymbol{\epsilon}}^p = \left(\begin{array}{c}
       \dot \epsilon^p_{xx}\\ \dot \epsilon^p_{yy}\\
       \dot \epsilon^p_{xy}\\ 0
 \end{array} \right) \end{aligned}$$
 
-$$\dot{\boldsymbol{\epsilon}} = \begin{aligned} \left(\begin{array}{c}
+$${\boldsymbol{f}^{\dot \epsilon}} = \begin{aligned} \left(\begin{array}{c}
       \dot \epsilon_{xx}\\ \dot \epsilon_{yy}\\
       \dot \epsilon_{xy}\\ 0
 \end{array} \right) \end{aligned} = \begin{aligned} \left(\begin{array}{c}
@@ -256,25 +337,20 @@ And $\boldsymbol{g}^{\epsilon^p}$ is a vector containing the plastic terms which
 
 For the elastoplastic model,
 
-$$\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}\frac{G}{\sqrt{J_2}\boldsymbol{s}}$$
+$$\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}\boldsymbol{s}})$$
 
-which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the D-P yield criterion, where:
-
-$$\dot{\lambda} = \frac{3\alpha_{\varphi}\dot{\epsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\epsilon}}}{27\alpha_{\varphi}K\sin{\psi}+G} = \frac{3\alpha_{\varphi}\dot{\epsilon}_{kk}+(G/\sqrt{J_2})\boldsymbol{s}:\dot{\boldsymbol{\epsilon}}}{G}$$
+which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the Drucker-Prager yield criterion.
 
 And for the Perzyna model,
 
-$$\boldsymbol{g}^{\epsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\partial \boldsymbol{\sigma}}(\frac{\sqrt{3J_2}-f_c}{f_c})^{\hat{N}}$$
+$$\boldsymbol{g}^{\epsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\partial \boldsymbol{\sigma}}(\frac{\sqrt{3J_2}-f_c}{f_c})^N$$
 
-which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion). And $\hat{N}$ is a model parameter.
+which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield criterion).
 
 > **QUESTIONS**
 >
-> 1. How does $\boldsymbol{g}^{\epsilon^p}$ and $\boldsymbol{\dot\epsilon}^p$ calculated? Maybe it is different in elastoplastic and Perzyna models. **ANSWER**: as it shows
-> 2. How does $\dot{\lambda}$ calculated? **ANSWER**: as it shows
-> 3. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
-> 4. What number should $\hat{N}$ choose?
-> 5. What's the difference between $\dot{\boldsymbol{\epsilon}}$ and $\dot{\boldsymbol{\epsilon}^p}$? **ANSWER**: use $\nabla \boldsymbol{v}$.
+> 1. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
+> 2. What number should $N$ choose?
 
 ### Conservation of mass
 
@@ -294,7 +370,7 @@ $$-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm
 
 $$\frac{\partial \rho}{\partial t}+\boldsymbol{v}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{v}=0$$
 
-The final form in Lagrangian method of density: (left 为微团密度的变化，right 为微团体积的变化。)
+The final form in Lagrangian method of density: (left is the change of density, right is the change of volume)
 
 $$\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{v}$$
 
@@ -302,7 +378,15 @@ $$\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{v}$$
 
 The original form ($\rho=\sum_j m_jW_{ij}$) of SPH mass equation operator is not suitable because the density will drop in the boundary of calculating domain, not like astrophysics in which there is an infinite domain.
 
-On the other hand, we use $\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}$ to solve homogenous problem and use $\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}$ to solve non-homogenous problem.
+On the other hand, we use
+
+$$\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}$$
+
+to solve homogenous problem and use
+
+$$\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}$$
+
+to solve non-homogenous problem.
 
 ### Conservation of momentum
 
@@ -320,17 +404,8 @@ or
 
 $$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jV_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
 
-### Constitutive equation
 
-Unlike the CFD approach, the general elastoplastic constitutive modelling approach evolves the stress tensor over time using a unique stress-strain relationship that relates the stress-increment to the strain-increment. It is assumed that for an elastoplastic material, the total strain-increment tensor ${\rm d}\boldsymbol{\epsilon}$ is decomposed into elastic and plastic components: ${\rm d}\boldsymbol{\epsilon}={\rm d}\boldsymbol{\epsilon}_e+{\rm d}\boldsymbol{\epsilon}_p$
-
-The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol{\sigma}=\boldsymbol{D}^{ep}:{\rm d}\boldsymbol{\epsilon}$
-
-> **QUESTIONS**:
->
-> 1. Is the stress derivative ? deviation? divergancy? the material derivative or partial derivative? It should be $\partial\sigma/\partial t$? Or the stress is also proper to be described in material derivative?
-
-## Standard DP soil SPH
+## Standard soil SPH
 
 ### Discretization
 
@@ -338,64 +413,64 @@ The stress increment is then calculated from specific rules: ${\rm d}\boldsymbol
 
 The discrete governing equations of soil motion in the framework of standard SPH are therefore:
 
-$$\frac{{\rm D} \rho_i}{{\rm D} t} = -\sum_j m_j(\boldsymbol{v}_j-\boldsymbol{v}_i)\cdot\nabla W_{ij}$$
+$$\frac{{\rm D} \rho_i}{{\rm D} t} = \rho_i\sum_j V_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla W_{ij}$$
 
-$$\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
+$$\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j V_j(\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\frac{\boldsymbol{\sigma}_j}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p}$$
+$$\frac{{\rm D} \boldsymbol{f}^{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j V_j(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p}$$
 
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
 
-### Symp-Euler for standard soil SPH
+### Symp-Euler for standard Drucker-Prager soil SPH
 
-* Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
-* Given $\boldsymbol{x}_i^1$, $\boldsymbol{v}_i^1$, $\boldsymbol{\sigma}_i^1$.
+* Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, $\psi=0$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$
+* Given $\boldsymbol{x}_t$, $\boldsymbol{v}_t$, $\boldsymbol{\sigma}_t$ at each particle
 * Update boundary
-* Cal gradient of velocity tensor
-* Cal strain tensor
-* Cal spin rate and Jaumann stress rate tensor
+* Cal compact form $\boldsymbol{f}^{\sigma}$ and $\boldsymbol{f}^{v}$
+* Cal stress terms $\sigma^H_t$, $s^{ij}_t$
+* Cal gradient of velocity tensor $\nabla\cdot\boldsymbol{v}$ or $v_{i,j}$
+* Cal strain rate tensor $\dot{\epsilon}_{ij}$, spin rate tensor $\dot{\omega}_{ij}$ and Jaumann stress rate vector $\tilde{\sigma}_{ij}$
+* Cal the invariant terms $I_1$ and $J_2$
+* Cal the consistency para $\dot{\lambda}$
+* Cal the plastic potential vector $\boldsymbol{g}^{\epsilon^p}$
+* Cal $\dot{\rho}$, $\dot{\boldsymbol{v}}$, $\dot{\boldsymbol{f}^{\sigma}}$
+* Update $\boldsymbol{\sigma}$ and do adaptation
+* Update $\rho$, $\boldsymbol{v}$ and $\boldsymbol{x}$
 
-<!-- TODO: clarify and add details of SE DPSPH -->
-
-
-### RK4 for standard soil SPH
+### RK4 for standard Drucker-Prager soil SPH
 
 > @Chalk2020, Appendix B.
 
 The considered governing SPH equations are summarised as:
 
-$$
-\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{f}_i^{\sigma}}{\rho_i^2}+\frac{\boldsymbol{f}_j^{\sigma}}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)
-$$
+$$\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j V_j(\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\frac{\boldsymbol{\sigma}_j}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)$$
 
-$$\frac{{\rm D} \boldsymbol{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j \frac{m_j}{\rho_j}(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p} = F_2(\boldsymbol{v}_i,\boldsymbol{\sigma}_i)$$
+$$\frac{{\rm D} \boldsymbol{f}^{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j V_j(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p} = F_2(\boldsymbol{v}_i,\boldsymbol{\sigma}_i)$$
 
 Using the fourth order Runge-Kutta (RK4) method:
 
 $$\boldsymbol{v}_i^{t+\Delta t} = \boldsymbol{v}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}^1_i)+2F_1(\boldsymbol{\sigma}^2_i)+2F_1(\boldsymbol{\sigma}^3_i)+F_1(\boldsymbol{\sigma}^4_i))$$
 
-$$\boldsymbol{\sigma}_i^{t+\Delta t} = \boldsymbol{\sigma}_i^t + \frac{\Delta t}{6}(F_2(\boldsymbol{v}^1_i,\boldsymbol{\sigma}^1_i)+2F_2(\boldsymbol{v}^2_i,\boldsymbol{\sigma}^2_i)+2F_2(\boldsymbol{v}^3_i,\boldsymbol{\sigma}^3_i)+F_2(\boldsymbol{v}^4_i,\boldsymbol{\sigma}^4_i))$$
+$$\boldsymbol{f}^{\sigma, t+\Delta t}_i = \boldsymbol{f}^{\sigma, t}_i + \frac{\Delta t}{6}(F_2(\boldsymbol{v}^1_i,\boldsymbol{\sigma}^1_i)+2F_2(\boldsymbol{v}^2_i,\boldsymbol{\sigma}^2_i)+2F_2(\boldsymbol{v}^3_i,\boldsymbol{\sigma}^3_i)+F_2(\boldsymbol{v}^4_i,\boldsymbol{\sigma}^4_i))$$
 
 where:
 
 $$\begin{aligned}
     \begin{array}{ll}
-      \boldsymbol{v}^1_i = \boldsymbol{v}^t_i &\boldsymbol{\sigma}^1_i = \boldsymbol{\sigma}^t_i\\
-      \boldsymbol{v}^2_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &\boldsymbol{\sigma}^2_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^1_i, \boldsymbol{\sigma}^1_i))\\
-      \boldsymbol{v}^3_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &\boldsymbol{\sigma}^3_i = \boldsymbol{\sigma}^t_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^2_i, \boldsymbol{\sigma}^2_i))\\
-      \boldsymbol{v}^4_i = \boldsymbol{v}^t_i+\Delta t(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{\sigma}^4_i = \boldsymbol{\sigma}^t_i+\Delta t(F_2(\boldsymbol{v}^3_i, \boldsymbol{\sigma}^3_i))
+      \boldsymbol{v}^1_i = \boldsymbol{v}^t_i &\boldsymbol{f}^{\sigma, 1}_i = \boldsymbol{f}^{\sigma, t}_i\\
+      \boldsymbol{v}^2_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &\boldsymbol{f}^{\sigma, 2}_i = \boldsymbol{f}^{\sigma, t}_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^1_i, \boldsymbol{\sigma}^1_i))\\
+      \boldsymbol{v}^3_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &\boldsymbol{f}^{\sigma, 3}_i = \boldsymbol{f}^{\sigma, t}_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^2_i, \boldsymbol{\sigma}^2_i))\\
+      \boldsymbol{v}^4_i = \boldsymbol{v}^t_i+\Delta t(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{f}^{\sigma, 4}_i = \boldsymbol{f}^{\sigma, t}_i+\Delta t(F_2(\boldsymbol{v}^3_i, \boldsymbol{\sigma}^3_i))
     \end{array}
 \end{aligned}$$
 
 In standard SPH, these eight eqs are spatially resolved at each calculation step by calculating $\boldsymbol{v}_i^{t+\Delta t}$ and $\boldsymbol{\sigma}_i^{t+\Delta t}$ at each particle.
 
-### Steps
-
 * Key point and aim: update the position, velocity and stress.
 * Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$.
 * Given $\boldsymbol{x}_i^1$, $\boldsymbol{v}_i^1$, $\boldsymbol{\sigma}_i^1$.
 * Step 1: calculate terms $\boldsymbol{f}^{\sigma}$ and $\boldsymbol{f}^v$.
-* Step 2: update boundary consitions and adapt the stress.
+* Step 2: update boundary conditions and adapt the stress.
 * Step 3: calculate the gradient terms $(\nabla\cdot\boldsymbol{f}^{\sigma})_i$ and $(\nabla\cdot\boldsymbol{f}^v)_i$.
 * Step 4: calculate the additional terms for the momentum equation, mainly the body force $\boldsymbol{f}^{ext}_i$ in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.
 * Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function $\boldsymbol{g}^{\epsilon^p}_i$.

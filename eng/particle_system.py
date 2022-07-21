@@ -18,6 +18,7 @@ class ParticleSystem:
         self.world = np.array(world)
         self.dim = len(world)
         assert self.dim in (2, 3), "SPH solver supports only 2D and 3D particle system and 2D ractangular world from ld_pos(0,0) now."
+        self.dim_v = 4 if self.dim == 2 else 6
 
         # Material 材料类型定义
         self.material_fluid = 1

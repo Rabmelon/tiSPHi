@@ -63,23 +63,23 @@ Approximate a function $f(\boldsymbol{x})$ using finite probes $f(\boldsymbol{x}
 
 * SPH discretization:
 
-$$f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j)W(x-x_j, h) $$
+$$f(x) \approx \sum_j V_jf(x_j)W(x-x_j, h) $$
 
 * SPH spatial derivatives:
 
-$${\color{Salmon} \nabla} f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \nabla}W(x-x_j, h)  $$
+$${\color{Salmon} \nabla} f(x) \approx \sum_j V_jf(x_j){\color{Salmon} \nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla\cdot} \boldsymbol{f}(x) \approx \sum_j \frac{m_j}{\rho_j}\boldsymbol{f}(x_j){\color{Salmon} \cdot\nabla}W(x-x_j, h)  $$
+$${\color{Salmon} \nabla\cdot} \boldsymbol{f}(x) \approx \sum_j V_j\boldsymbol{f}(x_j){\color{Salmon} \cdot\nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla\times} \boldsymbol{f}(x) \approx -\sum_j \frac{m_j}{\rho_j}\boldsymbol{f}(x_j){\color{Salmon} \times\nabla}W(x-x_j, h)  $$
+$${\color{Salmon} \nabla\times} \boldsymbol{f}(x) \approx -\sum_j V_j\boldsymbol{f}(x_j){\color{Salmon} \times\nabla}W(x-x_j, h)  $$
 
-$${\color{Salmon} \nabla^2} f(x) \approx \sum_j \frac{m_j}{\rho_j}f(x_j){\color{Salmon} \nabla^2}W(x-x_j, h)  $$
+$${\color{Salmon} \nabla^2} f(x) \approx \sum_j V_jf(x_j){\color{Salmon} \nabla^2}W(x-x_j, h)  $$
 
 with $W(\boldsymbol{x}_i-\boldsymbol{x}_j, h) = W_{ij}$ in discrete view, and:
 
-$$\nabla W_{ij}=\frac{\partial W_{ij}}{\partial \boldsymbol{x}_i} $$
+$$\nabla_i W_{ij}=\frac{\partial W_{ij}}{\partial \boldsymbol{x}_i} $$
 
-$$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} $$
+$$\nabla^2_i W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} $$
 
 > **QUESTIONS**
 >
@@ -107,29 +107,6 @@ $$\nabla^2W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} $$
 * 通常会使用一些反对称(**anti-sym**)或对称型(**sym**)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当$f(r)$是一个力的时候，从动量守恒的角度去推导，使用**sym**更好；当做散度、需要投影的时候，使用**anti-sym**更好。
     * 或许可以说，当$f$是粒子$i$和$j$的相互作用时，用对称型；当$f$是粒子本身的属性时，用反对称型？
 
-> @bui2021
-
-After doing the Taylor expansion of $f_j$:
-
-$$f_j=f_i+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}+O(h^2)$$
-
-We have:
-
-$$\nabla^{\beta}f_i\approx\sum_jV_jf_j\nabla^{\beta}_iW_{ij}\approx f_i{\color{Salmon} \sum_jV_j\nabla^{\beta}_iW_{ij}}+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}{\color{Green} \sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}}+O(h^2)$$
-
-where the term ${\color{Salmon} 1}$ should be $0$ and the term ${\color{Green} 2}$ should be $1$ or $\delta^{\alpha\beta}$.
-
-To completely eliminate these errors, one could subtract the ${\color{Salmon} 1}$ term and then divide the ${\color{Green} 2}$ term, leading to the normalised SPH formulation for the kernel derivative:
-
-$$\nabla f_i\approx\sum_{j=1}^N V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1}^N V_j(f_j-f_i)\nabla_i\widetilde{W}_{ij} $$
-
-$$\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}]^{-1}$$
-
-$\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second order accuracy. Additionally, it also removes the boundary effects. But although it is a good operator, it also may become a bad one. Such as in formulations that DO NOT conserve linear momentum like force and stress. So we need an operator to conserve both linear and angular momenta.
-
-> **QUESTIONS**
->
-> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij}$? **ANSWER**: normalised derivative of kernel function!
 
 ## Kernel functions
 
@@ -153,9 +130,8 @@ The source of pairing instability in SPH comes from the gradient term $\nabla_iW
 * Kernel functions whose Fourier transformation is negative for some wave vectors will trigger pairing instability at sufficient large number of neighbouring particles. (So that's why Wendland C2 kernel function wins, because all of its Fourier transformations for wave vectors are positive.)
 * If we actually use a suitable kernel function with a suitable supporting length, we don't have the problem of pairing instability, and this issue is not because SPH instability.
 
-
-
 ### The cubic spline kernel
+
 > @bui2021
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
@@ -211,6 +187,33 @@ The second-order derivation:
 
 ???
 
+### CSPM gradient normalisation
+
+> @bui2021, @Chalk2020, @Chen1999
+
+A corrective term can be multiplied to the smoothing kernel to improve the accuracy of the SPH approximation. The Corrective Smoothed Particle Method (CSPM) increases the accuracy of the kernel via a normalisation procedure, which is based on a Taylor series expansion of the SPH equations.
+
+After doing the Taylor expansion of $f_j$:
+
+$$f_j=f_i+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}+O(h^2)$$
+
+We have:
+
+$$\nabla^{\beta}f_i\approx\sum_jV_jf_j\nabla^{\beta}_iW_{ij}\approx f_i{\color{Salmon} \sum_jV_j\nabla^{\beta}_iW_{ij}}+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}{\color{Green} \sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}}+O(h^2)$$
+
+where the term ${\color{Salmon} 1}$ should be $0$ and the term ${\color{Green} 2}$ should be $1$ or $\delta^{\alpha\beta}$.
+
+To completely eliminate these errors, one could subtract the ${\color{Salmon} 1}$ term and then divide the ${\color{Green} 2}$ term, leading to the normalised SPH formulation for the kernel derivative:
+
+$$\nabla f_i\approx\sum_{j=1}^N V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1}^N V_j(f_j-f_i)\nabla_i\widetilde{W}_{ij} $$
+
+$$\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}]^{-1}$$
+
+$\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second order accuracy. Additionally, it also removes the boundary effects. But although it is a good operator, it also may become a bad one. Such as in formulations that DO NOT conserve linear momentum like force and stress. So we need an operator to conserve both linear and angular momenta.
+
+> **QUESTIONS**
+>
+> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij}$? **ANSWER**: normalised derivative of kernel function!
 
 ## Neighbour search
 

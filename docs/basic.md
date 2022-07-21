@@ -174,7 +174,7 @@ $$\epsilon_{V}=\epsilon_1+\epsilon_2+\epsilon_3=\epsilon_H$$
 
 [Deviatoric strain](https://www.continuummechanics.org/hydrodeviatoricstrain.html) means all the deformations that cause a shape change without changing the volume if the strains are small.
 
-$$\epsilon_{ij}'=\epsilon_{ij}-\frac{1}{3}\delta_{ij}\epsilon_{kk} $$
+$$e_{ij}=\epsilon_{ij}'=\epsilon_{ij}-\frac{1}{3}\delta_{ij}\epsilon_{kk} $$
 
 ### Strain-rate tensor
 
@@ -196,7 +196,7 @@ $$\boldsymbol{W}=\frac{1}{2}(\boldsymbol{L}-\boldsymbol{L}^T)$$
 
 $\boldsymbol{E}$ is called the **strain rate tensor** or the rate of deformation tensor and describes the rate of stretching and shearing. $\boldsymbol{W}$ is called the **spin tensor** and describes the rate of rotation.
 
-Also, the strain-rate tensor can be noted as $\dot{\boldsymbol{\epsilon}}$ or $\dot{\epsilon}_{ij}$, and the spin tensor as $\dot{\boldsymbol{\omega}}$ or $\dot{\omega}_{ij}$.
+Also, the strain-rate tensor can be noted as $\dot{\boldsymbol{\epsilon}}$ or $\dot{\epsilon}_{ij}$, and the spin rate tensor as $\dot{\boldsymbol{\omega}}$ or $\dot{\omega}_{ij}$.
 
 And the rate of deformation equals the rate of [true strain](https://www.continuummechanics.org/truestrain.html): $\int E{\rm d}t=\epsilon_{True}$ and $E=\dot{\epsilon}_{True}$. However, things get complicated when the rate of deformation tensor is integrated over time to obtain true strain while rigid body rotations are present. But we can compute $\boldsymbol{\epsilon}_{True}=\int \boldsymbol{R}^T\cdot\boldsymbol{E}\cdot\boldsymbol{R}{\rm d}t$ instead of directly calculate $\int \boldsymbol{E}{\rm d}t$ when rotations are present. This gives a true strain result that is in the initial reference orientation.
 
@@ -215,6 +215,27 @@ $$E_{kk}=\dot{\epsilon}_V^{True}$$
 For incompressible materials, just take $\epsilon_V^{True}=0$ ($V_F/V_0=1$) and $\dot{\epsilon}_V^{True}=0$. And this above applies for finite strains, not just infinitesimal ones, and not just in principal orientations.
 
 The strain-rate tensor describes the rate of change of the deformation of a material in the neighborhood of a certain point, at a certain moment of time. It can be defined as the derivative of the strain tensor with respect to time, or as the symmetric component of the Jacobian matrix of the flow velocity.
+
+## Stress
+
+Stress: $\boldsymbol{\sigma}$ or $\sigma_{ij}$ (Stretch for positive and Compress for negative)
+
+Principal stress: $\sigma_1$, $\sigma_2$ and $\sigma_3$
+
+Hydrostatic stress: $\sigma_H=\sigma_{mm}/3$
+
+Hydrostatic pressure in geomechanic: $p=-\sigma_H$
+
+Deviatoric stress: $\boldsymbol{s}=\boldsymbol{\sigma}'=\boldsymbol{\sigma}-\sigma_H\boldsymbol{I}$ or $s_{ij}=\sigma'_{ij}=\sigma_{ij}-\delta_{ij}\sigma_H$
+
+## Invariants
+
+Here we difine the firse invariant of the stress tensor $I_1$ and the second invariant of the deviatoric stress tensor $J_2$:
+
+$$I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}$$
+
+where $\boldsymbol{s}$ is the **deviatoric stress tensor**: $\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}$ and $\boldsymbol{I}$ is the identity matrix. $\boldsymbol{s}:\boldsymbol{s}$ means $s_{ij}s_{ij}$.
+
 
 ## Hooke's Law
 
