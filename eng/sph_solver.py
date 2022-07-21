@@ -20,6 +20,7 @@ class SPHSolver:
         # self.dt[None] = 2e-5    # "ti video -f125" will be good to make the video 2 times slower than calculation (8s simulation and 16s video, 2000 frames / 8*2s = 125fps)
         self.dt[None] = ti.max(1e-6, 0.2 * self.ps.smoothing_len / self.usound)  # CFL
         self.epsilon = 1e-16
+        self.alertratio = 1.25
 
     ###########################################################################
     # Assist
