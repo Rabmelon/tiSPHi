@@ -21,13 +21,15 @@ class MCmuISESPHSolver(SPHSolver):
 
         # allocate memories
         self.u_grad = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
+        self.stress = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
+        self.strain = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
         self.strain_dbdot = ti.field(dtype=float)
         self.tau = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)
         self.d_density = ti.field(dtype=float)
         self.pressure = ti.field(dtype=float)
         self.d_u = ti.Vector.field(self.ps.dim, dtype=float)
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.u_grad, self.strain_dbdot, self.tau, self.d_density, self.pressure, self.d_u)
+        particle_node.place(self.u_grad, self.stress, self.strain, self.strain_dbdot, self.tau, self.d_density, self.pressure, self.d_u)
 
     @ti.kernel
     def init_value(self):
@@ -85,18 +87,18 @@ class MCmuISESPHSolver(SPHSolver):
     def cal_strain(self):
         for p_i in range(self.ps.particle_num[None]):
             for i, j in ti.static(ti.ndrange(self.ps.dim, self.ps.dim)):
-                self.ps.strain[p_i][i, j] = 0.5 * (self.u_grad[p_i][i, j] + self.u_grad[p_i][j, i])
-            self.strain_dbdot[p_i] = ti.sqrt(0.5 * (self.ps.strain[p_i] * self.ps.strain[p_i]).sum()) + self.epsilon
+                self.strain[p_i][i, j] = 0.5 * (self.u_grad[p_i][i, j] + self.u_grad[p_i][j, i])
+            self.strain_dbdot[p_i] = ti.sqrt(0.5 * (self.strain[p_i] * self.strain[p_i]).sum()) + self.epsilon
 
     @ti.kernel
     def cal_tau(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.tau[p_i] = (self.eta_0 + (self.coh + self.pressure[p_i] * self.mu) / self.strain_dbdot[p_i]) * self.ps.strain[p_i]
+            self.tau[p_i] = (self.eta_0 + (self.coh + self.pressure[p_i] * self.mu) / self.strain_dbdot[p_i]) * self.strain[p_i]
 
     @ti.kernel
     def cal_stress(self):
         for p_i in range(self.ps.particle_num[None]):
-            self.ps.stress[p_i] = self.tau[p_i] - self.pressure[p_i] * self.I
+            self.stress[p_i] = self.tau[p_i] - self.pressure[p_i] * self.I
 
     @ti.kernel
     def cal_d_velocity(self):
@@ -108,7 +110,7 @@ class MCmuISESPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                du += self.ps.density[p_j] * self.ps.m_V * (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                du += self.ps.density[p_j] * self.ps.m_V * (self.stress[p_j] / self.ps.density[p_j]**2 + self.stress[p_i] / self.ps.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 # du += self.ps.density[p_j] * self.ps.m_V * (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ (self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
             if self.ps.dim == 2:
                 du += ti.Vector([0, self.g])

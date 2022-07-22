@@ -18,7 +18,6 @@ class ParticleSystem:
         self.world = np.array(world)
         self.dim = len(world)
         assert self.dim in (2, 3), "SPH solver supports only 2D and 3D particle system and 2D ractangular world from ld_pos(0,0) now."
-        self.dim_v = 4 if self.dim == 2 else 6
 
         # Material 材料类型定义
         self.material_fluid = 1
@@ -187,13 +186,11 @@ class ParticleSystem:
     ###########################################################################
     # add one particle in p with given properties
     @ti.func
-    def add_particle(self, p, val, x, u, density, stress, strain, material, color):
+    def add_particle(self, p, val, x, u, density, material, color):
         self.val[p] = val
         self.x[p] = x
         self.u[p] = u
         self.density[p] = density
-        self.stress[p] = stress
-        self.strain[p] = strain
         self.material[p] = material
         self.color[p] = color
 
@@ -204,8 +201,6 @@ class ParticleSystem:
                       new_particles_positions: ti.ext_arr(),
                       new_particles_velocity: ti.ext_arr(),
                       new_particles_density: ti.ext_arr(),
-                      new_particles_stress: ti.ext_arr(),
-                      new_particles_strain: ti.ext_arr(),
                       new_particles_material: ti.ext_arr(),
                       new_particles_color: ti.ext_arr()):
         for p in range(self.particle_num[None],
@@ -213,20 +208,15 @@ class ParticleSystem:
             new_p = p - self.particle_num[None]
             x = ti.Vector.zero(float, self.dim)
             u = ti.Vector.zero(float, self.dim)
-            stress = ti.Matrix.zero(float, self.dim, self.dim)
-            strain = ti.Matrix.zero(float, self.dim, self.dim)
             color = ti.Vector.zero(float, 3)
             for d in ti.static(range(self.dim)):
                 x[d] = new_particles_positions[new_p, d]
                 u[d] = new_particles_velocity[new_p, d]
-            for d, dd in ti.static(ti.ndrange(self.dim, self.dim)):
-                stress[d, dd] = new_particles_stress[new_p, d, dd]
-                strain[d, dd] = new_particles_strain[new_p, d, dd]
 
             for i in ti.static(range(3)):
                 color[i] = new_particles_color[new_p, i]
             self.add_particle(p, new_particles_value[new_p], x, u,
-                              new_particles_density[new_p], stress, strain,
+                              new_particles_density[new_p],
                               new_particles_material[new_p], color)
         self.particle_num[None] += new_particles_num
 
@@ -272,8 +262,6 @@ class ParticleSystem:
                  value=None,
                  velocity=None,
                  density=None,
-                 stress=None,
-                 strain=None,
                  offset=None):
         num_dim = []
         range_offset = offset if offset is not None else self.particle_diameter
@@ -294,19 +282,11 @@ class ParticleSystem:
             velocity = np.full_like(new_positions, 0)
         else:
             velocity = np.array([velocity for _ in range(num_new_particles)], dtype=np.float32)
-        if stress is None:
-            stress = np.array([np.zeros((self.dim, self.dim)) for _ in range(num_new_particles)], dtype=np.float32)
-        else:
-            stress = np.array([stress for _ in range(num_new_particles)], dtype=np.float32)
-        if strain is None:
-            strain = np.array([np.zeros((self.dim, self.dim)) for _ in range(num_new_particles)], dtype=np.float32)
-        else:
-            strain = np.array([strain for _ in range(num_new_particles)], dtype=np.float32)
 
         value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
         density = np.full_like(np.zeros(num_new_particles), density if density is not None else 0.0)
         material = np.full_like(np.zeros(num_new_particles), material)
-        self.add_particles(num_new_particles, value, new_positions, velocity, density, stress, strain, material, color)
+        self.add_particles(num_new_particles, value, new_positions, velocity, density, material, color)
         self.initialize_particle_system()
 
     ###########################################################################
@@ -347,9 +327,3 @@ class ParticleSystem:
     #         if self.material[i] < 10:
     #             tmp = (self.val[i] - self.vminmin[None]) * vrange1
     #             self.color[i] = color_map(tmp)
-
-    @ti.kernel
-    def init_value(self):
-        for i in range(self.particle_num[None]):
-            if self.material[i] < 10:
-                self.val[i] = 0.0

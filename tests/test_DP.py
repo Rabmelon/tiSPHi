@@ -1,11 +1,8 @@
 from math import sqrt, tan, pi
-import taichi as ti
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
 plt.switch_backend('TKAgg')
-
-ti.init(arch=ti.cpu)
 
 # TODO: Test the D-P stress check and update
 
@@ -188,8 +185,10 @@ if __name__ == "__main__":
     nu = 0.2
     # stress_ini = [6, 2, 3, -1, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt elas
     # stress_ini = [6.2992, 4, 5, -2, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt plas
-    # stress_ini = [16, 12, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 1
-    stress_ini = [6, 2, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 2
+    stress_ini = [16, 12, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 1
+    # stress_ini = [6, 2, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 2
+    # stress_ini = [24, 15, 0, 0, 0, 0]  # xx, yy, zz, xy, xz, yz # plain strain???
+    # stress_ini = [6, 4, 7, -1, 0, 0]  # xx, yy, zz, xy, xz, yz # plain strain???
     stress0 = [[stress_ini[0], stress_ini[3], stress_ini[4]], [stress_ini[3], stress_ini[1], stress_ini[5]], [stress_ini[4], stress_ini[5], stress_ini[2]]]
 
     grad_u = initMove(dt, u, x, a)
@@ -206,6 +205,8 @@ if __name__ == "__main__":
     flag_g = checkg(fDP_new, dfDP)
     item_g = calg(flag_g, stress_new, strain, strain_m, alpha_fric, shearMod)
 
+    print("f =", fDP_new)
+    print("σ =", stress_new)
     print('g =', item_g)
     showDP(stress0, stress_new, alpha_fric, k_c)
 

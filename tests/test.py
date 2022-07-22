@@ -3,16 +3,16 @@ import numpy as np
 
 ti.init(debug=True)
 
-@ti.func
-def funtest(pos, t):
-    res = ti.Matrix([[1, 2*ti.sin(t), 0.5], [-0.333, 1, -ti.sin(t)], [2*pos[0]*ti.sin(2*t), 0, 1.5]])
-    return res
+epsilon = 1e-16
+dim = 3
+I = ti.Matrix(np.eye(dim))
+# I = ti.Matrix([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
+alpha_fric = 0.13685771015527778
+k_c = 4.402384598296268
 
 @ti.func
-def cal_db(a, b):
-    dim = 2
-    tmp = ti.Matrix([[a[i,j]*b[i,j] for i in range(dim)] for j in range(dim)])
-    res = tmp.sum()
+def cal_stress_s(stress):
+    res = stress - stress.trace() / 3.0 * I
     return res
 
 @ti.func
@@ -26,49 +26,66 @@ def cal_sJ2(s):
     return res
 
 @ti.func
-def cal_fDP(I1, sJ2, a_f, k_c):
-    res = sJ2 + a_f * I1 - k_c
+def cal_fDP(I1, sJ2):
+    res = sJ2 + alpha_fric * I1 - k_c
     return res
 
+@ti.func
+def adapt_stress(stress, fDP_old):
+    res = stress
+    stress_s = cal_stress_s(stress)
+    vI1 = cal_I1(stress)
+    sJ2 = cal_sJ2(stress_s)
+    fDP_new = cal_fDP(vI1, sJ2)
+    dfDP = fDP_new - fDP_old
+    print("fDP before", fDP_new)
+    while fDP_new > epsilon:
+        if fDP_new >= sJ2:
+            res = adapt_1(res, vI1)
+            print("adapt 1", res)
+        else:
+            res = adapt_2(stress_s, vI1, sJ2)
+            print("adapt 2", res)
+        stress_s = cal_stress_s(res)
+        vI1 = cal_I1(res)
+        sJ2 = cal_sJ2(stress_s)
+        fDP_new = cal_fDP(vI1, sJ2)
+        print("fDP after", fDP_new)
+    return res
+
+@ti.func
+def adapt_1(stress, I1):
+    tmp = (I1-k_c/alpha_fric) / 3.0
+    res = stress - tmp * I
+    return res
+
+@ti.func
+def adapt_2(s, I1, sJ2):
+    r = (-I1 * alpha_fric + k_c) / sJ2
+    res = r * s + I * I1 / 3.0
+    return res
 
 @ti.kernel
 def foo():
-    I1 = cal_I1(stress)
-    print("foo 1", I1)
-    sJ2 = cal_sJ2(s)
-    print("foo 2", sJ2)
-    fDP = cal_fDP(I1, sJ2, af, kc)
-    print("foo 3", fDP)
+    stress = adapt_stress(stress, fDP_old)
+    # print("after adaptation", stress)
 
 if __name__ == "__main__":
-    print("hallo test kernel function accuracy!")
+    print("hallo test here!")
 
-    I = ti.Matrix(np.eye(2))
-    f_v = ti.Matrix([[1, 2], [3, 4], [9, 1], [2, 2]])
-    kd = ti.Vector([2, 3])
+    fDP_old = 0.0
+    # stress_ini = [6, 2, 3, -1, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt elas
+    # stress_ini = [6.2992, 4, 5, -2, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt plas
+    # stress_ini = [16, 12, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 1
+    # stress_ini = [6, 2, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 2
+    # stress_ini = [24, 15, 0, 0, 0, 0]  # xx, yy, zz, xy, xz, yz # plain strain???
 
-    rfvkd = f_v @ kd / 2
-    print("rfvkd", rfvkd)
+    # stress = ti.Matrix([[6.0, -1.0, 0.0], [-1.0, 2.0, 0.0], [0.0, 0.0, 3.0]]) # no adapt elas
+    # stress = ti.Matrix([[6.2993, -2.0, 0.0], [-2.0, 5.488, 0.0], [0.0, 0.0, 5.0]]) # no adapt plas
+    stress = ti.Matrix([[16.0, -4.0, 0.0], [-4.0, 12.0, 0.0], [0.0, 0.0, 10.0]]) # adapt 1
+    # stress = ti.Matrix([[6.0, -4.0, 0.0], [-4.0, 2.0, 0.0], [0.0, 0.0, 10.0]]) # adapt 2
+    print("before adaptation", stress)
 
-    LLL = ti.Matrix([[1, 2], [3, 4]])
-
-    # DDD = ti.Vector([LLL[i]+LLL[j] for i,j in zip(range(2), range(2))])
-    DDD = 0.5 * ti.Matrix([[LLL[i, j]+LLL[j, i] for i in range(2)] for j in range(2)])
-
-    print("DDD", DDD)
-    print("DDD", DDD.sum())
-
-    a = ti.Matrix([[1, 2], [3, 4]])
-    b = ti.Matrix([[2, 4], [3, 1]])
-    # foo()
-    print("a*b", (a*b).sum())
-    print("bij-bmmdeltaij", b-b.trace()*I)
-
-
-    stress = ti.Matrix([[1, 2], [3, 4]])
-    s = stress - stress.trace() / 3 * I
-    af = 0.24
-    kc = 2.0
     foo()
 
     flag_end = 1

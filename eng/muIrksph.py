@@ -2,8 +2,7 @@ import taichi as ti
 import numpy as np
 from .sph_solver import SPHSolver
 
-# TODO: need to add damping?
-# TODO: need to init the stress state when starting the simulation?
+# TODO: change to RK4 method, muI now
 
 class MCmuIRKSPHSolver(SPHSolver):
     def __init__(self, particle_system, TDmethod, kernel, density, cohesion, friction, eta_0):

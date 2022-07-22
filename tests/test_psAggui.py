@@ -41,12 +41,12 @@ class TmpParticleSystem:
 
     # TODO: trying to create a rectangular window, wrong in transfering tuple 'res'
     @ti.kernel
-    def copy2vis(self, s2w_ratio: float, res: ti.ext_arr()):
+    def copy2vis(self, s2w_ratio: float, res: int):
         for i in range(self.particle_num[None]):
             # self.pos2vis[i][0] = (self.x[i][0] + self.grid_size) * s2w_ratio / res_x
             # self.pos2vis[i][1] = (self.x[i][1] + self.grid_size) * s2w_ratio / res_y
             for j in ti.static(range(2)):
-                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / res[j]
+                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / res
 
     @ti.kernel
     def ge_line_indices(self):
@@ -97,13 +97,14 @@ def gen_grid_line_2d(world, grid_line, canvas, ld_size, w2s, width=0.0025, color
 
 def gguishow(case, world, s2w_ratio, grid_line=None):
     drawworld = [i + 2 * case.grid_size for i in world]
-    res = tuple((np.array(drawworld) * s2w_ratio).astype(int))
+    res = (np.array(drawworld) * s2w_ratio).astype(int)
     resv = ti.Vector(res)
-    window = ti.ui.Window('window', res=res)
+    window = ti.ui.Window('window', res=(max(res), max(res)))
     canvas = window.get_canvas()
     canvas.set_background_color((1,1,1))
     show_pos = [0.0, 0.0]
     flag_pause = False
+    max_res = int(res.max())
 
     while window.running:
         # draw grid line
@@ -111,7 +112,7 @@ def gguishow(case, world, s2w_ratio, grid_line=None):
             gen_grid_line_2d(world, grid_line, canvas, case.grid_size, w2s=s2w_ratio / max(res))
 
         # draw main part
-        case.copy2vis(s2w_ratio, resv)
+        case.copy2vis(s2w_ratio, max_res)
         canvas.lines(case.pos2vis, 0.005, indices=case.line_indices, color=(0.5,1,0.5))
         canvas.circles(case.pos2vis, radius=case.radius * s2w_ratio / max(res), per_vertex_color=case.color)
 
@@ -138,7 +139,7 @@ def gguishow(case, world, s2w_ratio, grid_line=None):
 if __name__ == "__main__":
     print("hallo test particle system and ggui show!")
 
-    world = [120, 80]
+    world = [120.0, 80.0]
     s2w_ratio = 5
     radius = 1
     case = TmpParticleSystem(world, radius)
