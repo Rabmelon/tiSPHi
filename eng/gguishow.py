@@ -18,6 +18,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
     window = ti.ui.Window('SPH window', res=(max(res), max(res)))
     canvas = window.get_canvas()
     canvas.set_background_color((1,1,1))
+    i_pos = ti.Vector.field(case.dim, float, shape=1)
 
     # draw grid line
     if grid_line is not None and grid_line != 0.0:
@@ -60,9 +61,9 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
     while window.running:
         if not flag_pause:
             if iparticle is None:
-                print('---- step %d' % (flag_step))
+                print('---- %06d' % (flag_step))
             else:
-                print('---- step %d, p[%d]: x=(%.3f, %.3f), u=(%.3f, %.3f), rho=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
+                print('---- %06d, p[%d]: x=(%.3f, %.3f), v=(%.3f, %.3f), ρ=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
             for i in range(stepwise):
                 solver.step()
                 flag_step += 1
@@ -71,7 +72,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
 
         # draw grids
         if grid_line is not None and grid_line != 0.0:
-            canvas.lines(pos_line, 0.0025, indices_line, (0.8, 0.8, 0.8))
+            canvas.lines(pos_line, 0.0025, indices_line, (0.8, 0.8, 0.8))   # ! WARRNING: Overriding last binding
 
         # draw particles
         case.copy2vis(s2w_ratio, max_res)
@@ -79,7 +80,11 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         case.v_maxmin()
         case.set_color()
         draw_radius = case.particle_radius * s2w_ratio * kradius / max_res
-        canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)
+        canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)   # ! WARRNING: Overriding last binding
+        if iparticle is not None:
+            tmp = np.array([case.pos2vis[iparticle]])
+            i_pos.from_numpy(tmp)
+            canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))
 
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)

@@ -149,14 +149,14 @@ class ParticleSystem:
     ###########################################################################
     # For vector data
     @ti.kernel
-    def copy_to_numpy_nd(self, np_arr: ti.ext_arr(), src_arr: ti.template()):
+    def copy_to_numpy_nd(self, np_arr: ti.types.ndarray(), src_arr: ti.template()):
         for i in range(self.particle_num[None]):
             for j in ti.static(range(self.dim)):
                 np_arr[i, j] = src_arr[i][j]
 
     # For scalar data
     @ti.kernel
-    def copy_to_numpy(self, np_arr: ti.ext_arr(), src_arr: ti.template()):
+    def copy_to_numpy(self, np_arr: ti.types.ndarray(), src_arr: ti.template()):
         for i in range(self.particle_num[None]):
             np_arr[i] = src_arr[i]
 
@@ -197,12 +197,12 @@ class ParticleSystem:
     # add particles with given properties
     @ti.kernel
     def add_particles(self, new_particles_num: int,
-                      new_particles_value: ti.ext_arr(),
-                      new_particles_positions: ti.ext_arr(),
-                      new_particles_velocity: ti.ext_arr(),
-                      new_particles_density: ti.ext_arr(),
-                      new_particles_material: ti.ext_arr(),
-                      new_particles_color: ti.ext_arr()):
+                      new_particles_value: ti.types.ndarray(),
+                      new_particles_positions: ti.types.ndarray(),
+                      new_particles_velocity: ti.types.ndarray(),
+                      new_particles_density: ti.types.ndarray(),
+                      new_particles_material: ti.types.ndarray(),
+                      new_particles_color: ti.types.ndarray()):
         for p in range(self.particle_num[None],
                        self.particle_num[None] + new_particles_num):
             new_p = p - self.particle_num[None]

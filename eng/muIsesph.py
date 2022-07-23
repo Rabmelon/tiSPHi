@@ -113,7 +113,7 @@ class MCmuISESPHSolver(SPHSolver):
                 du += self.ps.density[p_j] * self.ps.m_V * (self.stress[p_j] / self.ps.density[p_j]**2 + self.stress[p_i] / self.ps.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 # du += self.ps.density[p_j] * self.ps.m_V * (self.ps.stress[p_j] / self.ps.density[p_j]**2 + self.ps.stress[p_i] / self.ps.density[p_i]**2) @ (self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
             if self.ps.dim == 2:
-                du += ti.Vector([0, self.g])
+                du += ti.Vector([0.0, self.g])
             else:
                 print("!!!!!My Error: cannot used in 3D now!")
             self.d_u[p_i] = du

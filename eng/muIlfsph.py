@@ -42,8 +42,8 @@ class MCmuILFSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
-                self.ps.val[p_i] = self.ps.density[p_i]
+                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.u[p_i][0]
@@ -135,7 +135,7 @@ class MCmuILFSPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                 du += self.density2[p_j] * self.ps.m_V * (self.stress[p_j] / self.density2[p_j]**2 + self.stress[p_i] / self.density2[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             if self.ps.dim == 2:
-                du += ti.Vector([0, self.g])
+                du += ti.Vector([0.0, self.g])
             else:
                 print("!!!!!My Error: cannot used in 3D now!")
             self.d_u[p_i] = du

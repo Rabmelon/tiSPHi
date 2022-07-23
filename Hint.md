@@ -1,5 +1,10 @@
 
 
+22.07.23.
+1. After checking the dBA function, eliminate the warning of f32 -> i32. but still not a good function of calculate dB/dA
+2. Draw the iparticle as red!
+
+
 22.07.05.
 1. The stress in muI, which is for positive compoment? tensile or compressive? Notice that compressive should be positive in geotechnic while negative in other areas. And now in muI, stress is negative.
 

@@ -157,9 +157,7 @@ class SPHSolver:
     def cal_d_BA(self, p_i, p_j):
         x_i = self.ps.x[p_i]
         x_j = self.ps.x[p_j]
-        boundary = ti.Vector([
-            self.ps.bound[1][1] - self.ps.grid_size, self.ps.grid_size,
-            self.ps.bound[1][0] - self.ps.grid_size, self.ps.grid_size])
+        boundary = ti.Vector([self.ps.world[1], 0.0, self.ps.world[0], 0.0])
         db_i = ti.Vector([x_i[1] - boundary[0], x_i[1] - boundary[1], x_i[0] - boundary[2], x_i[0] - boundary[3]])
         db_j = ti.Vector([x_j[1] - boundary[0], x_j[1] - boundary[1], x_j[0] - boundary[2], x_j[0] - boundary[3]])
 
@@ -173,7 +171,7 @@ class SPHSolver:
                 tmp_max = max(tmp_max, flag_choose[i])
             flag_choose -= tmp_max
             flag_choose = flag_choose == 0.0
-            flag_dir -= flag_choose     # will cause a warning: Local store may lose precision & Atomic add (i32 to f32) may lose precision
+            flag_dir -= int(flag_choose)     # will cause a warning: Local store may lose precision & Atomic add (i32 to f32) may lose precision
 
         d_A = abs(db_i.dot(flag_dir))
         d_B = abs(db_j.dot(flag_dir))
