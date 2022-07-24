@@ -8,19 +8,15 @@ plt.switch_backend('TKAgg')
 
 # basic property
 par = pi/180
-epsilon = 1e-4
+epsilon = 1e-16
 
 # input, list
 def initMove(dt, u, x, a):
-    dt = dt
-    u = u
-    x = x
-    a = a
     u1 = [iu + ia * dt for iu, ia in zip(u, a)]
     x1 = [ix + iu1 * dt for ix, iu1 in zip(x, u1)]
     du = [iu1 - iu for iu1, iu in zip(u1, u)]
     dx = [ix1 - ix for ix1, ix in zip(x1, x)]
-    grad_u = [[idu/jdx for jdx in dx] for idu in du]
+    grad_u = [[idu/(jdx + epsilon) for jdx in dx] for idu in du]
     return grad_u
 
 def initProp(coh, fric, youngModulus, nu):
@@ -137,11 +133,13 @@ def stressAdapt(stress, a, k):
     r = copy.deepcopy(stress)
     if chkAdapt1(negI1, a, k):
         r = adapt1(r, negI1, a, k)
+        print("---- adapt 1:", r)
     # check and update 2
     stress_m, stress_dev = initStress(r)
     negI1, sqrtJ2 = calInvariants(stress_m, stress_dev)
     if chkAdapt2(negI1, sqrtJ2, a, k):
         r = adapt2(stress_dev, negI1, sqrtJ2, a, k)
+        print("---- adapt 2:", r)
     return r
 
 # draw
@@ -151,7 +149,7 @@ def showDP(stress, stress_new, a, k):
     stress_m_new, stress_dev_new = initStress(stress_new)
     negI1_new, sqrtJ2_new = calInvariants(stress_m_new, stress_dev_new)
     x_l = -k/a
-    x_r = max(-x_l, negI1, negI1_new)
+    x_r = 1.5 * max(-x_l, negI1, negI1_new)
     x = np.linspace(x_l,x_r,100)
     y = a*x+k
     plt.plot(x, y, color='blue')
@@ -175,39 +173,58 @@ if __name__ == "__main__":
     print('Hallo!')
 
     fDP_old = 0
-    dt = 0.01
-    u = [3, 2, 1]
+    dt = 0.000001
+    u = [0, 0, 0]
     x = [5, 5, 5]
-    a = [0.01, 0.02, -0.015]
-    coh = 5
-    fric = 25*par
+    a = [0.0, -9.81, 0.0]
+    coh = 0.00
+    fric = 21.9*par
     youngMod = 1.80e6
     nu = 0.2
+
     # stress_ini = [6, 2, 3, -1, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt elas
     # stress_ini = [6.2992, 4, 5, -2, 0, 0]  # xx, yy, zz, xy, xz, yz # no adapt plas
-    stress_ini = [16, 12, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 1
+    # stress_ini = [16, 12, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 1
     # stress_ini = [6, 2, 10, -4, 0, 0]  # xx, yy, zz, xy, xz, yz # adapt 2
     # stress_ini = [24, 15, 0, 0, 0, 0]  # xx, yy, zz, xy, xz, yz # plain strain???
-    # stress_ini = [6, 4, 7, -1, 0, 0]  # xx, yy, zz, xy, xz, yz # plain strain???
+
+    # stress_ini = [, , , , 0, 0]  # xx, yy, zz, xy, xz, yz # test
+    # stress_ini = [-0.742128, -1.731632, -0.742128, -0.000000, -0.000000, -0.000000]  # xx, yy, zz, xy, xz, yz # test
+    stress_ini = [-1392.923706, -2863.590332, -1393.044434, 0.102193, 0, 0]  # xx, yy, zz, xy, xz, yz # test
+
     stress0 = [[stress_ini[0], stress_ini[3], stress_ini[4]], [stress_ini[3], stress_ini[1], stress_ini[5]], [stress_ini[4], stress_ini[5], stress_ini[2]]]
 
     grad_u = initMove(dt, u, x, a)
     alpha_fric, k_c, shearMod, bulkMod = initProp(coh, fric, youngMod, nu)
     strain, strain_m, strain_dev = initStrain(grad_u)
+    stress_m, stress_dev = initStress(stress0)
+    negI1, sqrtJ2 = calInvariants(stress_m, stress_dev)
+
+    print("α_φ = %.6f, k_c = %.6f" % (alpha_fric, k_c))
+    print("σ =", stress0)
+    print("s =", stress_dev)
+    print("I1 =", -negI1)
+    print("sJ2 =", sqrtJ2)
 
     stress_new = stress0
     fDP_new = calfDP(stress_new, alpha_fric, k_c)
+    print("f old = %.20f" % fDP_new)
+    count = 0
     while fDP_new > epsilon:
         stress_new = stressAdapt(stress_new, alpha_fric, k_c)
         fDP_new = calfDP(stress_new, alpha_fric, k_c)
+        count = count + 1
+        if count > 10:
+            print("---- endless loop of adaptation!")
+            break
 
     dfDP = fDP_new - fDP_old
     flag_g = checkg(fDP_new, dfDP)
     item_g = calg(flag_g, stress_new, strain, strain_m, alpha_fric, shearMod)
 
-    print("f =", fDP_new)
-    print("σ =", stress_new)
-    print('g =', item_g)
+    print("f new = %.20f" % fDP_new)
+    print("σ new =", stress_new)
+    # print('g =', item_g)
     showDP(stress0, stress_new, alpha_fric, k_c)
 
 

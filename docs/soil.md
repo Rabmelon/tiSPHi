@@ -60,7 +60,7 @@ Under the condition of the strain rate tensor in the limit of 0 ($I\rightarrow0$
 
 $$|\boldsymbol{\tau}|\leq\mu_sp,\ |\boldsymbol{\tau}|=\sqrt{0.5(\boldsymbol{\tau}:\boldsymbol{\tau})}$$
 
-The isotropic pressure can be defined alternltively, where the second one is commonly used in the SPH context to eodel quasi-comopressible fluids:
+The isotropic pressure can be defined alternltively, where the second one is commonly used in the SPH context to model quasi-compressible fluid:
 
 $$p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)\ or\ p=c^2(\rho-\rho_0)$$
 
@@ -339,6 +339,10 @@ For the elastoplastic model,
 
 $$\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}\boldsymbol{s}})$$
 
+**NOTE**: but actually in my code now:
+
+$$\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}}\boldsymbol{s})$$
+
 which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the Drucker-Prager yield criterion.
 
 And for the Perzyna model,
@@ -351,6 +355,7 @@ which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield 
 >
 > 1. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
 > 2. What number should $N$ choose?
+> 3. Wrong in Caitlin's code? in *3_SPH_material_2018.f90* line *2029*, the deviatoric stress terms are multiplied, not divided!!!???
 
 ### Conservation of mass
 

@@ -63,7 +63,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
             if iparticle is None:
                 print('---- %06d' % (flag_step))
             else:
-                print('---- %06d, p[%d]: x=(%.3f, %.3f), v=(%.3f, %.3f), ρ=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
+                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
             for i in range(stepwise):
                 solver.step()
                 flag_step += 1
@@ -82,9 +82,8 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         draw_radius = case.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)   # ! WARRNING: Overriding last binding
         if iparticle is not None:
-            tmp = np.array([case.pos2vis[iparticle]])
-            i_pos.from_numpy(tmp)
-            canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))
+            i_pos.from_numpy(np.array([case.pos2vis[iparticle]]))
+            canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))   # ! WARRNING: Overriding last binding
 
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)

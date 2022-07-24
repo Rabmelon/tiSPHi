@@ -3,6 +3,8 @@
 22.07.23.
 1. After checking the dBA function, eliminate the warning of f32 -> i32. but still not a good function of calculate dB/dA
 2. Draw the iparticle as red!
+3. Something bad will happen when coh == 0?
+4. Need a low precision of fDP!!!??? Why taichi cannot keep the value unchanged while calculating? Such as taichi will transfer *-1392.923706* to *-1392.923706054688*??? It is really annoying! In python, this will not happen!!!
 
 
 22.07.05.
