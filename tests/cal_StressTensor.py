@@ -66,19 +66,19 @@ def adapt_stress(stress):
     while fDP_new > 1e-6:
         if fDP_new > sJ2:
             res = adapt_1(res, vI1)
-            print("---- adapt 1 step:", res*1e10)
+            print("---- adapt 1 step:", get_f_stress(res))
         else:
             res = adapt_2(stress_s, vI1, sJ2)
-            print("---- adapt 2 step:", res*1e10)
+            print("---- adapt 2 step:", get_f_stress(res))
         stress_s = cal_stress_s(res)
         vI1 = cal_I1(res)
         sJ2 = cal_sJ2(stress_s)
         fDP_new = cal_fDP(vI1, sJ2)
-        print("---- adapt fDP =", fDP_new*1e10)
+        print("---- adapt fDP =", fDP_new)
 
         count = count + 1
         if count >= 10:
-            print("---- endless loop of adaptation!", count)
+            print("---- endless loop of adaptation!", get_f_stress(stress))
             break
         assert count < 10, "---- endless loop of adaptation!"
 
@@ -105,18 +105,18 @@ def foo():
     sJ2 = cal_sJ2(stress_s)
     fDP_old = cal_fDP(vI1, sJ2)
     print("σ =", stress)
-    print("s =", stress_s*1e10)
-    print("I1 =", vI1*1e10)
-    print("sJ2 =", sJ2*1e10)
-    print("fDP old =", fDP_old*1e10)
+    print("s =", stress_s)
+    print("I1 =", vI1)
+    print("sJ2 =", sJ2)
+    print("fDP old =", fDP_old)
 
 @ti.kernel
 def adapt():
     stress = get_f_stress3(f_stress)
     stress_new = adapt_stress(stress)
     fDP_new = cal_fDP_from_stress(stress_new)
-    print("σ new =", stress_new*1e10)
-    print("fDP new =", fDP_new*1e10)
+    print("σ new =", stress_new)
+    print("fDP new =", fDP_new)
 
 if __name__ == "__main__":
     print("hallo test here!")
@@ -125,7 +125,8 @@ if __name__ == "__main__":
     alpha_fric = ti.tan(fric) / ti.sqrt(9 + 12 * ti.tan(fric)**2)
     k_c = 3 * coh / ti.sqrt(9 + 12 * ti.tan(fric)**2)
 
-    f_stress = ti.Vector([-1392.923706, -2863.590332, 0.102193, -1393.044434])
+    # f_stress = ti.Vector([-1392.923706, -2863.590332, 0.102193, -1393.044434])
+    f_stress = ti.Vector([12030.333008, 44833.734375, -1435.416260, 15390.195312])
 
     foo()
     adapt()

@@ -47,7 +47,7 @@ coolwarmB = ColorMap(0.9, 1, .25, .5)
 @ti.func
 def color_map(c):
     # return ti.Vector([R.map(c), G.map(c), B.map(c)])
-    # return ti.Vector([jetR.map(c), jetG.map(c), jetB.map(c)])
+    return ti.Vector([jetR.map(c), jetG.map(c), jetB.map(c)])
     # return ti.Vector([bwrR.map(c), bwrG.map(c), bwrB.map(c)])
-    return ti.Vector([coolwarmR.map(c), coolwarmG.map(c), coolwarmB.map(c)])
+    # return ti.Vector([coolwarmR.map(c), coolwarmG.map(c), coolwarmB.map(c)])
 

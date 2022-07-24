@@ -190,7 +190,8 @@ if __name__ == "__main__":
 
     # stress_ini = [, , , , 0, 0]  # xx, yy, zz, xy, xz, yz # test
     # stress_ini = [-0.742128, -1.731632, -0.742128, -0.000000, -0.000000, -0.000000]  # xx, yy, zz, xy, xz, yz # test
-    stress_ini = [-1392.923706, -2863.590332, -1393.044434, 0.102193, 0, 0]  # xx, yy, zz, xy, xz, yz # test
+    # stress_ini = [-1392.923706, -2863.590332, -1393.044434, 0.102193, 0, 0]  # xx, yy, zz, xy, xz, yz # test
+    stress_ini = [12030.333008, 44833.734375, 15390.195312, -1435.416260, 0, 0]  # xx, yy, zz, xy, xz, yz # test
 
     stress0 = [[stress_ini[0], stress_ini[3], stress_ini[4]], [stress_ini[3], stress_ini[1], stress_ini[5]], [stress_ini[4], stress_ini[5], stress_ini[2]]]
 
