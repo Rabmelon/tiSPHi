@@ -1,7 +1,7 @@
 import taichi as ti
 import numpy as np
 
-ti.init(arch=ti.cpu, debug=True)
+ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64)
 
 epsilon = 1e-16
 dim = 3
@@ -126,7 +126,8 @@ if __name__ == "__main__":
     k_c = 3 * coh / ti.sqrt(9 + 12 * ti.tan(fric)**2)
 
     # f_stress = ti.Vector([-1392.923706, -2863.590332, 0.102193, -1393.044434])
-    f_stress = ti.Vector([12030.333008, 44833.734375, -1435.416260, 15390.195312])
+    # f_stress = ti.Vector([-5734.567383, -2583.398926, 126.379333, -2623.165283])
+    f_stress = ti.Vector([0.0, -1961.215, 0.0, 0.0])
 
     foo()
     adapt()

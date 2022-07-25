@@ -49,14 +49,14 @@ class ParticleSystem:
         # Particle related property 粒子携带的属性信息
         # Basic
         self.x = ti.Vector.field(self.dim, dtype=float)     # position
-        self.pos2vis = ti.Vector.field(self.dim, dtype=float)   # position to visualization
+        self.pos2vis = ti.Vector.field(self.dim, dtype=ti.f32)   # position to visualization
         self.L = ti.Matrix.field(self.dim, self.dim, dtype=float)     # the normalised matrix
         self.val = ti.field(dtype=float)                      # store a value
         self.particle_neighbors_num = ti.field(int)         # total number of neighbour particles
         self.particle_neighbors = ti.field(int)             # index of neighbour particles
         self.material = ti.field(dtype=int)                 # material type
         # self.color = ti.field(dtype=int)                    # color in drawing for gui
-        self.color = ti.Vector.field(3, dtype=float)     # color in drawing for ggui
+        self.color = ti.Vector.field(3, dtype=ti.f32)     # color in drawing for ggui
         # Paras
         self.density = ti.field(dtype=float)
         self.u = ti.Vector.field(self.dim, dtype=float)
@@ -208,7 +208,7 @@ class ParticleSystem:
             new_p = p - self.particle_num[None]
             x = ti.Vector.zero(float, self.dim)
             u = ti.Vector.zero(float, self.dim)
-            color = ti.Vector.zero(float, 3)
+            color = ti.Vector.zero(ti.f32, 3)
             for d in ti.static(range(self.dim)):
                 x[d] = new_particles_positions[new_p, d]
                 u[d] = new_particles_velocity[new_p, d]
@@ -283,9 +283,9 @@ class ParticleSystem:
         else:
             velocity = np.array([velocity for _ in range(num_new_particles)], dtype=np.float32)
 
-        value = np.full_like(np.zeros(num_new_particles), value if value is not None else 0.0)
-        density = np.full_like(np.zeros(num_new_particles), density if density is not None else 0.0)
-        material = np.full_like(np.zeros(num_new_particles), material)
+        value = np.full_like(np.zeros(num_new_particles, dtype=np.float32), value if value is not None else 0.0)
+        density = np.full_like(np.zeros(num_new_particles, dtype=np.float32), density if density is not None else 0.0)
+        material = np.full_like(np.zeros(num_new_particles, dtype=np.int32), material)
         self.add_particles(num_new_particles, value, new_positions, velocity, density, material, color)
         self.initialize_particle_system()
 

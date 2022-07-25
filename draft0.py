@@ -14,8 +14,8 @@ from eng.dpsesph import *
 # TODO: sand cc here
 
 sys.tracebacklimit = 0
-ti.init(arch=ti.cpu, debug=True)
-# ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75)     # MEMORY max 4G in GUT, 6G in Legion
+ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64)
+# ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
 # ti.init(arch=ti.vulkan)
 
 if __name__ == "__main__":
@@ -68,6 +68,6 @@ if __name__ == "__main__":
             pass
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="stress yy Pa",
-             kradius=1.5, stepwise=1, iparticle=1236, save_png=0, pause=True, grid_line=0.1)
+             kradius=1.25, stepwise=1, iparticle=1236, save_png=0, pause=True, grid_line=0.1)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; index

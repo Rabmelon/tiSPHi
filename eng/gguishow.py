@@ -18,7 +18,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
     window = ti.ui.Window('SPH window', res=(max(res), max(res)))
     canvas = window.get_canvas()
     canvas.set_background_color((1,1,1))
-    i_pos = ti.Vector.field(case.dim, float, shape=1)
+    i_pos = ti.Vector.field(case.dim, ti.f32, shape=1)
 
     # draw grid line
     if grid_line is not None and grid_line != 0.0:
@@ -28,10 +28,10 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         num_grid_point = [int((world[i] - 1e-8) // grid_line[i]) for i in range(dim)]
         num_all_grid_point = sum(num_grid_point)
         num_all2_grid_point = 2 * num_all_grid_point
-        np_pos_line = np.array([[0.0 for _ in range(dim)] for _ in range(num_all2_grid_point)])
-        np_indices_line = np.array([[i, i + num_all_grid_point] for i in range(num_all_grid_point)])
-        pos_line = ti.Vector.field(dim, float, shape=num_all2_grid_point)
-        indices_line = ti.Vector.field(2, int, shape=num_all_grid_point)
+        np_pos_line = np.array([[0.0 for _ in range(dim)] for _ in range(num_all2_grid_point)], dtype=np.float32)
+        np_indices_line = np.array([[i, i + num_all_grid_point] for i in range(num_all_grid_point)], dtype=np.int32)
+        pos_line = ti.Vector.field(dim, ti.f32, shape=num_all2_grid_point)
+        indices_line = ti.Vector.field(2, ti.i32, shape=num_all_grid_point)
         indices_line.from_numpy(np_indices_line)
         for id in range(dim):
             id2 = dim - 1 - id
@@ -82,7 +82,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         draw_radius = case.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)   # ! WARRNING: Overriding last binding
         if iparticle is not None:
-            i_pos.from_numpy(np.array([case.pos2vis[iparticle]]))
+            i_pos.from_numpy(np.array([case.pos2vis[iparticle]], dtype=np.float32))
             canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))   # ! WARRNING: Overriding last binding
 
         # show text

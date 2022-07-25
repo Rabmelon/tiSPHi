@@ -1,15 +1,14 @@
 import taichi as ti
 import numpy as np
 
-ti.init(debug=True)
+ti.init(debug=True, default_fp=ti.f64)
 
 dim = 3
 I3 = ti.Matrix(np.eye(dim))
 
 @ti.func
 def get_f_stress3(f_stress):
-    res = ti.Matrix([[f_stress[0], f_stress[2], 0.0],
-                     [f_stress[2], f_stress[1], 0.0], [0.0, 0.0, f_stress[3]]], ti.f64)
+    res = ti.Matrix([[f_stress[0], f_stress[2], 0.0], [f_stress[2], f_stress[1], 0.0], [0.0, 0.0, f_stress[3]]])
     return res
 
 @ti.kernel
@@ -20,7 +19,7 @@ def foo():
 if __name__ == "__main__":
     print("hallo test here!")
 
-    f_stress = ti.Vector([-0.742128, -1.731632, -0.000000, -0.742128], ti.f64)
+    f_stress = ti.Vector([-0.742128, -1.731632, -0.000000, -0.742128])
 
     foo()
 
