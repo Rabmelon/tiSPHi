@@ -18,6 +18,7 @@ class MCmuILFSPHSolver(SPHSolver):
         self.fric = self.fric_deg / 180 * np.pi
         self.mass = self.ps.m_V * self.density_0
         self.mu = ti.tan(self.fric)
+        self.max_x1 = ti.field(float, shape=())
 
         # artificial viscosity and density diffusion terms
         self.delta = 0.1
@@ -38,17 +39,20 @@ class MCmuILFSPHSolver(SPHSolver):
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
         particle_node.place(self.density2, self.u2, self.u_grad, self.stress, self.strain, self.strain_dbdot, self.tau, self.d_density, self.pressure, self.d_u, self.Psi)
 
+        self.cal_max_hight()
+        self.init_stress()
+
     @ti.kernel
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                # self.ps.val[p_i] = self.ps.u[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.u[p_i][0]
                 # self.ps.val[p_i] = self.ps.x[p_i][1]
-                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
@@ -56,6 +60,21 @@ class MCmuILFSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             self.density2[p_i] = self.ps.density[p_i]
             self.u2[p_i] = self.ps.u[p_i]
+
+    @ti.kernel
+    def cal_max_hight(self):
+        vmax = -float('Inf')
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] < 10:
+                ti.atomic_max(vmax, self.ps.x[p_i][1])
+        self.max_x1[None] = vmax
+
+    @ti.kernel
+    def init_stress(self):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
+            self.stress[p_i] = ti.Matrix([[0.0, 0.0], [0.0, self.density_0*self.g*(self.max_x1[None] - self.ps.x[p_i][1])]])
 
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
@@ -133,6 +152,7 @@ class MCmuILFSPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
+                    self.stress[p_j] = self.stress[p_i]
                 du += self.density2[p_j] * self.ps.m_V * (self.stress[p_j] / self.density2[p_j]**2 + self.stress[p_i] / self.density2[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             if self.ps.dim == 2:
                 du += ti.Vector([0.0, self.g])

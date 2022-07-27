@@ -367,4 +367,4 @@ class DPSESPHSolver(SPHSolver):
         # print('x=[%.6f, %.6f]' % (self.ps.x[test_p_i][0], self.ps.x[test_p_i][1]))
         print("---- ---- end of step")
 
-test_p_i = 1236
+test_p_i = 1538
