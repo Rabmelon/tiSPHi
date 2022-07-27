@@ -168,7 +168,7 @@ The first two terms on the right hand side describe the elastic strain, while th
 
 Upon substitution of plastic potential function and the Drucker-Prager yield function into the equation above:
 
-$$\frac{\partial \sigma_{ij}}{\partial t}=2G\dot{e}_{ij}+K\dot{\epsilon}_{mm}\delta_{ij}-\dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}s_{ij}}) $$
+$$\frac{\partial \sigma_{ij}}{\partial t}=2G\dot{e}_{ij}+K\dot{\epsilon}_{mm}\delta_{ij}-\dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}}s_{ij}) $$
 
 where
 
@@ -337,10 +337,6 @@ And $\boldsymbol{g}^{\epsilon^p}$ is a vector containing the plastic terms which
 
 For the elastoplastic model,
 
-$$\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}\boldsymbol{s}})$$
-
-**NOTE**: but actually in my code now:
-
 $$\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}}\boldsymbol{s})$$
 
 which is non-zero only when $f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0$ (and ${\rm d}f=0$), according to the Drucker-Prager yield criterion.
@@ -355,7 +351,6 @@ which is non-zero only when $\sqrt{3J_2}>f_c$ (according to the Von mises yield 
 >
 > 1. How does $\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}$ calculated?
 > 2. What number should $N$ choose?
-> 3. Wrong in Caitlin's code? in *3_SPH_material_2018.f90* line *2029*, the deviatoric stress terms are multiplied, not divided!!!???
 
 ### Conservation of mass
 

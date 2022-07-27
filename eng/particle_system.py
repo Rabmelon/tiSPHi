@@ -60,6 +60,7 @@ class ParticleSystem:
         # Paras
         self.density = ti.field(dtype=float)
         self.u = ti.Vector.field(self.dim, dtype=float)
+        self.x0 = ti.Vector.field(self.dim, dtype=float)
         self.stress = ti.Matrix.field(self.dim, self.dim, dtype=float)
         self.strain = ti.Matrix.field(self.dim, self.dim, dtype=float)
 
@@ -72,7 +73,7 @@ class ParticleSystem:
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
         self.particles_node.place(self.x, self.pos2vis, self.L, self.val, self.material, self.color)
-        self.particles_node.place(self.density, self.u, self.stress, self.strain)
+        self.particles_node.place(self.density, self.u, self.x0, self.stress, self.strain)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         self.particle_node.place(self.particle_neighbors)

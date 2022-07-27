@@ -45,6 +45,7 @@ u norm of velocity, also ux, uy
 x position, also y
 dr d_density
 sm hydrostatic pressure; s norm of stress, also sxx, syy, sxy
+dis displacement, norm
 ep norm of strain, also epxx, epyy, epxy;
 
 

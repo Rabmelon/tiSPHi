@@ -43,6 +43,12 @@ class SPHSolver:
                 tmpL += self.ps.m_V * (x_j - x_i) @ tmp.transpose()
             self.ps.L[p_i] = tmpL.inverse()
 
+    @ti.kernel
+    def assign_x0(self):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] < 10:
+                self.ps.x0[p_i] = self.ps.x[p_i]
+
     ###########################################################################
     # Kernel functions
     ###########################################################################
