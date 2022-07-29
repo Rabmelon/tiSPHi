@@ -143,10 +143,12 @@ class DPSESPHSolver(SPHSolver):
 
     @ti.kernel
     def init_stress(self):
+        K0 = 1.0 - ti.sin(self.fric)
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
-            self.stress[p_i] = self.fs_stress3(ti.Vector([0.0, self.density_0*self.g*(self.max_x1[None] - self.ps.x[p_i][1]), 0.0, 0.0]))
+            ver_stress = self.density_0*self.g*(self.max_x1[None] - self.ps.x[p_i][1])
+            self.stress[p_i] = self.fs_stress3(ti.Vector([K0*ver_stress, ver_stress, 0.0, K0*ver_stress]))
 
     @ti.kernel
     def init_basic_terms(self):
@@ -366,5 +368,6 @@ class DPSESPHSolver(SPHSolver):
         # print('v=[%.6f, %.6f]' % (self.ps.u[test_p_i][0], self.ps.u[test_p_i][1]), end=", ")
         # print('x=[%.6f, %.6f]' % (self.ps.x[test_p_i][0], self.ps.x[test_p_i][1]))
         print("---- ---- end of step")
+        a = 1
 
 test_p_i = 2286

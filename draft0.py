@@ -15,8 +15,8 @@ from eng.dplfsph import *
 # TODO: sand cc here
 
 sys.tracebacklimit = 0
-# ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64)
-ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
+ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64)
+# ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
 # ti.init(arch=ti.vulkan)
 
 if __name__ == "__main__":
@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
     mat = 2
     rho = 2040.0
-    cmodel = 1      # for water, 1 WC; for soil, 1 muI, 2 DP
-    TDmethod = 2    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    cmodel = 2      # for water, 1 WC; for soil, 1 muI, 2 DP
+    TDmethod = 1    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     case1 = ParticleSystem(rec_world, particle_radius)
@@ -69,6 +69,6 @@ if __name__ == "__main__":
             pass
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="stress yy Pa",
-             kradius=1.5, stepwise=20, iparticle=7236, save_png=1, pause=1, grid_line=0.1)
+             kradius=1.5, stepwise=1, iparticle=7236, save_png=0, pause=0, grid_line=0.1)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; index; displacement m
