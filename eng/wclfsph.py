@@ -13,12 +13,12 @@ class WCLFSPHSolver(SPHSolver):
         self.viscosity = visco  # viscosity
 
         self.density2 = ti.field(dtype=float)
-        self.u2 = ti.Vector.field(self.ps.dim, dtype=float)
+        self.v2 = ti.Vector.field(self.ps.dim, dtype=float)
         self.pressure = ti.field(dtype=float)
         self.d_velocity = ti.Vector.field(self.ps.dim, dtype=float)
         self.d_density = ti.field(dtype=float)
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.density2, self.u2, self.pressure, self.d_density, self.d_velocity)
+        particle_node.place(self.density2, self.v2, self.pressure, self.d_density, self.d_velocity)
 
         # Two paras in taichiWCSPH code
         self.stiffness = stiff   # k1
@@ -28,7 +28,7 @@ class WCLFSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
@@ -38,12 +38,12 @@ class WCLFSPHSolver(SPHSolver):
     def init_LF_f(self):
         for p_i in range(self.ps.particle_num[None]):
             self.density2[p_i] = self.ps.density[p_i]
-            self.u2[p_i] = self.ps.u[p_i]
+            self.v2[p_i] = self.ps.v[p_i]
 
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.density2[p_j] = self.density_0
-        self.u2[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.u2[p_i]
+        self.v2[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.v2[p_i]
         self.pressure[p_j] = self.pressure[p_i]
 
     # Evaluate density
@@ -59,8 +59,8 @@ class WCLFSPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = (self.u2[p_i] - self.u2[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
-                # tmp = (self.u2[p_i] - self.u2[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
+                tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
+                # tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
                 drho += self.density2[p_j] * self.ps.m_V * tmp[0]
             self.d_density[p_i] = drho
 
@@ -84,7 +84,7 @@ class WCLFSPHSolver(SPHSolver):
     @ti.func
     def viscosity_force(self, p_i, p_j):
         r = self.ps.x[p_i] - self.ps.x[p_j]
-        v_xy = (self.u2[p_i] - self.u2[p_j]).dot(r)
+        v_xy = (self.v2[p_i] - self.v2[p_j]).dot(r)
         res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.density2[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_derivative(r)
         # res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.density2[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))
         return res
@@ -148,7 +148,7 @@ class WCLFSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_fluid:
                 # self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
-                self.u2[p_i] += self.d_velocity[p_i] * self.dt[None] * 0.5
+                self.v2[p_i] += self.d_velocity[p_i] * self.dt[None] * 0.5
 
     @ti.kernel
     def advect_LF(self):
@@ -156,8 +156,8 @@ class WCLFSPHSolver(SPHSolver):
             if self.ps.material[p_i] == self.ps.material_fluid:
                 # self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
                 self.ps.density[p_i] = self.density2[p_i]
-                self.ps.u[p_i] += self.d_velocity[p_i] * self.dt[None]
-                self.ps.x[p_i] += self.ps.u[p_i] * self.dt[None]
+                self.ps.v[p_i] += self.d_velocity[p_i] * self.dt[None]
+                self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
 
     def LF_one_step(self):
         # self.compute_d_density()

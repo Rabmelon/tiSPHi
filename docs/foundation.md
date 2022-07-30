@@ -107,6 +107,9 @@ $$\nabla^2_i W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} $$
 * 通常会使用一些反对称(**anti-sym**)或对称型(**sym**)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当$f(r)$是一个力的时候，从动量守恒的角度去推导，使用**sym**更好；当做散度、需要投影的时候，使用**anti-sym**更好。
     * 或许可以说，当$f$是粒子$i$和$j$的相互作用时，用对称型；当$f$是粒子本身的属性时，用反对称型？
 
+Like to approximate the velocity gradient $\nabla\boldsymbol{v}$, using anti-symmtric form to ensure that the gradients of a constant velocity field vanish:
+
+$$\frac{\partial v^{\alpha}}{\partial x^{\beta}}=\sum_jV_j(v^{\alpha}_j-v^{\alpha}_i)\cdot\nabla_iW_{ij}^{\beta} $$
 
 ## Kernel functions
 

@@ -63,7 +63,7 @@ def adapt_stress(stress):
 
     count = 0
 
-    while fDP_new > 1e-6:
+    while fDP_new > epsilon:
         if fDP_new > sJ2:
             res = adapt_1(res, vI1)
             print("---- adapt 1 step:", get_f_stress(res))
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
     # f_stress = ti.Vector([-1392.923706, -2863.590332, 0.102193, -1393.044434])
     # f_stress = ti.Vector([-5734.567383, -2583.398926, 126.379333, -2623.165283])
-    f_stress = ti.Vector([-494.625, -889.843, 0.0, -494.626])
+    f_stress = ti.Vector([-1.499807054856, -2.312474820000, -0.000000021633, -0.993532778422])
 
     foo()
     adapt()

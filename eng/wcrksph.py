@@ -28,7 +28,7 @@ class WCRKSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
@@ -50,7 +50,7 @@ class WCRKSPHSolver(SPHSolver):
                 print('m1 =', m, end='; ')
                 print('p_i =', p_i)
                 continue
-            self.v1234[p_i] = self.ps.u[p_i]
+            self.v1234[p_i] = self.ps.v[p_i]
 
     @ti.kernel
     def update_v_234(self, m: int):
@@ -61,7 +61,7 @@ class WCRKSPHSolver(SPHSolver):
                 print('m2 =', m, end='; ')
                 print('p_i =', p_i)
                 continue
-            self.v1234[p_i] = self.ps.u[p_i] + 0.5 * self.dt[None] * self.F[p_i, m-1]
+            self.v1234[p_i] = self.ps.v[p_i] + 0.5 * self.dt[None] * self.F[p_i, m-1]
 
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
@@ -82,8 +82,8 @@ class WCRKSPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
-                # tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
+                tmp = (self.ps.v[p_i] - self.ps.v[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
+                # tmp = (self.ps.v[p_i] - self.ps.v[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
                 drho += self.ps.density[p_j] * self.ps.m_V * tmp[0]
             self.d_density[p_i] = drho
 
@@ -210,10 +210,10 @@ class WCRKSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_fluid:
                 continue
-            self.ps.u[p_i] += self.dt[None] / 6 * (
+            self.ps.v[p_i] += self.dt[None] / 6 * (
                 self.F[p_i, 0] + 2 * self.F[p_i, 1] +
                 2 * self.F[p_i, 2] + self.F[p_i, 3])
-            self.ps.x[p_i] += self.dt[None] * self.ps.u[p_i]
+            self.ps.x[p_i] += self.dt[None] * self.ps.v[p_i]
 
     def RK4_one_step(self, m):
         # print('RK4 start to compute step', m)

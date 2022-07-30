@@ -59,7 +59,7 @@ class ParticleSystem:
         self.color = ti.Vector.field(3, dtype=ti.f32)     # color in drawing for ggui
         # Paras
         self.density = ti.field(dtype=float)
-        self.u = ti.Vector.field(self.dim, dtype=float)
+        self.v = ti.Vector.field(self.dim, dtype=float)
         self.x0 = ti.Vector.field(self.dim, dtype=float)
         self.stress = ti.Matrix.field(self.dim, self.dim, dtype=float)
         self.strain = ti.Matrix.field(self.dim, self.dim, dtype=float)
@@ -73,7 +73,7 @@ class ParticleSystem:
         # Place nodes on root
         self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
         self.particles_node.place(self.x, self.pos2vis, self.L, self.val, self.material, self.color)
-        self.particles_node.place(self.density, self.u, self.x0, self.stress, self.strain)
+        self.particles_node.place(self.density, self.v, self.x0, self.stress, self.strain)
         self.particles_node.place(self.particle_neighbors_num)
         self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         self.particle_node.place(self.particle_neighbors)
@@ -187,10 +187,10 @@ class ParticleSystem:
     ###########################################################################
     # add one particle in p with given properties
     @ti.func
-    def add_particle(self, p, val, x, u, density, material, color):
+    def add_particle(self, p, val, x, v, density, material, color):
         self.val[p] = val
         self.x[p] = x
-        self.u[p] = u
+        self.v[p] = v
         self.density[p] = density
         self.material[p] = material
         self.color[p] = color
@@ -208,15 +208,15 @@ class ParticleSystem:
                        self.particle_num[None] + new_particles_num):
             new_p = p - self.particle_num[None]
             x = ti.Vector.zero(float, self.dim)
-            u = ti.Vector.zero(float, self.dim)
+            v = ti.Vector.zero(float, self.dim)
             color = ti.Vector.zero(ti.f32, 3)
             for d in ti.static(range(self.dim)):
                 x[d] = new_particles_positions[new_p, d]
-                u[d] = new_particles_velocity[new_p, d]
+                v[d] = new_particles_velocity[new_p, d]
 
             for i in ti.static(range(3)):
                 color[i] = new_particles_color[new_p, i]
-            self.add_particle(p, new_particles_value[new_p], x, u,
+            self.add_particle(p, new_particles_value[new_p], x, v,
                               new_particles_density[new_p],
                               new_particles_material[new_p], color)
         self.particle_num[None] += new_particles_num
@@ -300,14 +300,14 @@ class ParticleSystem:
                 self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
 
     @ti.kernel
-    def v_maxmin(self):
+    def v_maxmin(self, givenmax: float):
         vmax = -float('Inf')
         vmin = float('Inf')
         for i in range(self.particle_num[None]):
             if self.material[i] < 10:
                 ti.atomic_max(vmax, self.val[i])
                 ti.atomic_min(vmin, self.val[i])
-        self.vmax[None] = vmax
+        self.vmax[None] = vmax if givenmax == -1 else givenmax
         self.vmin[None] = vmin
 
     @ti.kernel

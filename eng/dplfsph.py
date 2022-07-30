@@ -64,11 +64,11 @@ class DPLFSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
-                # self.ps.val[p_i] = self.ps.u[p_i][0]
+                # self.ps.val[p_i] = self.ps.v[p_i][0]
                 self.ps.val[p_i] = -self.stress[p_i][1,1]
 
     ###########################################################################
@@ -140,7 +140,7 @@ class DPLFSPHSolver(SPHSolver):
     def init_LF_f(self):
         for p_i in range(self.ps.particle_num[None]):
             self.density2[p_i] = self.ps.density[p_i]
-            self.v2[p_i] = self.ps.u[p_i]
+            self.v2[p_i] = self.ps.v[p_i]
 
     @ti.kernel
     def cal_max_hight(self):
@@ -163,7 +163,7 @@ class DPLFSPHSolver(SPHSolver):
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
             self.f_stress[p_i] = self.stress3_fs(self.stress[p_i])
-            self.f_v[p_i] = self.cal_f_v(self.ps.u[p_i])
+            self.f_v[p_i] = self.cal_f_v(self.ps.v[p_i])
             self.stress_s[p_i] = self.cal_stress_s(self.stress[p_i])
             self.I1[p_i] = self.cal_I1(self.stress[p_i])
             self.sJ2[p_i] = self.cal_sJ2(self.stress_s[p_i])
@@ -296,7 +296,7 @@ class DPLFSPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                    self.f_v[p_j] = self.cal_f_v(self.ps.u[p_j])
+                    self.f_v[p_j] = self.cal_f_v(self.ps.v[p_j])
                 tmp_v += (self.f_v[p_j] - self.f_v[p_i]) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]) / self.density2[p_j]
             self.d_f_stress[p_i] += tmp_J + tmp_g + tmp_v * self.mass
 
@@ -326,8 +326,8 @@ class DPLFSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
                 self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
-                self.ps.u[p_i] += self.d_v[p_i] * self.dt[None]
-                self.ps.x[p_i] += self.ps.u[p_i] * self.dt[None]
+                self.ps.v[p_i] += self.d_v[p_i] * self.dt[None]
+                self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
                 self.stress[p_i] = self.adapt_stress(self.stress[p_i], p_i)

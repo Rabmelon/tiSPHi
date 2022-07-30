@@ -61,11 +61,11 @@ class DPSESPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.u[p_i].norm()
+                # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
-                # self.ps.val[p_i] = self.ps.u[p_i][0]
+                # self.ps.val[p_i] = self.ps.v[p_i][0]
                 self.ps.val[p_i] = -self.stress[p_i][1,1]
 
     ###########################################################################
@@ -74,7 +74,7 @@ class DPSESPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.density_0
-        self.ps.u[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.u[p_i]
+        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
 
     @ti.func
     def cal_f_v(self, v):
@@ -82,6 +82,11 @@ class DPSESPHSolver(SPHSolver):
                          [self.De[1, 0] * v[0], self.De[1, 1] * v[1]],
                          [self.De[2, 2] * v[1], self.De[2, 2] * v[0]],
                          [self.De[3, 0] * v[0], self.De[3, 1] * v[1]]])
+        return res
+
+    @ti.func
+    def stress2_fs(self, stress):
+        res = ti.Vector([stress[0,0], stress[1,1], stress[0,1], 0.0])
         return res
 
     @ti.func
@@ -156,7 +161,7 @@ class DPSESPHSolver(SPHSolver):
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
             self.f_stress[p_i] = self.stress3_fs(self.stress[p_i])
-            self.f_v[p_i] = self.cal_f_v(self.ps.u[p_i])
+            self.f_v[p_i] = self.cal_f_v(self.ps.v[p_i])
             self.stress_s[p_i] = self.cal_stress_s(self.stress[p_i])
             self.I1[p_i] = self.cal_I1(self.stress[p_i])
             self.sJ2[p_i] = self.cal_sJ2(self.stress_s[p_i])
@@ -174,7 +179,7 @@ class DPSESPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                 tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 # tmp = self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                v_g += (self.ps.u[p_j] - self.ps.u[p_i]) @ tmp.transpose() / self.ps.density[p_j]
+                v_g += (self.ps.v[p_j] - self.ps.v[p_i]) @ tmp.transpose() / self.ps.density[p_j]
             self.v_grad[p_i] = v_g * self.mass
 
     ###########################################################################
@@ -192,7 +197,7 @@ class DPSESPHSolver(SPHSolver):
 
         count = 0
 
-        while fDP_new > 1e-4:
+        while fDP_new > self.epsilon:
             if fDP_new > sJ2:
                 res = self.adapt_1(res, vI1)
             else:
@@ -208,7 +213,7 @@ class DPSESPHSolver(SPHSolver):
                 break
             assert count < 5, "---- ---- endless loop of adaptation!"
 
-        return res
+        return res, fDP_new
 
     @ti.func
     def chk_flag_DP(self, fDP_new, sJ2):
@@ -246,7 +251,7 @@ class DPSESPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                tmp = (self.ps.v[p_i] - self.ps.v[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 dd += tmp[0] / self.ps.density[p_j]
             self.d_density[p_i] =  dd * self.mass * self.ps.density[p_i]
 
@@ -271,14 +276,43 @@ class DPSESPHSolver(SPHSolver):
             self.d_v[p_i] = dv
 
     @ti.kernel
-    def cal_d_f_stress(self):
+    def cal_d_f_stress_Bui2008(self):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
+            strain_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] + self.v_grad[p_i][j, i] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
+            spin_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] - self.v_grad[p_i][j, i] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
+            tmp_J = ti.Matrix([[
+                self.stress[p_i][i, 0] * spin_r[j, 0] + self.stress[p_i][i, 1] * spin_r[j, 1] +
+                self.stress[p_i][0, j] * spin_r[i, 0] + self.stress[p_i][1, j] * spin_r[i, 1] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
+            lambda_r = 0.0
+            tmp_g = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
+            if self.fDP_old[p_i] >= -self.epsilon and self.sJ2[p_i] > self.epsilon:
+                lambda_r = (
+                    3.0 * self.alpha_fric * self.KBulkMod * strain_r.trace() +
+                    (self.GShearMod / self.sJ2[p_i]) * (self.stress_stress2(self.stress_s[p_i]) * strain_r).sum()
+                ) / (27.0 * self.alpha_fric * self.KBulkMod * ti.sin(self.dila) + self.GShearMod)
+                tmp_g = lambda_r * (9.0 * self.KBulkMod * ti.sin(self.dila) * self.I + self.GShearMod / self.sJ2[p_i] * self.stress_stress2(self.stress_s[p_i]))
+
+            strain_r_e = strain_r - strain_r.trace() / 3.0 * self.I
+            tmp_v = 2.0 * self.GShearMod * strain_r_e + self.KBulkMod * strain_r.trace() * self.I
+            self.d_f_stress[p_i] = self.stress2_fs(tmp_J + tmp_g + tmp_v)
+
+            # if p_i == test_p_i:
+            #     print("---- ---- ---- tmp g =", tmp_g)
+            #     print("---- ---- ---- tmp J =", tmp_J)
+            #     print("---- ---- ---- tmp v =", tmp_v)
+
+
+    @ti.kernel
+    def cal_d_f_stress_Chalk2020(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
             omega_r_xy = (self.v_grad[p_i][0,1] - self.v_grad[p_i][1,0]) * 0.5
             tmp_J = ti.Vector([2.0 * self.stress[p_i][0, 1] * omega_r_xy, -2.0 * self.stress[p_i][0, 1] * omega_r_xy,
                                -self.stress[p_i][0, 0] * omega_r_xy + self.stress[p_i][1, 1] * omega_r_xy, 0.0])
-            strain_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] + self.v_grad[p_i][j, i] for i in range(self.ps.dim)] for j in range(self.ps.dim)])
+            strain_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] + self.v_grad[p_i][j, i] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
             tmp_g = ti.Vector([0.0 for _ in range(self.dim_v)])
             if self.fDP_old[p_i] >= -self.epsilon and self.sJ2[p_i] > self.epsilon:
                 lambda_r = (3.0 * self.alpha_fric * strain_r.trace() + (self.GShearMod / self.sJ2[p_i]) * (self.stress_stress2(self.stress_s[p_i]) * strain_r).sum()) / (27.0 * self.alpha_fric * self.KBulkMod * ti.sin(self.dila) + self.GShearMod)
@@ -298,7 +332,7 @@ class DPSESPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                    self.f_v[p_j] = self.cal_f_v(self.ps.u[p_j])
+                    self.f_v[p_j] = self.cal_f_v(self.ps.v[p_j])
                 tmp_v += (self.f_v[p_j] - self.f_v[p_i]) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]) / self.ps.density[p_j]
             self.d_f_stress[p_i] += tmp_J + tmp_g + tmp_v * self.mass
 
@@ -336,22 +370,22 @@ class DPSESPHSolver(SPHSolver):
     def chk_stress(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
-                self.stress[p_i] = self.adapt_stress(self.stress[p_i], p_i)
+                self.stress[p_i], self.fDP_old[p_i] = self.adapt_stress(self.stress[p_i], p_i)
 
     @ti.kernel
     def advect_SE(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
-                self.ps.u[p_i] += self.d_v[p_i] * self.dt[None]
-                self.ps.x[p_i] += self.ps.u[p_i] * self.dt[None]
+                self.ps.v[p_i] += self.d_v[p_i] * self.dt[None]
+                self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
 
     def substep_SympEuler(self):
         self.init_basic_terms()
-        print('---- ---- p[%05d]: σ=[%.3f, %.3f, %.3f, %.3f], fσ=[%.3f, %.3f, %.3f, %.3f], fDP=%.5f' % (test_p_i, self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2], self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
+        print('---- ---- p[%05d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
         self.cal_v_grad()
-        print('---- ---- ∇v=[%.6f, %.6f; %.6f, %.6f]' % (self.v_grad[test_p_i][0,0], self.v_grad[test_p_i][0,1], self.v_grad[test_p_i][1,0], self.v_grad[test_p_i][1,1]))
+        print('---- ---- ∇v=[%.9f, %.9f; %.9f, %.9f]' % (self.v_grad[test_p_i][0,0], self.v_grad[test_p_i][0,1], self.v_grad[test_p_i][1,0], self.v_grad[test_p_i][1,1]))
         self.cal_d_density()
-        self.cal_d_f_stress()
+        self.cal_d_f_stress_Bui2008()
         print('---- ---- dρ=%.6f' % (self.d_density[test_p_i]), end=", ")
         print('dfσ=[%.6f, %.6f, %.6f, %.6f]' % (self.d_f_stress[test_p_i][0], self.d_f_stress[test_p_i][1], self.d_f_stress[test_p_i][2], self.d_f_stress[test_p_i][3]), end=", ")
         self.cal_d_velocity()
@@ -360,14 +394,14 @@ class DPSESPHSolver(SPHSolver):
         print('---- ---- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3]))
         # print('σ=[%.3f, %.3f, %.3f, %.3f]' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2]))
         self.chk_stress()
-        print('---- ---- -adapt- σ=[%.6f, %.6f, %.6f, %.6f]' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2]))
+        print('---- ---- -adapt- fσ=[%.6f, %.6f, %.6f, %.6f], fDP = %.6f' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2], self.fDP_old[test_p_i]))
         self.cal_density()
         self.chk_density()
         # print('---- ---- ρ=%.3f' % (self.ps.density[test_p_i]), end=", ")
         self.advect_SE()
-        # print('v=[%.6f, %.6f]' % (self.ps.u[test_p_i][0], self.ps.u[test_p_i][1]), end=", ")
+        # print('v=[%.6f, %.6f]' % (self.ps.v[test_p_i][0], self.ps.v[test_p_i][1]), end=", ")
         # print('x=[%.6f, %.6f]' % (self.ps.x[test_p_i][0], self.ps.x[test_p_i][1]))
         print("---- ---- end of step")
         a = 1
 
-test_p_i = 2286
+test_p_i = 2385

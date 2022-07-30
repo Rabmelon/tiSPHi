@@ -13,12 +13,11 @@ class SPHSolver:
         self.TDmethod = TDmethod # 1 for Symp Euler, 2 for LF, 4 for RK4
         self.flagKernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
         self.g = -9.81          # gravity, m/s2
-        self.usound = 60.0        # speed of sound, m/s
-        self.usound2 = self.usound ** 2
+        self.vsound = 600.0        # speed of sound, m/s
+        self.vsound2 = self.vsound ** 2
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
-        # self.dt[None] = 2e-5    # "ti video -f125" will be good to make the video 2 times slower than calculation (8s simulation and 16s video, 2000 frames / 8*2s = 125fps)
-        self.dt[None] = ti.max(1e-6, 0.2 * self.ps.smoothing_len / self.usound)  # CFL
+        self.dt[None] = ti.max(1e-6, 0.2 * self.ps.smoothing_len / self.vsound)  # CFL
         self.epsilon = 1e-16
         self.alertratio = 1.25
 
@@ -142,7 +141,7 @@ class SPHSolver:
         # assert d > self.ps.grid_size, 'My Error 2: particle goes out of the padding! d = %f, vec = [%f, %f], xo[%d] = [%f, %f]' % (d, vec[0], vec[1], p_i, self.ps.x[p_i][0], self.ps.x[p_i][1])
         c_f = 0.7
         self.ps.x[p_i] += (1.0 + c_f) * vec * d
-        self.ps.u[p_i] -= (1.0 + c_f) * (self.ps.u[p_i].dot(vec)) * vec
+        self.ps.v[p_i] -= (1.0 + c_f) * (self.ps.v[p_i].dot(vec)) * vec
 
     @ti.kernel
     def enforce_boundary(self):

@@ -25,7 +25,7 @@ class WCSESPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.u[p_i].norm()
+                self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
@@ -34,7 +34,7 @@ class WCSESPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.density_0
-        self.ps.u[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.u[p_i]
+        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
         self.pressure[p_j] = self.pressure[p_i]
 
     # Evaluate density
@@ -50,8 +50,8 @@ class WCSESPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
-                # tmp = (self.ps.u[p_i] - self.ps.u[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
+                tmp = (self.ps.v[p_i] - self.ps.v[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
+                # tmp = (self.ps.v[p_i] - self.ps.v[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
                 drho += self.ps.density[p_j] * self.ps.m_V * tmp[0]
             self.d_density[p_i] = drho
 
@@ -73,7 +73,7 @@ class WCSESPHSolver(SPHSolver):
     # Compute the viscosity force contribution, Anti-symmetric formula
     @ti.func
     def viscosity_force(self, p_i, p_j, r):
-        v_xy = (self.ps.u[p_i] - self.ps.u[p_j]).dot(r)
+        v_xy = (self.ps.v[p_i] - self.ps.v[p_j]).dot(r)
         res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_derivative(r)
         # res = 2 * (self.ps.dim + 2) * self.viscosity * (self.mass / (self.ps.density[p_j])) * v_xy / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * (self.ps.L[p_i] @ self.kernel_derivative(r))
         return res
@@ -147,8 +147,8 @@ class WCSESPHSolver(SPHSolver):
     def advect(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_fluid:
-                self.ps.u[p_i] += self.dt[None] * self.d_velocity[p_i]
-                self.ps.x[p_i] += self.dt[None] * self.ps.u[p_i]
+                self.ps.v[p_i] += self.dt[None] * self.d_velocity[p_i]
+                self.ps.x[p_i] += self.dt[None] * self.ps.v[p_i]
 
     def substep_SympEuler(self):
         self.compute_densities()

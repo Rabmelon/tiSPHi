@@ -21,6 +21,10 @@ if __name__ == "__main__":
 
     f_stress = ti.Vector([-0.742128, -1.731632, -0.000000, -0.742128])
 
-    foo()
+    # foo()
+
+    a = ti.Matrix([[1, 2], [3, 4]])
+    b = 0.5 * ti.Matrix([[a[i, j] - a[j, i] for j in range(2)] for i in range(2)])
+    print(b)
 
     flag_end = 1

@@ -8,7 +8,7 @@ from datetime import datetime
 # TODO: add background grids
 # TODO:
 
-def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=False, stepwise=20, iparticle=None, color_title="Null", color_particle=None, grid_line=None):
+def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=False, stepwise=20, iparticle=None, color_title="Null", color_particle=None, grid_line=None, givenmax=-1):
     print("ggui starts to serve!")
 
     # basic paras
@@ -63,7 +63,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
             if iparticle is None:
                 print('---- %06d' % (flag_step))
             else:
-                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.u[iparticle][0], case.u[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
+                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.v[iparticle][0], case.v[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
             for i in range(stepwise):
                 solver.step()
                 flag_step += 1
@@ -77,7 +77,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         # draw particles
         case.copy2vis(s2w_ratio, max_res)
         solver.init_value()
-        case.v_maxmin()
+        case.v_maxmin(givenmax)
         case.set_color()
         draw_radius = case.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)   # ! WARRNING: Overriding last binding

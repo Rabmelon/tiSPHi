@@ -172,7 +172,7 @@ $$\frac{\partial \sigma_{ij}}{\partial t}=2G\dot{e}_{ij}+K\dot{\epsilon}_{mm}\de
 
 where
 
-$$\dot{\lambda}=\frac{3\alpha_{\varphi}\dot{\epsilon}_{mm}+(G/\sqrt{J_2})s_{ij}\dot{\epsilon}_{ij}}{27\alpha_{\varphi}K\sin\psi+G} $$
+$$\dot{\lambda}=\frac{3\alpha_{\varphi}K\dot{\epsilon}_{mm}+(G/\sqrt{J_2})s_{ij}\dot{\epsilon}_{ij}}{27\alpha_{\varphi}K\sin\psi+G} $$
 
 #### Stress adaptation
 
@@ -482,7 +482,7 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 * Step 8: if necessary, the boundary conditions and stress state are again updated.
 * Step 9: repeat Steps 1-8 to obtain$\boldsymbol{u}_i^3$, $\boldsymbol{\sigma}_i^3$, $\boldsymbol{v}_i^4$ and $\boldsymbol{\sigma}_i^4$. Then update the velocity $\boldsymbol{v}_i^{t+\Delta t}$ and the stress $\boldsymbol{\sigma}_i^{t+\Delta t}$ at the subsequent time step, also the positions $\boldsymbol{x}_i^{t+\Delta t}$ of the particles.
 
-As for the calculation of strain item:
+As for the calculation of plastic potential function item:
 <div align="center">
   <img width="800px" src="/img/flowchart_item_strain_DP.svg">
 </div>
