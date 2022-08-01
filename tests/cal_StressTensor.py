@@ -74,6 +74,8 @@ def adapt_stress(stress):
         vI1 = cal_I1(res)
         sJ2 = cal_sJ2(stress_s)
         fDP_new = cal_fDP(vI1, sJ2)
+        print("---- adapt s =", stress_s)
+        print("---- adapt sJ2 =", sJ2)
         print("---- adapt fDP =", fDP_new)
 
         count = count + 1
@@ -127,7 +129,7 @@ if __name__ == "__main__":
 
     # f_stress = ti.Vector([-1392.923706, -2863.590332, 0.102193, -1393.044434])
     # f_stress = ti.Vector([-5734.567383, -2583.398926, 126.379333, -2623.165283])
-    f_stress = ti.Vector([-1.499807054856, -2.312474820000, -0.000000021633, -0.993532778422])
+    f_stress = ti.Vector([-1.501269392537, -2.282934977724, 0.000289263657, -0.986419921423])
 
     foo()
     adapt()

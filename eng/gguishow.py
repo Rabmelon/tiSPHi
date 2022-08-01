@@ -8,7 +8,7 @@ from datetime import datetime
 # TODO: add background grids
 # TODO:
 
-def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=False, stepwise=20, iparticle=None, color_title="Null", color_particle=None, grid_line=None, givenmax=-1):
+def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=False, stepwise=20, iparticle=None, color_title="Null", grid_line=None, given_max=-1):
     print("ggui starts to serve!")
 
     # basic paras
@@ -63,7 +63,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
             if iparticle is None:
                 print('---- %06d' % (flag_step))
             else:
-                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f, neighbour=%d' % (flag_step, iparticle, case.x[iparticle][0], case.x[iparticle][1], case.v[iparticle][0], case.v[iparticle][1], case.density[iparticle], case.particle_neighbors_num[iparticle]))
+                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f' % (flag_step, iparticle, solver.ps.x[iparticle][0], solver.ps.x[iparticle][1], solver.ps.v[iparticle][0], solver.ps.v[iparticle][1], solver.ps.density[iparticle]))
             for i in range(stepwise):
                 solver.step()
                 flag_step += 1
@@ -75,26 +75,26 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
             canvas.lines(pos_line, 0.0025, indices_line, (0.8, 0.8, 0.8))   # ! WARRNING: Overriding last binding
 
         # draw particles
-        case.copy2vis(s2w_ratio, max_res)
+        solver.ps.copy2vis(s2w_ratio, max_res)
         solver.init_value()
-        case.v_maxmin(givenmax)
-        case.set_color()
-        draw_radius = case.particle_radius * s2w_ratio * kradius / max_res
-        canvas.circles(case.pos2vis, radius=draw_radius, per_vertex_color=case.color)   # ! WARRNING: Overriding last binding
+        solver.ps.v_maxmin(given_max)
+        solver.ps.set_color()
+        draw_radius = solver.ps.particle_radius * s2w_ratio * kradius / max_res
+        canvas.circles(solver.ps.pos2vis, radius=draw_radius, per_vertex_color=solver.ps.color)   # ! WARRNING: Overriding last binding
         if iparticle is not None:
-            i_pos.from_numpy(np.array([case.pos2vis[iparticle]], dtype=np.float32))
+            i_pos.from_numpy(np.array([solver.ps.pos2vis[iparticle]], dtype=np.float32))
             canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))   # ! WARRNING: Overriding last binding
 
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)
-        window.GUI.text('Total particle number: {pnum:,}'.format(pnum=case.particle_num[None]))
+        window.GUI.text('Total particle number: {pnum:,}'.format(pnum=solver.ps.particle_num[None]))
         window.GUI.text('Step: {step:,}'.format(step=flag_step))
         window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * flag_step))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
         window.GUI.text('colorbar: {str}'.format(str=color_title))
-        window.GUI.text('max value: {maxv:.3f}'.format(maxv=case.vmax[None]))
-        window.GUI.text('min value: {minv:.3f}'.format(minv=case.vmin[None]))
+        window.GUI.text('max value: {maxv:.3f}'.format(maxv=solver.ps.vmax[None]))
+        window.GUI.text('min value: {minv:.3f}'.format(minv=solver.ps.vmin[None]))
         window.GUI.end()
 
         # control

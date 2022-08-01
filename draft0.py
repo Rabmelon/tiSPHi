@@ -14,8 +14,8 @@ from eng.dplfsph import *
 # TODO: sand cc here
 
 sys.tracebacklimit = 0
-ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64)
-# ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
+# ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, cpu_max_num_threads=1)
+ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
 # ti.init(arch=ti.vulkan)
 
 if __name__ == "__main__":
@@ -34,6 +34,7 @@ if __name__ == "__main__":
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     case1 = ParticleSystem(rec_world, particle_radius)
+    case1.gen_rangeary_particles()
     case1.add_cube(lower_corner=[0.0, 0.0], cube_size=cube_size, material=mat, density=rho)
 
     if mat == 1 and cmodel == 1:
@@ -68,6 +69,6 @@ if __name__ == "__main__":
             pass
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="stress yy Pa",
-             kradius=1.5, stepwise=1, iparticle=2385, save_png=0, pause=0, grid_line=0.1, givenmax=-1)
+             kradius=1.25, stepwise=20, iparticle=None, save_png=0, pause=1, grid_line=0.05, given_max=-1)
 
-    # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; index; displacement m
+    # color title: index; pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; displacement m

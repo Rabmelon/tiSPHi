@@ -47,8 +47,8 @@ class DPSESPHSolver(SPHSolver):
         self.d_v = ti.Vector.field(self.ps.dim, dtype=float)
         self.d_f_stress = ti.Vector.field(self.dim_v, dtype=float)
 
-        particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.v_grad, self.f_stress, self.f_v, self.stress, self.stress_s, self.I1, self.sJ2, self.fDP_old, self.flag_adapt, self.d_density, self.d_v, self.d_f_stress)
+        particles_node = ti.root.dense(ti.i, self.ps.particle_max_num)
+        particles_node.place(self.v_grad, self.f_stress, self.f_v, self.stress, self.stress_s, self.I1, self.sJ2, self.fDP_old, self.flag_adapt, self.d_density, self.d_v, self.d_f_stress)
 
         self.cal_max_hight()
         self.init_stress()
@@ -61,6 +61,7 @@ class DPSESPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
+                # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
@@ -127,12 +128,12 @@ class DPSESPHSolver(SPHSolver):
         return res
 
     @ti.func
-    def cal_fDP_from_stress(self, stress):
+    def cal_from_stress(self, stress):
         stress_s = self.cal_stress_s(stress)
         vI1 = self.cal_I1(stress)
         sJ2 = self.cal_sJ2(stress_s)
-        res = sJ2 + self.alpha_fric * vI1 - self.k_c
-        return res
+        fDP = self.cal_fDP(vI1, sJ2)
+        return stress_s, vI1, sJ2, fDP
 
 
     ###########################################################################
@@ -186,34 +187,17 @@ class DPSESPHSolver(SPHSolver):
     # stress adaptation
     ###########################################################################
     @ti.func
-    def adapt_stress(self, stress, p_i):
+    def adapt_stress(self, stress):
         # TODO: add a return of the new DP flag and adaptation flag
         # TODO: what is the usage of dfDP?
         res = stress
-        stress_s = self.cal_stress_s(stress)
-        vI1 = self.cal_I1(stress)
-        sJ2 = self.cal_sJ2(stress_s)
-        fDP_new = self.cal_fDP(vI1, sJ2)
-
-        count = 0
-
-        while fDP_new > self.epsilon:
+        stress_s, vI1, sJ2, fDP_new = self.cal_from_stress(res)
+        if fDP_new > 1e-4:
             if fDP_new > sJ2:
                 res = self.adapt_1(res, vI1)
-            else:
-                res = self.adapt_2(stress_s, vI1, sJ2)
-            stress_s = self.cal_stress_s(res)
-            vI1 = self.cal_I1(res)
-            sJ2 = self.cal_sJ2(stress_s)
-            fDP_new = self.cal_fDP(vI1, sJ2)
-
-            count = count + 1
-            if count >= 5:
-                print("---- ----", p_i, "endless loop of adaptation!", self.stress3_fs(stress))
-                break
-            assert count < 5, "---- ---- endless loop of adaptation!"
-
-        return res, fDP_new
+            stress_s, vI1, sJ2, fDP_new = self.cal_from_stress(res)
+            res = self.adapt_2(stress_s, vI1, sJ2)
+        return res
 
     @ti.func
     def chk_flag_DP(self, fDP_new, sJ2):
@@ -364,13 +348,13 @@ class DPSESPHSolver(SPHSolver):
             if self.ps.material[p_i] == self.ps.material_soil:
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
-                # self.stress[p_i] = self.adapt_stress(self.stress[p_i])
+                self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 
     @ti.kernel
     def chk_stress(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
-                self.stress[p_i], self.fDP_old[p_i] = self.adapt_stress(self.stress[p_i], p_i)
+                self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 
     @ti.kernel
     def advect_SE(self):
@@ -381,27 +365,22 @@ class DPSESPHSolver(SPHSolver):
 
     def substep_SympEuler(self):
         self.init_basic_terms()
-        print('---- ---- p[%05d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
+        # print('---- ---- p[%05d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
         self.cal_v_grad()
-        print('---- ---- ∇v=[%.9f, %.9f; %.9f, %.9f]' % (self.v_grad[test_p_i][0,0], self.v_grad[test_p_i][0,1], self.v_grad[test_p_i][1,0], self.v_grad[test_p_i][1,1]))
+        # print('---- ---- ∇v=[%.9f, %.9f; %.9f, %.9f]' % (self.v_grad[test_p_i][0,0], self.v_grad[test_p_i][0,1], self.v_grad[test_p_i][1,0], self.v_grad[test_p_i][1,1]))
         self.cal_d_density()
         self.cal_d_f_stress_Bui2008()
-        print('---- ---- dρ=%.6f' % (self.d_density[test_p_i]), end=", ")
-        print('dfσ=[%.6f, %.6f, %.6f, %.6f]' % (self.d_f_stress[test_p_i][0], self.d_f_stress[test_p_i][1], self.d_f_stress[test_p_i][2], self.d_f_stress[test_p_i][3]), end=", ")
+        # print('---- ---- dfσ=[%.6f, %.6f, %.6f, %.6f]' % (self.d_f_stress[test_p_i][0], self.d_f_stress[test_p_i][1], self.d_f_stress[test_p_i][2], self.d_f_stress[test_p_i][3]), end=", ")
         self.cal_d_velocity()
-        print('dv=[%.3f, %.3f]' % (self.d_v[test_p_i][0], self.d_v[test_p_i][1]))
+        # print('dv=[%.3f, %.3f]' % (self.d_v[test_p_i][0], self.d_v[test_p_i][1]))
         self.cal_stress()
-        print('---- ---- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3]))
-        # print('σ=[%.3f, %.3f, %.3f, %.3f]' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2]))
-        self.chk_stress()
-        print('---- ---- -adapt- fσ=[%.6f, %.6f, %.6f, %.6f], fDP = %.6f' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2], self.fDP_old[test_p_i]))
+        # print('---- ---- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3]))
+        # self.chk_stress()
+        # print('---- ---- -adapt- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2]))
         self.cal_density()
         self.chk_density()
-        # print('---- ---- ρ=%.3f' % (self.ps.density[test_p_i]), end=", ")
         self.advect_SE()
-        # print('v=[%.6f, %.6f]' % (self.ps.v[test_p_i][0], self.ps.v[test_p_i][1]), end=", ")
-        # print('x=[%.6f, %.6f]' % (self.ps.x[test_p_i][0], self.ps.x[test_p_i][1]))
-        print("---- ---- end of step")
+        # print("---- ---- end of step")
         a = 1
 
-test_p_i = 2385
+test_p_i = 1435

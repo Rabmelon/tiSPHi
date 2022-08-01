@@ -75,18 +75,15 @@ class ParticleSystem:
         self.particles_node.place(self.x, self.pos2vis, self.L, self.val, self.material, self.color)
         self.particles_node.place(self.density, self.v, self.x0, self.stress, self.strain)
         self.particles_node.place(self.particle_neighbors_num)
-        self.particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
-        self.particle_node.place(self.particle_neighbors)
+        particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
+        particle_node.place(self.particle_neighbors)
 
         grid_index = ti.ij if self.dim == 2 else ti.ijk          # 建立格网维度索引变量，xy or xyz
-        grid_node = ti.root.dense(grid_index, self.grid_num)     # 使用稠密数据结构开辟每个格网中粒子总数的存储空间
-        grid_node.place(self.grid_particles_num)
+        self.grid_node = ti.root.dense(grid_index, self.grid_num)     # 使用稠密数据结构开辟每个格网中粒子总数的存储空间
+        self.grid_node.place(self.grid_particles_num)
         cell_index = ti.k if self.dim == 2 else ti.l        # 建立粒子索引变量
-        cell_node = grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子编号的存储空间
+        cell_node = self.grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子编号的存储空间
         cell_node.place(self.grid_particles)
-
-        # Create rectangle rangeary particles
-        self.gen_rangeary_particles()
 
     ###########################################################################
     # NS
