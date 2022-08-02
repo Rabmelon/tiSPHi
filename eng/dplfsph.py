@@ -64,6 +64,7 @@ class DPLFSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
+                # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
@@ -85,6 +86,11 @@ class DPLFSPHSolver(SPHSolver):
                          [self.De[1, 0] * v[0], self.De[1, 1] * v[1]],
                          [self.De[2, 2] * v[1], self.De[2, 2] * v[0]],
                          [self.De[3, 0] * v[0], self.De[3, 1] * v[1]]])
+        return res
+
+    @ti.func
+    def stress2_fs(self, stress):
+        res = ti.Vector([stress[0,0], stress[1,1], stress[0,1], 0.0])
         return res
 
     @ti.func
@@ -125,12 +131,12 @@ class DPLFSPHSolver(SPHSolver):
         return res
 
     @ti.func
-    def cal_fDP_from_stress(self, stress):
+    def cal_from_stress(self, stress):
         stress_s = self.cal_stress_s(stress)
         vI1 = self.cal_I1(stress)
         sJ2 = self.cal_sJ2(stress_s)
-        res = sJ2 + self.alpha_fric * vI1 - self.k_c
-        return res
+        fDP = self.cal_fDP(vI1, sJ2)
+        return stress_s, vI1, sJ2, fDP
 
 
     ###########################################################################
@@ -152,10 +158,12 @@ class DPLFSPHSolver(SPHSolver):
 
     @ti.kernel
     def init_stress(self):
+        K0 = 1.0 - ti.sin(self.fric)
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
-            self.stress[p_i] = self.fs_stress3(ti.Vector([0.0, self.density_0*self.g*(self.max_x1[None] - self.ps.x[p_i][1]), 0.0, 0.0]))
+            ver_stress = self.density_0*self.g*(self.max_x1[None] - self.ps.x[p_i][1])
+            self.stress[p_i] = self.fs_stress3(ti.Vector([K0*ver_stress, ver_stress, 0.0, K0*ver_stress]))
 
     @ti.kernel
     def init_basic_terms(self):
@@ -188,33 +196,16 @@ class DPLFSPHSolver(SPHSolver):
     # stress adaptation
     ###########################################################################
     @ti.func
-    def adapt_stress(self, stress, p_i):
+    def adapt_stress(self, stress):
         # TODO: add a return of the new DP flag and adaptation flag
         # TODO: what is the usage of dfDP?
         res = stress
-        stress_s = self.cal_stress_s(stress)
-        vI1 = self.cal_I1(stress)
-        sJ2 = self.cal_sJ2(stress_s)
-        fDP_new = self.cal_fDP(vI1, sJ2)
-
-        count = 0
-
-        while fDP_new > 1e-4:
+        stress_s, vI1, sJ2, fDP_new = self.cal_from_stress(res)
+        if fDP_new > 1e-4:
             if fDP_new > sJ2:
                 res = self.adapt_1(res, vI1)
-            else:
-                res = self.adapt_2(stress_s, vI1, sJ2)
-            stress_s = self.cal_stress_s(res)
-            vI1 = self.cal_I1(res)
-            sJ2 = self.cal_sJ2(stress_s)
-            fDP_new = self.cal_fDP(vI1, sJ2)
-
-            count = count + 1
-            if count >= 5:
-                print("---- ----", p_i, "endless loop of adaptation!", self.stress3_fs(stress))
-                break
-            assert count < 5, "---- ---- endless loop of adaptation!"
-
+            stress_s, vI1, sJ2, fDP_new = self.cal_from_stress(res)
+            res = self.adapt_2(stress_s, vI1, sJ2)
         return res
 
     @ti.func
@@ -278,7 +269,37 @@ class DPLFSPHSolver(SPHSolver):
             self.d_v[p_i] = dv
 
     @ti.kernel
-    def cal_d_f_stress(self):
+    def cal_d_f_stress_Bui2008(self):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
+            strain_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] + self.v_grad[p_i][j, i] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
+            spin_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] - self.v_grad[p_i][j, i] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
+            tmp_J = ti.Matrix([[
+                self.stress[p_i][i, 0] * spin_r[j, 0] + self.stress[p_i][i, 1] * spin_r[j, 1] +
+                self.stress[p_i][0, j] * spin_r[i, 0] + self.stress[p_i][1, j] * spin_r[i, 1] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
+            lambda_r = 0.0
+            tmp_g = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
+            if self.fDP_old[p_i] >= -self.epsilon and self.sJ2[p_i] > self.epsilon:
+                lambda_r = (
+                    3.0 * self.alpha_fric * self.KBulkMod * strain_r.trace() +
+                    (self.GShearMod / self.sJ2[p_i]) * (self.stress_stress2(self.stress_s[p_i]) * strain_r).sum()
+                ) / (27.0 * self.alpha_fric * self.KBulkMod * ti.sin(self.dila) + self.GShearMod)
+                tmp_g = lambda_r * (9.0 * self.KBulkMod * ti.sin(self.dila) * self.I + self.GShearMod / self.sJ2[p_i] * self.stress_stress2(self.stress_s[p_i]))
+
+            strain_r_e = strain_r - strain_r.trace() / 3.0 * self.I
+            tmp_v = 2.0 * self.GShearMod * strain_r_e + self.KBulkMod * strain_r.trace() * self.I
+            self.d_f_stress[p_i] = self.stress2_fs(tmp_J + tmp_g + tmp_v)
+
+            # if p_i == test_p_i:
+            #     print("---- ---- ---- tmp g =", tmp_g)
+            #     print("---- ---- ---- tmp J =", tmp_J)
+            #     print("---- ---- ---- tmp v =", tmp_v)
+
+
+
+    @ti.kernel
+    def cal_d_f_stress_Chalk2020(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
@@ -319,7 +340,7 @@ class DPLFSPHSolver(SPHSolver):
                 self.v2[p_i] += self.d_v[p_i] * self.dt[None] * 0.5
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None] * 0.5
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
-                self.stress[p_i] = self.adapt_stress(self.stress[p_i], p_i)
+                self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 
     @ti.kernel
     def advect_LF(self):
@@ -330,13 +351,13 @@ class DPLFSPHSolver(SPHSolver):
                 self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
-                self.stress[p_i] = self.adapt_stress(self.stress[p_i], p_i)
+                self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 
     def LF_one_step(self):
         self.init_basic_terms()
         self.cal_v_grad()
         self.cal_d_density()
-        self.cal_d_f_stress()
+        self.cal_d_f_stress_Bui2008()
         self.cal_d_velocity()
 
     def substep_LeapFrog(self):
