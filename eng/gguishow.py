@@ -1,14 +1,11 @@
 import taichi as ti
 import numpy as np
-import time
 import os
 from datetime import datetime
 
 # TODO: add different color choice
-# TODO: add background grids
-# TODO:
 
-def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=False, stepwise=20, iparticle=None, color_title="Null", grid_line=None, given_max=-1):
+def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause=True, save_png=-1, step_ggui=20, iparticle=-1, color_title="Null", grid_line=-1, given_max=-1):
     print("ggui starts to serve!")
 
     # basic paras
@@ -50,7 +47,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
 
     # save png
     cappath = os.getcwd() + r"\screenshots"
-    if save_png:
+    if save_png > 0:
         timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
         simpath = os.getcwd() + "\\sim_" + timestamp
         if not os.path.exists(simpath):
@@ -60,15 +57,11 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
     # main loop
     while window.running:
         if not flag_pause:
-            if iparticle is None:
-                print('---- %06d' % (flag_step))
-            else:
+            if iparticle > 0:
                 print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f' % (flag_step, iparticle, solver.ps.x[iparticle][0], solver.ps.x[iparticle][1], solver.ps.v[iparticle][0], solver.ps.v[iparticle][1], solver.ps.density[iparticle]))
-            for i in range(stepwise):
+            for i in range(step_ggui):
                 solver.step()
                 flag_step += 1
-
-        # draw world
 
         # draw grids
         if grid_line is not None and grid_line != 0.0:
@@ -81,14 +74,14 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
         solver.ps.set_color()
         draw_radius = solver.ps.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(solver.ps.pos2vis, radius=draw_radius, per_vertex_color=solver.ps.color)   # ! WARRNING: Overriding last binding
-        if iparticle is not None:
+        if iparticle > 0:
             i_pos.from_numpy(np.array([solver.ps.pos2vis[iparticle]], dtype=np.float32))
             canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))   # ! WARRNING: Overriding last binding
 
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)
         window.GUI.text('Total particle number: {pnum:,}'.format(pnum=solver.ps.particle_num[None]))
-        window.GUI.text('Step: {step:,}'.format(step=flag_step))
+        window.GUI.text('Step: {fstep:,}'.format(fstep=flag_step))
         window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * flag_step))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
@@ -112,7 +105,7 @@ def gguishow(case, solver, world, s2w_ratio, kradius=1.0, pause=True, save_png=F
             window.write_image(fname)
             print(f"Screenshot has been saved to {fname}")
 
-        if save_png:
+        if save_png > 0 and flag_step % (save_png * step_ggui) == 0:
             window.write_image(f"{flag_step:06d}.png")
 
         window.show()

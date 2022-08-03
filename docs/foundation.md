@@ -184,7 +184,7 @@ where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factor
 
 The first-order derivation:
 
-$$\nabla W_{ij}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert}$$
+$$\nabla_i W_{ij}^{\alpha}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i^{\alpha}-x_j^{\alpha}}{\Vert\boldsymbol{r}\Vert}$$
 
 The second-order derivation:
 
@@ -242,7 +242,7 @@ $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second orde
     * Solution: $p = max(0,k(\rho-\rho_0))$;
     * Solution for leakage:
         1. Reflect the outbound velocity when close to boundary. 还可以将垂直边界方向的速度乘上一个衰减值。这样处理大抵应该是不会导致粒子飞出去。
-        2. Pad a layer of solid particles (or called ghost particles) underneath the boundaries with $\rho_{solid} = \rho_0$ and $v_{solid} = 0$. 总体来说比方法1稳定，但可能会导致边界附近粒子的数值黏滞。
+        2. Pad a layer of solid particles (or called ghost particles, dummy particles) underneath the boundaries with $\rho_{solid} = \rho_0$ and $v_{solid} = 0$. 总体来说比方法1稳定，但可能会导致边界附近粒子的数值黏滞。
 
 > **QUESTIONS**
 >
@@ -320,18 +320,22 @@ The particles that comprise the free surface should satisfy a stress-free condit
 
 ### Courant-Friedrichs-Lewy (CFL)
 
-> @yang2021
+> @Bui2021 3.6, Yang2021 2.5 and Koschier2019 2.9
+
+The CFL condition is a necessary condition for the convergence of numerical solvers for differential equations and, as a result, provides an upper bound for the time step width.
 
 The size of $\Delta t$ is determined using the Courant-Friedrichs-Lewy (CFL) stability condition, which, for SPH states that:
 
-$$\Delta t=C_{CFL}\frac{h}{c}$$
+$$\Delta t=C_{CFL}\frac{h}{\Vert \boldsymbol{v}^{max}\Vert}$$
 
-where a suitable value for $C_{CFL}$ was found to be 0.2.
-$h$ is the smoothing length and $c$ is the speed of sound is the smoothing length and $c$ is the speed of sound.
+where a suitable constant value for $C_{CFL}$ was found to be 0.2 from Yang2021, 0.1 from Bui2021, 0.4 from Koschier2019.
+$h$ is the smoothing length and $\boldsymbol{v}^{max}$ is the velocity at which the fastest particle travels, which can be the speed of sound $c$ of the material with $c=\sqrt{E/\rho}$.
 
 ### Symp Euler - Symplectic Euler (SE)
 
 > @taichiCourse01-10 PPT p77
+
+Also referred to as semi-implicit Euler or Euler-Cromer scheme.
 
 $$v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*$$
 

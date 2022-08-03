@@ -18,6 +18,9 @@ class MCmuISESPHSolver(SPHSolver):
         self.fric = self.fric_deg / 180 * np.pi
         self.mass = self.ps.m_V * self.density_0
         self.mu = ti.tan(self.fric)
+        self.vsound = 60.0        # speed of sound, m/s
+        self.vsound2 = self.vsound ** 2
+        self.dt[None] = ti.max(self.dt_min, 0.2 * self.ps.smoothing_len / self.vsound)  # CFL
 
         # allocate memories
         self.v_grad = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)

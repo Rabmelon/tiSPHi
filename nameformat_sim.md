@@ -41,13 +41,12 @@ norm for yes; no for no
 # colored property:
 p pressure
 r density
-u norm of velocity, also ux, uy
+v norm of velocity, also vx, vy, or use u instead of v before 08.2022
 x position, also y
 dr d_density
-sm hydrostatic pressure; s norm of stress, also sxx, syy, sxy
+s norm of stress, also sxx, syy, sxy, sm hydrostatic pressure, ss deviatoric stress
+ep norm of strain, also epxx, epyy, epxy, epe equivalent plastic strain
 dis displacement, norm
-ep norm of strain, also epxx, epyy, epxy;
-
 
 
 

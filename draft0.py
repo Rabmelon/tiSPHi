@@ -5,7 +5,6 @@ from eng.wcsph import *
 from eng.wcsesph import *
 from eng.muIsesph import *
 from eng.muIlfsph import *
-from eng.muIrksph import *
 from eng.dpsesph import *
 from eng.dplfsph import *
 
@@ -53,7 +52,7 @@ if __name__ == "__main__":
         elif TDmethod == 2:
             solver = MCmuILFSPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
         elif TDmethod == 4:
-            solver = MCmuIRKSPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
+            pass
     elif mat == 2 and cmodel == 2:
         coh = 0.0
         fric = 21.9
@@ -65,7 +64,7 @@ if __name__ == "__main__":
         elif TDmethod == 4:
             pass
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="stress yy Pa",
-             kradius=1.5, stepwise=20, iparticle=None, save_png=1, pause=1, grid_line=0.05, given_max=-1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="strain p equ",
+             kradius=1.5, step_ggui=20, iparticle=-1, save_png=-1, pause=1, grid_line=0.05, given_max=3)
 
-    # color title: index; pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; displacement m
+    # color title: index; pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; displacement m; strain p equ;

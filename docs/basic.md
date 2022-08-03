@@ -79,6 +79,15 @@ This is **material derivative** in fluid mechanics, total derivative in math. �
 从偏导数全微分的摡念出发，密度变化可以认为是密度分布函数（密度场）的时间偏导数项（不定常）和空间偏导数项（空间不均匀）的和。时间偏导项叫局部导数或就地导数。空间偏导项叫位变导数或对流导数。
 中科院的李新亮研究员给出了一个更加形象的例子：高铁的电子显示屏上会实时显示车外的温度，如果我们将高铁看作是一个流体微元，它早上从北京出发，中午到达上海，显示屏上记录的室外温度的变化就是物质导数，它包含了两个部分，一是从北京到上海的地理位置的变化所带来的温度变化，即对流导数；二是由于早上到中午由于时间不同而引起的温度变化，即当地导数。)
 
+> @Koschier2019
+
+However, given the same field quantity once described in Eulerian coordinates $f^E(t, \boldsymbol{x})$ and Lagrangian coordinates $f^L(t)$ the material derivative has the following explicit forms:
+
+$$\frac{{\rm D}f^E}{{\rm D}t}=\frac{\partial f^E}{\partial t}+\boldsymbol{v}\cdot\nabla f^E\ and\ \frac{{\rm D}f^L}{{\rm D}t}=\frac{\partial f^L}{\partial t} $$
+
+The second term of the material derivative for Eulerian coordinates is referred to as *convection term* or *self-advection* term. As opposed to some people's beliefs, the convection term is non-existent when a quantity is described in Lagrangian coordinates.
+
+
 ## Fluid and solid
 
 **Solid**: Applied tengential force/area (or shear stress) $\tau$ produces a proportional deformation angle (or strain) $\theta$. The constant of proportionality $G$ is called the *elastic modulus* and has the units of $force/area$.

@@ -13,11 +13,10 @@ class SPHSolver:
         self.TDmethod = TDmethod # 1 for Symp Euler, 2 for LF, 4 for RK4
         self.flagKernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
         self.g = -9.81          # gravity, m/s2
-        self.vsound = 600.0        # speed of sound, m/s
-        self.vsound2 = self.vsound ** 2
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.dt = ti.field(float, shape=())
-        self.dt[None] = ti.max(1e-6, 0.2 * self.ps.smoothing_len / self.vsound)  # CFL
+        self.dt[None] = 1e-5
+        self.dt_min = 1e-6
         self.epsilon = 1e-16
         self.alertratio = 1.25
 

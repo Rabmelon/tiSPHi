@@ -57,6 +57,6 @@ if __name__ == "__main__":
             pass
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="velocity m/s",
-             kradius=1.5, stepwise=20, iparticle=None, save_png=0, pause=True, grid_line=0.146)
+             kradius=1.5, step_ggui=20, iparticle=None, save_png=0, pause=True, grid_line=0.146)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;

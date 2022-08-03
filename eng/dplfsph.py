@@ -21,6 +21,9 @@ class DPLFSPHSolver(SPHSolver):
         self.dim_v = 4
         self.I3 = ti.Matrix(np.eye(self.dim))
         self.max_x1 = ti.field(float, shape=())
+        self.vsound = ti.sqrt(self.EYoungMod / self.density_0)        # speed of sound, m/s
+        dt_tmp = 0.1 * self.ps.smoothing_len / self.vsound
+        self.dt[None] = ti.max(self.dt_min, dt_tmp - dt_tmp % self.dt_min)  # CFL
 
         # calculated paras
         self.alpha_fric = ti.tan(self.fric) / ti.sqrt(9 + 12 * ti.tan(self.fric)**2)
@@ -45,13 +48,15 @@ class DPLFSPHSolver(SPHSolver):
         self.sJ2 = ti.field(dtype=float)
         self.fDP_old = ti.field(dtype=float)
         self.flag_adapt = ti.field(dtype=float)
+        self.strain_p_equ = ti.field(dtype=float)
 
         self.d_density = ti.field(dtype=float)
         self.d_v = ti.Vector.field(self.ps.dim, dtype=float)
         self.d_f_stress = ti.Vector.field(self.dim_v, dtype=float)
+        self.d_strain_p_equ = ti.field(dtype=float)
 
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particle_node.place(self.density2, self.v2, self.v_grad, self.f_stress, self.f_v, self.stress, self.stress_s, self.I1, self.sJ2, self.fDP_old, self.flag_adapt, self.d_density, self.d_v, self.d_f_stress)
+        particle_node.place(self.density2, self.v2, self.v_grad, self.f_stress, self.f_v, self.stress, self.stress_s, self.I1, self.sJ2, self.fDP_old, self.flag_adapt, self.d_density, self.d_v, self.d_f_stress, self.strain_p_equ, self.d_strain_p_equ)
 
         self.cal_max_hight()
         self.init_stress()
@@ -70,7 +75,8 @@ class DPLFSPHSolver(SPHSolver):
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                self.ps.val[p_i] = self.strain_p_equ[p_i]
 
     ###########################################################################
     # assisting funcs
@@ -288,15 +294,9 @@ class DPLFSPHSolver(SPHSolver):
                 tmp_g = lambda_r * (9.0 * self.KBulkMod * ti.sin(self.dila) * self.I + self.GShearMod / self.sJ2[p_i] * self.stress_stress2(self.stress_s[p_i]))
 
             strain_r_e = strain_r - strain_r.trace() / 3.0 * self.I
+            self.d_strain_p_equ[p_i] = ti.sqrt((strain_r_e*strain_r_e).sum() * 2 / 3)
             tmp_v = 2.0 * self.GShearMod * strain_r_e + self.KBulkMod * strain_r.trace() * self.I
             self.d_f_stress[p_i] = self.stress2_fs(tmp_J + tmp_g + tmp_v)
-
-            # if p_i == test_p_i:
-            #     print("---- ---- ---- tmp g =", tmp_g)
-            #     print("---- ---- ---- tmp J =", tmp_J)
-            #     print("---- ---- ---- tmp v =", tmp_v)
-
-
 
     @ti.kernel
     def cal_d_f_stress_Chalk2020(self):
@@ -306,7 +306,7 @@ class DPLFSPHSolver(SPHSolver):
             omega_r_xy = (self.v_grad[p_i][0,1] - self.v_grad[p_i][1,0]) * 0.5
             tmp_J = ti.Vector([2.0 * self.stress[p_i][0, 1] * omega_r_xy, -2.0 * self.stress[p_i][0, 1] * omega_r_xy,
                                -self.stress[p_i][0, 0] * omega_r_xy + self.stress[p_i][1, 1] * omega_r_xy, 0.0])
-            strain_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] + self.v_grad[p_i][j, i] for i in range(self.ps.dim)] for j in range(self.ps.dim)])
+            strain_r = 0.5 * ti.Matrix([[self.v_grad[p_i][i, j] + self.v_grad[p_i][j, i] for j in range(self.ps.dim)] for i in range(self.ps.dim)])
             tmp_g = ti.Vector([0.0 for _ in range(self.dim_v)])
             if self.fDP_old[p_i] >= -self.epsilon and self.sJ2[p_i] > self.epsilon:
                 lambda_r = (3.0 * self.alpha_fric * strain_r.trace() + (self.GShearMod / self.sJ2[p_i]) * (self.stress_stress2(self.stress_s[p_i]) * strain_r).sum()) / (27.0 * self.alpha_fric * self.KBulkMod * ti.sin(self.dila) + self.GShearMod)
@@ -317,7 +317,7 @@ class DPLFSPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                    self.f_v[p_j] = self.cal_f_v(self.ps.v[p_j])
+                    self.f_v[p_j] = self.cal_f_v(self.v2[p_j])
                 tmp_v += (self.f_v[p_j] - self.f_v[p_i]) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]) / self.density2[p_j]
             self.d_f_stress[p_i] += tmp_J + tmp_g + tmp_v * self.mass
 
@@ -350,6 +350,7 @@ class DPLFSPHSolver(SPHSolver):
                 self.ps.v[p_i] += self.d_v[p_i] * self.dt[None]
                 self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
+                self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None]
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
                 self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 
