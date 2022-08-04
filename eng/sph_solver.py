@@ -179,7 +179,7 @@ class SPHSolver:
 
         d_A = abs(db_i.dot(flag_dir))
         d_B = abs(db_j.dot(flag_dir))
-        return d_B / d_A
+        return d_B / (d_A + self.epsilon)
 
     ###########################################################################
     # Time integration
@@ -224,4 +224,4 @@ class SPHSolver:
             self.substep_LeapFrog()
         elif self.TDmethod == 4:
             self.substep_RK4()
-        self.enforce_boundary()
+        # self.enforce_boundary()

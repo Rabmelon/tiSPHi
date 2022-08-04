@@ -208,7 +208,7 @@ $$\dot{\lambda}=\gamma\langle\phi(F)\rangle$$
 
 where $\gamma$ is a fluidity parameter (acts as the reciprocal of viscosity) and $\phi(F)$ is a yield-type function. The $\langle...\rangle$ symbol represents the Macaulay brackets:
 
-$$\langle\phi\rangle=\begin{cases} \phi,\,\,\phi\ge0\\ 0,\,\,\phi<0\\ \end{cases}$$
+$$\langle\phi\rangle=\begin{cases} \phi,&\phi\ge0\\ 0,&\phi<0\\ \end{cases}$$
 
 The function $\phi(F)$ is therefore defined as:
 
@@ -398,11 +398,44 @@ $$\frac{{\rm D}\boldsymbol{v}}{{\rm D}t}=\frac{1}{\rho}\nabla\cdot\boldsymbol{\s
 
 To exactly conserve momentum, we should use the symmetric form:
 
-$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\frac{1}{\rho_i}\sum_jV_j(\boldsymbol{\sigma}_j+\boldsymbol{\sigma}_i)\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
+$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i$$
 
-or
+## Numerical oscillations and dissipations in SPH
 
-$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jV_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i $$
+### Artificial viscosity - standard approach
+
+> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017, from @Monaghan1983
+
+The fully dynamic equation would cause SPH particles to freely oscillate due to even small unbalanced forces, most of which is attributed to the zero-energy mode produced by the anti-symmetric kernel function with zero kernel gradient at the inflection point. However, this oscillation of SPH particles or material points is a common issue associated with any numerical method used to solve the fully dynamic motion equation.
+
+An adapted artificial viscosity was implemented with SPH to dampen the irregular particle motion and pressure fluctuations, and to prevent the non-physical collisions of two approaching particles. The artificial viscosity term $\Pi_{ij}$ is included in the SPH momentum equation as:
+
+$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\Pi_{ij}\boldsymbol{I})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i$$
+
+And the most widely used form of artificial viscosity is:
+
+$$\Pi_{ij}=\begin{cases} \frac{-\alpha_{\Pi}c_{ij}\phi_{ij}+\beta_{\Pi}\phi_{ij}^2}{\rho_{ij}},&\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}<0\\ 0,&\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}\ge0\\ \end{cases}$$
+
+$$\phi_{ij}=\frac{h_{ij}\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}}{\Vert\boldsymbol{x}_{ij}\Vert^2+\varepsilon h_{ij}^2}$$
+
+$$c_{ij}=\frac{c_i+c_j}{2},\ \rho_{ij}=\frac{\rho_i+\rho_j}{2},\ h_{ij}=\frac{h_i+h_j}{2},\ \boldsymbol{x}_{ij}=\boldsymbol{x}_i-\boldsymbol{x}_j,\ \boldsymbol{v}_{ij}=\boldsymbol{v}_i-\boldsymbol{v}_j$$
+
+where $\alpha_{\Pi}$ and $\beta_{\Pi}$ are problem dependent tuning parameters, $c$ is the speed of sound. $\alpha_{\Pi}$ is associated with the speed of sound, while $\beta_{\Pi}$ is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. $\varepsilon=0.01$ is a numerical parameter introduced to prevent numerical divergences.
+
+A disadvantage of using the artificial viscosity is that parameter tuning may be required to obtain the optimal values which are not directly associated with any physical properties. The use of the artificial viscosity in SPH simulations is purely for the purposes of numerical stabilisation.
+
+### Alternative viscous damping term
+
+> @bui2020 3.3, @chalk2020 4.5.1, @nguyen2017
+
+Alternative damping terms can be used instead of the artificial viscosity that have more physical relevance to the problem, or require less calibration. The following velocity-dependent damping term $\boldsymbol{F}_d=-\mu_d\boldsymbol{v}$ can be included as a body force in the equation of the momentum.
+
+$\mu_d$ is the damping factor which can be computed by $\mu_d=\xi\sqrt{E/\rho h^2}$ with $\xi$ being a non-dimensional damping coefficient that requires calibrations for different applications. For the simulation of granular flows, such as the flow of granular column collapse experiments in *Nguyen2017*, a constant value of $\xi=5\times10^{-5}$ is recommended.
+
+
+### Stress/strain regularisation
+
+> @bui2020 3.3, @nguyen2017
 
 
 ## Standard soil SPH
@@ -415,7 +448,7 @@ The discrete governing equations of soil motion in the framework of standard SPH
 
 $$\frac{{\rm D} \rho_i}{{\rm D} t} = \rho_i\sum_j V_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla W_{ij}$$
 
-$$\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j V_j(\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\frac{\boldsymbol{\sigma}_j}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
+$$\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\frac{\boldsymbol{\sigma}_j}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i$$
 
 $$\frac{{\rm D} \boldsymbol{f}^{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j V_j(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p}$$
 

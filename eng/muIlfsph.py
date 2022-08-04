@@ -15,7 +15,7 @@ class MCmuILFSPHSolver(SPHSolver):
         self.coh = cohesion
         self.fric_deg = friction
         self.eta_0 = eta_0
-        self.EYongMod = EYoungMod
+        self.EYoungMod = EYoungMod
         self.fric = self.fric_deg / 180 * np.pi
         self.mass = self.ps.m_V * self.density_0
         self.mu = ti.tan(self.fric)
@@ -26,7 +26,7 @@ class MCmuILFSPHSolver(SPHSolver):
 
         # artificial viscosity and density diffusion terms
         self.xi = 5.0e-5
-        self.cd = self.xi * ti.sqrt(self.EYongMod / (self.density_0 * self.ps.smoothing_len**2))
+        self.cd = self.xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
         self.delta = 0.1
         self.alphapi = 0.04
         self.Psi = ti.Vector.field(self.ps.dim, dtype=float)

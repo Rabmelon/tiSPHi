@@ -10,6 +10,7 @@ from eng.dplfsph import *
 
 # TODO: sand cc here
 
+# ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64)
 # ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, cpu_max_num_threads=1)
 ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
 # ti.init(arch=ti.vulkan)
@@ -18,8 +19,8 @@ if __name__ == "__main__":
     print("hallo tiSPHi!")
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
-    screen_to_world_ratio = 1400   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [0.55, 0.20]   # a rectangle world start from (0, 0) to this pos
+    screen_to_world_ratio = 2400   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    rec_world = [0.2, 0.2]   # a rectangle world start from (0, 0) to this pos
     particle_radius = 0.001
     cube_size = [0.2, 0.1]
 
@@ -64,7 +65,7 @@ if __name__ == "__main__":
         elif TDmethod == 4:
             pass
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="strain p equ",
-             kradius=1.5, step_ggui=20, iparticle=-1, save_png=-1, pause=1, grid_line=0.05, given_max=3)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="stress yy Pa",
+             kradius=1.5, step_ggui=20, iparticle=-1, save_png=-1, pause=0, grid_line=0.05, given_max=-1)
 
-    # color title: index; pressure Pa; velocity m/s; density N/m3; d density N/m3/s; stress yy Pa; displacement m; strain p equ;
+    # color title: index; pressure Pa; velocity m/s; density kg/m3; d density kg/m3/s; stress yy Pa; displacement m; strain p equ;

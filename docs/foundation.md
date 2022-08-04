@@ -109,7 +109,7 @@ $$\nabla^2_i W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} $$
 
 Like to approximate the velocity gradient $\nabla\boldsymbol{v}$, using anti-symmtric form to ensure that the gradients of a constant velocity field vanish:
 
-$$\frac{\partial v^{\alpha}}{\partial x^{\beta}}=\sum_jV_j(v^{\alpha}_j-v^{\alpha}_i)\cdot\nabla_iW_{ij}^{\beta} $$
+$$v_{\alpha,\beta}=\frac{\partial v^{\alpha}}{\partial x^{\beta}}=\sum_jV_j(v^{\alpha}_j-v^{\alpha}_i)\cdot\nabla_iW_{ij}^{\beta}$$
 
 ## Kernel functions
 
@@ -164,7 +164,7 @@ $$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
 > 1. The second-order derivation is wrong!!!!!!!!!!!!!!!!!!
 > 2. Why $0<q<2$? The support domain should be $h$, or $2h$? It only depends on the choice and should be $2$ in kernel function but $h$ in neighbor search? **ANSWER**: @peng lecture. $h$ is called "smoothing length" and controls the shape of kernel function, $\kappa h$ is the compact support radius determining the region of support domain, also the neighbour search condition should be $|\boldsymbol{x}_i-\boldsymbol{x}_j|\le\kappa h$. $\kappa$ is usually taking as $2$.
 
-> @koschierSmoothedParticleHydrodynamics2019
+> @koschier2019
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
   6(q^3-q^2)+1, &0\leq q \leq 0.5 \\ 2(1-q)^3, &0.5 < q \leq 1 \\ 0, &otherwise
@@ -192,7 +192,7 @@ The second-order derivation:
 
 ### CSPM gradient normalisation
 
-> @bui2021, @Chalk2020, @Chen1999
+> @Bui2021, @Chalk2020, @Chen1999
 
 A corrective term can be multiplied to the smoothing kernel to improve the accuracy of the SPH approximation. The Corrective Smoothed Particle Method (CSPM) increases the accuracy of the kernel via a normalisation procedure, which is based on a Taylor series expansion of the SPH equations.
 

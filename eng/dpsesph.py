@@ -72,8 +72,9 @@ class DPSESPHSolver(SPHSolver):
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                # self.ps.val[p_i] = -self.stress[p_i][1,1]
-                self.ps.val[p_i] = self.strain_p_equ[p_i]
+                # self.ps.val[p_i] = self.ps.x[p_i][1]
+                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = self.strain_p_equ[p_i]
 
     ###########################################################################
     # assisting funcs
@@ -81,7 +82,8 @@ class DPSESPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.density_0
-        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
+        # self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
+        self.ps.v[p_j] = -self.cal_d_BA(p_i, p_j) * self.ps.v[p_i]
 
     @ti.func
     def cal_f_v(self, v):
@@ -141,6 +143,21 @@ class DPSESPHSolver(SPHSolver):
         fDP = self.cal_fDP(vI1, sJ2)
         return stress_s, vI1, sJ2, fDP
 
+    @ti.func
+    def cal_artificial_visc(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
+        res = 0.0
+        if flag_av:
+            vare = 0.01
+            xij = self.ps.x[p_i] - self.ps.x[p_j]
+            vij = self.ps.v[p_i] - self.ps.v[p_j]
+            vijxij = (vij * xij).sum()
+            if vijxij < 0.0:
+                rhoij = 0.5 * (self.ps.density[p_i] + self.ps.density[p_j])
+                hij = self.ps.smoothing_len
+                cij = self.vsound
+                phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
+                res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
+        return res
 
     ###########################################################################
     # assisting kernels
@@ -252,18 +269,39 @@ class DPSESPHSolver(SPHSolver):
                 continue
             dv = ti.Vector([0.0 for _ in range(self.ps.dim)])
             stress_i_2d = self.stress_stress2(self.stress[p_i])
+
+            # viscous damping
+            xi = 5.0e-5
+            cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
+            Fd = -cd * self.ps.v[p_i]
+            Fd = ti.Vector([0.0 for _ in range(self.ps.dim)])
+
+            # artificial viscosity
+            alpha_Pi = 0.1
+            beta_Pi = 0.0
+            flag_av = True
+
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 stress_j_2d = self.stress_stress2(self.stress[p_j])
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
                     stress_j_2d = self.stress_stress2(self.stress[p_i])
-                dv += self.ps.density[p_j] * self.ps.m_V * (stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                dv += self.ps.density[p_j] * self.ps.m_V * (stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2 - self.cal_artificial_visc(flag_av, alpha_Pi, beta_Pi, p_i, p_j) * self.I) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+
+                # if p_i == test_p_i and flag_av:
+                #     tmp_vijxij = ((self.ps.v[p_i] - self.ps.v[p_j]) * (self.ps.x[p_i] - self.ps.x[p_j])).sum()
+                #     if tmp_vijxij < 0:
+                #         tmp_dv0 = stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2
+                #         print("---- ---- ---- j =", p_j, "v*x =", tmp_vijxij, end=", ")
+                #         print("Pi =", self.cal_artificial_visc(flag_av, alpha_Pi, beta_Pi, p_i, p_j), end=", ")
+                #         print("dv term0 =", tmp_dv0)
+
             if self.ps.dim == 2:
                 dv += ti.Vector([0.0, self.g])
             else:
                 print("!!!!!My Error: cannot used in 3D now!")
-            self.d_v[p_i] = dv
+            self.d_v[p_i] = dv + Fd
 
     @ti.kernel
     def cal_d_f_stress_Bui2008(self):
@@ -367,14 +405,14 @@ class DPSESPHSolver(SPHSolver):
 
     def substep_SympEuler(self):
         self.init_basic_terms()
-        # print('---- ---- p[%05d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
+        # print('---- ---- p[%d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
         self.cal_v_grad()
         # print('---- ---- ∇v=[%.9f, %.9f; %.9f, %.9f]' % (self.v_grad[test_p_i][0,0], self.v_grad[test_p_i][0,1], self.v_grad[test_p_i][1,0], self.v_grad[test_p_i][1,1]))
         self.cal_d_density()
         self.cal_d_f_stress_Bui2008()
         # print('---- ---- dfσ=[%.6f, %.6f, %.6f, %.6f]' % (self.d_f_stress[test_p_i][0], self.d_f_stress[test_p_i][1], self.d_f_stress[test_p_i][2], self.d_f_stress[test_p_i][3]), end=", ")
         self.cal_d_velocity()
-        # print('dv=[%.3f, %.3f]' % (self.d_v[test_p_i][0], self.d_v[test_p_i][1]))
+        # print('---- ---- dv=[%.3f, %.3f]' % (self.d_v[test_p_i][0], self.d_v[test_p_i][1]))
         self.cal_stress()
         # print('---- ---- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3]))
         # self.chk_stress()
@@ -385,4 +423,4 @@ class DPSESPHSolver(SPHSolver):
         # print("---- ---- end of step")
         a = 1
 
-test_p_i = 1435
+test_p_i = 7190
