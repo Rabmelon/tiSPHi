@@ -5,7 +5,7 @@ from .sph_solver import SPHSolver
 # ! 2D only
 
 class DPLFSPHSolver(SPHSolver):
-    def __init__(self, particle_system, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0):
+    def __init__(self, particle_system, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0, flag_av=False):
         super().__init__(particle_system, kernel)
         print("Class Drucker-Prager Soil SPH Solver starts to serve!")
 
@@ -16,6 +16,8 @@ class DPLFSPHSolver(SPHSolver):
         self.EYoungMod = EYoungMod
         self.poi = poison
         self.dila = dilatancy / 180 * np.pi
+        self.flag_av = flag_av
+
         self.mass = self.ps.m_V * self.density_0
         self.dim = 3
         self.dim_v = 4
@@ -146,22 +148,6 @@ class DPLFSPHSolver(SPHSolver):
         fDP = self.cal_fDP(vI1, sJ2)
         return stress_s, vI1, sJ2, fDP
 
-    @ti.func
-    def cal_artificial_visc(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
-        res = 0.0
-        if flag_av:
-            vare = 0.01
-            xij = self.ps.x[p_i] - self.ps.x[p_j]
-            vij = self.v2[p_i] - self.v2[p_j]
-            vijxij = (vij * xij).sum()
-            if vijxij < 0:
-                rhoij = 0.5 * (self.density2[p_i] + self.density2[p_j])
-                hij = self.ps.smoothing_len
-                cij = self.vsound
-                phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
-                res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
-        return res * self.I
-
 
     ###########################################################################
     # assisting kernels
@@ -289,7 +275,6 @@ class DPLFSPHSolver(SPHSolver):
             # artificial viscosity
             alpha_Pi = 0.1
             beta_Pi = 0.0
-            flag_av = True
 
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
@@ -297,7 +282,7 @@ class DPLFSPHSolver(SPHSolver):
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
                     stress_j_2d = self.stress_stress2(self.stress[p_i])
-                dv += self.density2[p_j] * self.ps.m_V * (stress_j_2d / self.density2[p_j]**2 + stress_i_2d / self.density2[p_i]**2 - self.cal_artificial_visc(flag_av, alpha_Pi, beta_Pi, p_i, p_j)) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                dv += self.density2[p_j] * self.ps.m_V * (stress_j_2d / self.density2[p_j]**2 + stress_i_2d / self.density2[p_i]**2 - self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j)) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             if self.ps.dim == 2:
                 dv += ti.Vector([0.0, self.g])
             else:
@@ -324,9 +309,11 @@ class DPLFSPHSolver(SPHSolver):
                 tmp_g = lambda_r * (9.0 * self.KBulkMod * ti.sin(self.dila) * self.I + self.GShearMod / self.sJ2[p_i] * self.stress_stress2(self.stress_s[p_i]))
 
             strain_r_e = strain_r - strain_r.trace() / 3.0 * self.I
-            self.d_strain_p_equ[p_i] = ti.sqrt((strain_r_e*strain_r_e).sum() * 2 / 3)
             tmp_v = 2.0 * self.GShearMod * strain_r_e + self.KBulkMod * strain_r.trace() * self.I
             self.d_f_stress[p_i] = self.stress2_fs(tmp_J + tmp_g + tmp_v)
+
+            # calculate the equivalent plastic strain
+            self.d_strain_p_equ[p_i] = ti.sqrt((strain_r_e*strain_r_e).sum() * 2 / 3)
 
     @ti.kernel
     def cal_d_f_stress_Chalk2020(self):

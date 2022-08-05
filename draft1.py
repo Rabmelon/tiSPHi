@@ -26,7 +26,7 @@ if __name__ == "__main__":
     powcomp = 7.0
 
     case1 = ParticleSystem(rec_world, particle_radius)
-    case1.gen_rangeary_particles()
+    case1.gen_boundary_dummy()
     case1.add_cube(lower_corner=[0.0, 0.0], cube_size=cube_size, material=mat, density=rho)
 
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=viscosity, para3=stiffness, para4=powcomp)

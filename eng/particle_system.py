@@ -229,7 +229,7 @@ class ParticleSystem:
                       color=color,
                       offset=voff)
 
-    def gen_rangeary_particles(self):
+    def gen_boundary_dummy(self):
         Dummy_color = (153/255, 153/255, 255/255)
         # Dummy_color = 0x9999FF
         Dummy_type = 10
@@ -246,10 +246,28 @@ class ParticleSystem:
         self.gen_one_rangeary_cube(Dummy_cube_u_dl, Dummy_cube_u_tr, Dummy_color, Dummy_type, Dummy_off)
         self.gen_one_rangeary_cube(Dummy_cube_l_dl, Dummy_cube_l_tr, Dummy_color, Dummy_type, Dummy_off)
         self.gen_one_rangeary_cube(Dummy_cube_r_dl, Dummy_cube_r_tr, Dummy_color, Dummy_type, Dummy_off)
-        print("rangeary dummy particles' number: ", self.particle_num)
+        print("Rangeary dummy particles' number: ", self.particle_num)
+
+    def gen_boundary_rep(self):
+        Rep_color = (170/255, 17/255, 255/255)
+        Rep_type = 11
+        Rep_off = self.particle_radius
+        tmpr = self.particle_radius*0.5
+        Rep_cube_d_dl = np.array([0, 0]) - self.particle_radius
+        Rep_cube_d_tr = np.array([self.world[0], 0]) + tmpr
+        Rep_cube_u_dl = np.array([0, self.world[1]]) - self.particle_radius
+        Rep_cube_u_tr = self.world + tmpr
+        Rep_cube_l_dl = np.array([0 - self.particle_radius, 0])
+        Rep_cube_l_tr = np.array([0 + tmpr, self.world[1] - tmpr])
+        Rep_cube_r_dl = np.array([self.world[0] - self.particle_radius, 0])
+        Rep_cube_r_tr = np.array([self.world[0] + tmpr, self.world[1] - tmpr])
+        self.gen_one_rangeary_cube(Rep_cube_d_dl, Rep_cube_d_tr, Rep_color, Rep_type, Rep_off)
+        self.gen_one_rangeary_cube(Rep_cube_u_dl, Rep_cube_u_tr, Rep_color, Rep_type, Rep_off)
+        self.gen_one_rangeary_cube(Rep_cube_l_dl, Rep_cube_l_tr, Rep_color, Rep_type, Rep_off)
+        self.gen_one_rangeary_cube(Rep_cube_r_dl, Rep_cube_r_tr, Rep_color, Rep_type, Rep_off)
 
     ###########################################################################
-    # Generate particles in rules
+    # Generate particles in shape
     ###########################################################################
     # add particles in a cube region
     def add_cube(self,

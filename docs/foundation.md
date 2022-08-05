@@ -227,7 +227,7 @@ $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second orde
 
 ## Boundary treatment
 
-### Basic methods
+### Simplest treatments
 
 > @taichiCourse01-10 PPT p43 and 79-85
 
@@ -248,23 +248,43 @@ $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second orde
 >
 > 1. 多介质的流体混合时，多介质的界面？？？
 
-### Complex boundary treatment
+### Free surface problems
+
+The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.
+
+> **QUESTIONS**
+>
+> 1. BUT how does the free surface condition implement?
+
+### Dummy particles
 
 > @Chalk2020
 
 虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。
 
-#### For straight, stationary walls
-
-First, choose the method to solve boundary problems. I want to update the behaviour of particles without just invert the operator but with some rules that are suitable for soil dynamics problems.
-
-The dummy particle method is used to represent the wall boundary. For dummy and repulsive particles at the wall boundary, they are spaced apart by $\Delta x/2$. For other dummy particles, are $\Delta x$.
+The dummy particle (or ghost particle) method is used to represent the wall boundary. For dummy particles outside the wall boundary, they are spaced apart by $\Delta x$. For repulsive particles at the wall boundary, are $\Delta x/2$.
 
 <div align="center">
   <img width="300px" src="/img/Dummy_particles.png">
 </div>
 
-The repulsive particles are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force $\hat{\boldsymbol{F}}_{ij}$ is applied to all particles that interact with the repulsive boundary particles, and is included in the SPH momentum equation:
+For an interior particle A (circle) that contains a dummy particle B (square) within its neighbourhood, the normal distances $d_A$ and $d_B$ to the wall are calculated. An artificial velocity $\boldsymbol{v}_B$ is then assigned to the dummy particle:
+
+$$\boldsymbol{v}_B = -\frac{d_B}{d_A}\boldsymbol{v}_A$$
+
+To account for extremely large values of the dummy particle velocity when an interior particle approaches the boundary (and $d_A$ approaches 0), a parameter $\beta$ is introduced:
+
+$$\boldsymbol{v}_B = (1-\beta)\boldsymbol{v}_A+\beta\boldsymbol{v}_{wall}\ ,\ \beta = min(\beta_{max}, 1+\frac{d_B}{d_A})$$
+
+$\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $\beta_{max}=1.5$.
+
+And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$ and $p_B=p_A$, etc. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the $\boldsymbol{f}^{\sigma}$ term) on the interior particles in the equation of momentum through the particle-dummy interaction.
+
+### A coupled dynamic solid boundary treatment
+
+> @Chalk2020, Liu2012
+
+The repulsive particles (triangle) are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force $\hat{\boldsymbol{F}}_{ij}$ is applied to all particles that interact with the repulsive boundary particles, and is included in the SPH momentum equation:
 
 $$\hat{\boldsymbol{F}}_{ij} = \sum_j 0.01c^2\chi\cdot\hat{f}(\gamma)\frac{\boldsymbol{x}_{ij}}{r^2}$$
 
@@ -288,33 +308,6 @@ $$\hat{f}(\gamma) = \left\{
 \right.$$
 
 And this soft repulsive force has been applied to simulations of water flow and the propagation of a Bingham material.
-
-> **HINT**: Not yet add the repulsive force
-
-For an interior particle A (circle) that contains a dummy particle B (square and triangle) within its neighbourhood, the normal distances $d_A$ and $d_B$ to the wall are calculated. An artificial velocity $\boldsymbol{v}_B$ is then assigned to the dummy particle:
-
-$$\boldsymbol{v}_B = -\frac{d_B}{d_A}\boldsymbol{v}_A$$
-
-To account for extremely large values of the dummy particle velocity when an interior particle approaches the boundary (and $d_A$ approaches 0), a parameter $\beta$ is introduced:
-
-$$\boldsymbol{v}_B = (1-\beta)\boldsymbol{v}_A+\beta\boldsymbol{v}_{wall}\ ,\ \beta = min(\beta_{max}, 1+\frac{d_B}{d_A})$$
-
-$\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $\beta_{max}=1.5$.
-
-And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the $\boldsymbol{f}^{\sigma}$ term) on the interior particles in the equation of momentum through the particle-dummy interaction.
-
-> **QUESTIONS**
->
-> 1. How about the mass of repulsive particles? **ANSWER**: maybe the mass of repulsive particel = 0!
-> 2. How to add repulsive forces in boundary particles?
-
-#### For free surface problems
-
-The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.
-
-> **QUESTIONS**
->
-> 1. BUT how does the free surface condition implement?
 
 ## Time integration and advection
 

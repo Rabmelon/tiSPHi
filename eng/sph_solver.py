@@ -183,6 +183,41 @@ class SPHSolver:
         d_B = abs(db_j.dot(flag_dir))
         return d_B / (d_A + self.epsilon)
 
+    # repulsive forces
+    @ti.func
+    def cal_repulsive_force(self, r, vsound):
+        r_norm = r.norm()
+        chi = 1.0 - r_norm / (1.5 * self.ps.particle_diameter) if (r_norm >= 0.0 and r_norm < 1.5 * self.ps.particle_diameter) else 0.0
+        gamma = r_norm / (0.75 * self.ps.smoothing_len)
+        f = 0.0
+        if gamma > 0 and gamma <= 2 / 3:
+            f = 2 / 3
+        elif gamma > 2 / 3 and gamma <= 1:
+            f = 2 * gamma - 1.5 * gamma**2
+        elif gamma > 1 and gamma < 2:
+            f = 0.5 * (2 - gamma)**2
+        res = 0.01 * vsound**2 * chi * f / (r_norm**2) * r
+        return res
+
+    ###########################################################################
+    # Artificial terms
+    ###########################################################################
+    @ti.func
+    def cal_artificial_viscosity(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
+        res = 0.0
+        if flag_av:
+            vare = 0.01
+            xij = self.ps.x[p_i] - self.ps.x[p_j]
+            vij = self.ps.v[p_i] - self.ps.v[p_j]
+            vijxij = (vij * xij).sum()
+            if vijxij < 0.0:
+                rhoij = 0.5 * (self.ps.density[p_i] + self.ps.density[p_j])
+                hij = self.ps.smoothing_len
+                cij = self.vsound
+                phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
+                res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
+        return res
+
     ###########################################################################
     # Time integration
     ###########################################################################
@@ -222,7 +257,7 @@ class SPHSolver:
 
     def step(self):
         self.ps.initialize_particle_system()
-        self.cal_L()
+        # self.cal_L()
         self.substep()
         # if self.TDmethod == 1:
         #     self.substep_SympEuler()

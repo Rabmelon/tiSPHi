@@ -5,7 +5,7 @@ from datetime import datetime
 
 # TODO: add different color choice
 
-def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=-1, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1):
+def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1):
     print("ggui starts to serve!")
 
     # basic paras
@@ -19,19 +19,18 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
 
     # draw grid line
     if grid_line is not None and grid_line != 0.0:
-        dim = len(world)
         if not isinstance(grid_line,list):
-            grid_line = [grid_line for _ in range(dim)]
-        num_grid_point = [int((world[i] - 1e-8) // grid_line[i]) for i in range(dim)]
+            grid_line = [grid_line for _ in range(case.dim)]
+        num_grid_point = [int((world[i] - 1e-8) // grid_line[i]) for i in range(case.dim)]
         num_all_grid_point = sum(num_grid_point)
         num_all2_grid_point = 2 * num_all_grid_point
-        np_pos_line = np.array([[0.0 for _ in range(dim)] for _ in range(num_all2_grid_point)], dtype=np.float32)
+        np_pos_line = np.array([[0.0 for _ in range(case.dim)] for _ in range(num_all2_grid_point)], dtype=np.float32)
         np_indices_line = np.array([[i, i + num_all_grid_point] for i in range(num_all_grid_point)], dtype=np.int32)
-        pos_line = ti.Vector.field(dim, ti.f32, shape=num_all2_grid_point)
+        pos_line = ti.Vector.field(case.dim, ti.f32, shape=num_all2_grid_point)
         indices_line = ti.Vector.field(2, ti.i32, shape=num_all_grid_point)
         indices_line.from_numpy(np_indices_line)
-        for id in range(dim):
-            id2 = dim - 1 - id
+        for id in range(case.dim):
+            id2 = case.dim - 1 - id
             for i in range(num_grid_point[id]):
                 np_pos_line[i + sum(num_grid_point[0:id])][id] = (i + 1) * grid_line[id]
                 np_pos_line[i + sum(num_grid_point[0:id]) + num_all_grid_point][id] = (i + 1) * grid_line[id]
@@ -163,6 +162,77 @@ def chooseColorTitle(flag):
         res = "strain pla equ"
     elif flag == 7:
         res = "displacement norm m"
+    elif flag == 8:
+        res = "pressure Pa"
     else:
         res = "Null"
     return res
+
+# TODO: try to make a single color selector!!!
+###########################################################################
+# colored value
+###########################################################################
+# @ti.kernel
+# def init_value(solver, flag):
+#     for p_i in range(solver.ps.particle_num[None]):
+#         if solver.ps.material[p_i] < 10:
+#             if flag == 1:
+#                 """index"""
+#                 solver.ps.val[p_i] = p_i
+#             elif flag == 2:
+#                 """density kg/m3"""
+#                 solver.ps.val[p_i] = solver.ps.density[p_i]
+#             elif flag == 21:
+#                 """d density kg/m3/s"""
+#                 solver.ps.val[p_i] = solver.d_density[p_i]
+#             elif flag == 3:
+#                 """velocity norm m/s"""
+#                 solver.ps.val[p_i] = solver.ps.v[p_i].norm()
+#             elif flag == 31:
+#                 """velocity x m/s"""
+#                 solver.ps.val[p_i] = solver.ps.v[p_i][0]
+#             elif flag == 32:
+#                 """velocity y m/s"""
+#             elif flag == 33:
+#                 """velocity z m/s"""
+#             elif flag == 4:
+#                 """position m"""
+#             elif flag == 41:
+#                 """position x m"""
+#             elif flag == 42:
+#                 """position y m"""
+#             elif flag == 43:
+#                 """position z m"""
+#             elif flag == 5:
+#                 """stress Pa"""
+#             elif flag == 51:
+#                 """stress xx Pa"""
+#             elif flag == 52:
+#                 """stress yy Pa"""
+#                 solver.ps.val[p_i] = -solver.stress[p_i][1,1]
+#             elif flag == 53:
+#                 """stress zz Pa"""
+#             elif flag == 54:
+#                 """stress xy Pa"""
+#             elif flag == 55:
+#                 """stress yz Pa"""
+#             elif flag == 56:
+#                 """stress zx Pa"""
+#             elif flag == 57:
+#                 """stress hydro Pa"""
+#             elif flag == 58:
+#                 """stress devia Pa"""
+#                 solver.ps.val[p_i] = solver.strain_p_equ[p_i]
+#             elif flag == 6:
+#                 """strain"""
+#             elif flag == 61:
+#                 """strain pla equ"""
+#             elif flag == 7:
+#                 """displacement norm m"""
+#                 solver.ps.val[p_i] = ti.sqrt(((solver.ps.x[p_i] - solver.ps.x0[p_i])**2).sum())
+#             elif flag == 8:
+#                 """pressure Pa"""
+#                 solver.ps.val[p_i] = solver.pressure[p_i]
+#             else:
+#                 """Null"""
+#                 solver.ps.val[p_i] = 0.0
