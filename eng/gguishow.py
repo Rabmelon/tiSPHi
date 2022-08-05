@@ -5,7 +5,7 @@ from datetime import datetime
 
 # TODO: add different color choice
 
-def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause=True, save_png=-1, step_ggui=20, iparticle=-1, color_title="Null", grid_line=-1, given_max=-1):
+def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=-1, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1):
     print("ggui starts to serve!")
 
     # basic paras
@@ -39,8 +39,7 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause=True, save_png
         pos_line.from_numpy((np_pos_line + case.grid_size) * w2s)
 
     # control paras
-    flag_pause = pause
-    flag_step = 0
+    count_step = 0
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]
     max_res = int(res.max())
@@ -56,12 +55,12 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause=True, save_png
 
     # main loop
     while window.running:
-        if not flag_pause:
+        if not pause_init:
             if iparticle > 0:
-                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f' % (flag_step, iparticle, solver.ps.x[iparticle][0], solver.ps.x[iparticle][1], solver.ps.v[iparticle][0], solver.ps.v[iparticle][1], solver.ps.density[iparticle]))
+                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f' % (count_step, iparticle, solver.ps.x[iparticle][0], solver.ps.x[iparticle][1], solver.ps.v[iparticle][0], solver.ps.v[iparticle][1], solver.ps.density[iparticle]))
             for i in range(step_ggui):
                 solver.step()
-                flag_step += 1
+                count_step += 1
 
         # draw grids
         if grid_line is not None and grid_line != 0.0:
@@ -81,11 +80,11 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause=True, save_png
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)
         window.GUI.text('Total particle number: {pnum:,}'.format(pnum=solver.ps.particle_num[None]))
-        window.GUI.text('Step: {fstep:,}'.format(fstep=flag_step))
-        window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * flag_step))
+        window.GUI.text('Step: {fstep:,}'.format(fstep=count_step))
+        window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * count_step))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
-        window.GUI.text('colorbar: {str}'.format(str=color_title))
+        window.GUI.text('colorbar: {str}'.format(str=chooseColorTitle(color_title)))
         window.GUI.text('max value: {maxv:.3f}'.format(maxv=solver.ps.vmax[None]))
         window.GUI.text('min value: {minv:.3f}'.format(minv=solver.ps.vmin[None]))
         window.GUI.end()
@@ -95,17 +94,75 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause=True, save_png
             if e.key == ti.ui.ESCAPE:
                 window.running = False
             elif e.key == ti.ui.SPACE:
-                flag_pause = not flag_pause
+                pause_init = not pause_init
             elif e.key == ti.ui.LMB:
                 show_pos = [i / s2w_ratio * max_res - case.grid_size for i in window.get_cursor_pos()]
                 show_grid = [(i - j) // case.grid_size for i,j in zip(show_pos, case.bound[0])]
         if window.is_pressed('p'):
-            timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
-            fname = os.path.join(cappath, f"screenshot{timestamp}.jpg")
-            window.write_image(fname)
-            print(f"Screenshot has been saved to {fname}")
+            captureScreen(window, cappath)
+        if exit_step > 0 and count_step > exit_step - step_ggui:
+            captureScreen(window, cappath)
+            window.running = False
 
-        if save_png > 0 and flag_step % (save_png * step_ggui) == 0:
-            window.write_image(f"{flag_step:06d}.png")
+        # output
+        if save_png > 0 and count_step % (save_png * step_ggui) == 0:
+            window.write_image(f"{count_step:06d}.png")
 
         window.show()
+
+def captureScreen(window, cappath):
+    timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
+    fname = os.path.join(cappath, f"screenshot{timestamp}.jpg")
+    window.write_image(fname)
+    print(f"Screenshot has been saved to {fname}")
+
+def chooseColorTitle(flag):
+    if flag == 1:
+        res = "index"
+    elif flag == 2:
+        res = "density kg/m3"
+    elif flag == 21:
+        res = "d density kg/m3/s"
+    elif flag == 3:
+        res = "velocity norm m/s"
+    elif flag == 31:
+        res = "velocity x m/s"
+    elif flag == 32:
+        res = "velocity y m/s"
+    elif flag == 33:
+        res = "velocity z m/s"
+    elif flag == 4:
+        res = "position m"
+    elif flag == 41:
+        res = "position x m"
+    elif flag == 42:
+        res = "position y m"
+    elif flag == 43:
+        res = "position z m"
+    elif flag == 5:
+        res = "stress Pa"
+    elif flag == 51:
+        res = "stress xx Pa"
+    elif flag == 52:
+        res = "stress yy Pa"
+    elif flag == 53:
+        res = "stress zz Pa"
+    elif flag == 54:
+        res = "stress xy Pa"
+    elif flag == 55:
+        res = "stress yz Pa"
+    elif flag == 56:
+        res = "stress zx Pa"
+    elif flag == 57:
+        res = "stress hydro Pa"
+    elif flag == 58:
+        res = "stress devia Pa"
+    elif flag == 6:
+        res = "strain"
+    elif flag == 61:
+        res = "strain pla equ"
+    elif flag == 7:
+        res = "displacement norm m"
+    else:
+        res = "Null"
+    return res

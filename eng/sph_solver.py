@@ -7,10 +7,9 @@ import numpy as np
 
 @ti.data_oriented
 class SPHSolver:
-    def __init__(self, particleSystem, TDmethod, kernel):
+    def __init__(self, particleSystem, kernel):
         print("Class SPH Solver starts to serve!")
         self.ps = particleSystem
-        self.TDmethod = TDmethod # 1 for Symp Euler, 2 for LF, 4 for RK4
         self.flagKernel = kernel   # 1 for cubic-spline, 2 for Wenland, 3 for
         self.g = -9.81          # gravity, m/s2
         self.I = ti.Matrix(np.eye(self.ps.dim))
@@ -21,7 +20,7 @@ class SPHSolver:
         self.alertratio = 1.25
 
     ###########################################################################
-    # Assist
+    # colored value
     ###########################################################################
     @ti.kernel
     def init_value(self):
@@ -29,6 +28,9 @@ class SPHSolver:
             if self.ps.material[p_i] < 10:
                 self.ps.val[p_i] = 0.0
 
+    ###########################################################################
+    # Assist
+    ###########################################################################
     @ti.kernel
     def cal_L(self):
         for p_i in range(self.ps.particle_num[None]):
@@ -215,13 +217,17 @@ class SPHSolver:
             self.RK4_one_step(m)
         # self.update_vel_pos()
 
+    def substep():
+        pass
+
     def step(self):
         self.ps.initialize_particle_system()
         self.cal_L()
-        if self.TDmethod == 1:
-            self.substep_SympEuler()
-        elif self.TDmethod == 2:
-            self.substep_LeapFrog()
-        elif self.TDmethod == 4:
-            self.substep_RK4()
-        # self.enforce_boundary()
+        self.substep()
+        # if self.TDmethod == 1:
+        #     self.substep_SympEuler()
+        # elif self.TDmethod == 2:
+        #     self.substep_LeapFrog()
+        # elif self.TDmethod == 4:
+        #     self.substep_RK4()
+        # self.enforce_boundary()   # Needed in WCSPH

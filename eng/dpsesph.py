@@ -5,8 +5,8 @@ from .sph_solver import SPHSolver
 # ! 2D only
 
 class DPSESPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0):
-        super().__init__(particle_system, TDmethod, kernel)
+    def __init__(self, particle_system, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0):
+        super().__init__(particle_system, kernel)
         print("Class Drucker-Prager Soil SPH Solver starts to serve!")
 
         # basic paras
@@ -67,13 +67,13 @@ class DPSESPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
-                # self.ps.val[p_i] = self.ps.v[p_i].norm()
+                self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
                 # self.ps.val[p_i] = self.ps.x[p_i][1]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
 
     ###########################################################################
@@ -82,8 +82,7 @@ class DPSESPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.density_0
-        # self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
-        self.ps.v[p_j] = -self.cal_d_BA(p_i, p_j) * self.ps.v[p_i]
+        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
 
     @ti.func
     def cal_f_v(self, v):
@@ -271,10 +270,10 @@ class DPSESPHSolver(SPHSolver):
             stress_i_2d = self.stress_stress2(self.stress[p_i])
 
             # viscous damping
-            xi = 5.0e-5
-            cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
-            Fd = -cd * self.ps.v[p_i]
-            Fd = ti.Vector([0.0 for _ in range(self.ps.dim)])
+            # xi = 5.0e-5
+            # cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
+            # Fd = -cd * self.ps.v[p_i]
+            Fd = 0.0
 
             # artificial viscosity
             alpha_Pi = 0.1
@@ -403,7 +402,7 @@ class DPSESPHSolver(SPHSolver):
                 self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
                 self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None]
 
-    def substep_SympEuler(self):
+    def substep(self):
         self.init_basic_terms()
         # print('---- ---- p[%d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
         self.cal_v_grad()

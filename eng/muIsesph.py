@@ -6,8 +6,8 @@ from .sph_solver import SPHSolver
 # TODO: need to init the stress state when starting the simulation?
 
 class MCmuISESPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, kernel, density, cohesion, friction, eta_0):
-        super().__init__(particle_system, TDmethod, kernel)
+    def __init__(self, particle_system, kernel, density, cohesion, friction, eta_0=0.0):
+        super().__init__(particle_system, kernel)
         print("Class M-C μ(I) Soil SPH Solver starts to serve!")
 
         # basic paras
@@ -142,7 +142,7 @@ class MCmuISESPHSolver(SPHSolver):
                 self.ps.v[p_i] += self.d_u[p_i] * self.dt[None]
                 self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
 
-    def substep_SympEuler(self):
+    def substep(self):
         self.cal_d_density()
         self.cal_pressure()
         self.cal_u_grad()

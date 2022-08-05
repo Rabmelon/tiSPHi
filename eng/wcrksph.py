@@ -2,12 +2,12 @@ import taichi as ti
 from .sph_solver import SPHSolver
 
 class WCRKSPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, kernel, visco, stiff, expo):
-        super().__init__(particle_system, TDmethod, kernel)
+    def __init__(self, particle_system, kernel, rho, visco, stiff, expo):
+        super().__init__(particle_system, kernel)
         print("Hallo, class WCSPH Solver starts to serve!")
 
         # Basic paras
-        self.density_0 = 1000.0  # reference density
+        self.density_0 = rho  # reference density
         self.mass = self.ps.m_V * self.density_0
         self.viscosity = visco  # viscosity
 
@@ -230,7 +230,7 @@ class WCRKSPHSolver(SPHSolver):
             self.RK4_one_step(m)
         self.update_particle()
 
-    def substep_RK4(self):
+    def substep(self):
         self.init_F()
         self.compute_densities()
         self.chk_density()

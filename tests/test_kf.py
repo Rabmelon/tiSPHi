@@ -85,5 +85,5 @@ if __name__ == "__main__":
     case1.add_cube(lower_corner=[0, 0], cube_size=[80, 80], material=1)
 
     solver = ChkKernel(case1, 1, 2)
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, step_ggui=20, pause=False, iparticle=None, kradius=1.05, color_title="f=x+y, f'x, WLC2")
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, step_ggui=20, pause_init=False, iparticle=None, kradius=1.05, color_title="f=x+y, f'x, WLC2")
     # f=x+y, f, |f'|, f'[0,0], CS, WLC2, Gaus

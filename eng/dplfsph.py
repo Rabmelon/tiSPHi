@@ -5,8 +5,8 @@ from .sph_solver import SPHSolver
 # ! 2D only
 
 class DPLFSPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0):
-        super().__init__(particle_system, TDmethod, kernel)
+    def __init__(self, particle_system, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0):
+        super().__init__(particle_system, kernel)
         print("Class Drucker-Prager Soil SPH Solver starts to serve!")
 
         # basic paras
@@ -58,6 +58,7 @@ class DPLFSPHSolver(SPHSolver):
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
         particle_node.place(self.density2, self.v2, self.v_grad, self.f_stress, self.f_v, self.stress, self.stress_s, self.I1, self.sJ2, self.fDP_old, self.flag_adapt, self.d_density, self.d_v, self.d_f_stress, self.strain_p_equ, self.d_strain_p_equ)
 
+        self.assign_x0()
         self.cal_max_hight()
         self.init_stress()
 
@@ -70,13 +71,14 @@ class DPLFSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
-                # self.ps.val[p_i] = self.ps.v[p_i].norm()
+                self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
+                # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
 
     ###########################################################################
     # assisting funcs
@@ -279,10 +281,10 @@ class DPLFSPHSolver(SPHSolver):
             stress_i_2d = self.stress_stress2(self.stress[p_i])
 
             # viscous damping
-            xi = 5.0e-5
-            cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
-            Fd = -cd * self.ps.v[p_i]
-            Fd = ti.Vector([0.0 for _ in range(self.ps.dim)])
+            # xi = 5.0e-5
+            # cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
+            # Fd = -cd * self.ps.v[p_i]
+            Fd = 0.0
 
             # artificial viscosity
             alpha_Pi = 0.1
@@ -389,7 +391,7 @@ class DPLFSPHSolver(SPHSolver):
         self.cal_d_f_stress_Bui2008()
         self.cal_d_velocity()
 
-    def substep_LeapFrog(self):
+    def substep(self):
         self.init_LF_f()
         self.LF_one_step()
         self.advect_LF_half()

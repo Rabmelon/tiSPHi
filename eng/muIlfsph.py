@@ -6,8 +6,8 @@ from .sph_solver import SPHSolver
 # TODO: need to init the stress state when starting the simulation?
 
 class MCmuILFSPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, kernel, density, cohesion, friction, eta_0, EYoungMod=5.0e6):
-        super().__init__(particle_system, TDmethod, kernel)
+    def __init__(self, particle_system, kernel, density, cohesion, friction, eta_0=0.0, EYoungMod=5.0e6):
+        super().__init__(particle_system, kernel)
         print("Class M-C μ(I) Soil SPH Solver starts to serve!")
 
         # basic paras
@@ -53,13 +53,13 @@ class MCmuILFSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                # self.ps.val[p_i] = self.ps.v[p_i].norm()
+                self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
                 # self.ps.val[p_i] = self.ps.x[p_i][1]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
 
@@ -202,7 +202,7 @@ class MCmuILFSPHSolver(SPHSolver):
         self.cal_stress()
         self.cal_d_velocity()
 
-    def substep_LeapFrog(self):
+    def substep(self):
         self.init_LF_f()
         self.LF_one_step()
         self.advect_LF_half()

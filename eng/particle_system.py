@@ -270,7 +270,7 @@ class ParticleSystem:
 
         new_positions = np.array(np.meshgrid(*num_dim, sparse=False, indexing='ij'), dtype=np.float32)
         new_positions = new_positions.reshape(-1, reduce(lambda x, y: x * y, list(new_positions.shape[1:]))).transpose()
-        print("New cube's number and dim: ", new_positions.shape)
+        print("New cube's number: ", new_positions.shape[0])
 
         if color is None:
             color = np.zeros((num_new_particles, 3))

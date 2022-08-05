@@ -3,12 +3,12 @@ from .sph_solver import SPHSolver
 
 @ti.data_oriented
 class WCLFSPHSolver(SPHSolver):
-    def __init__(self, particle_system, TDmethod, kernel, visco, stiff, expo):
-        super().__init__(particle_system, TDmethod, kernel)
+    def __init__(self, particle_system, kernel, rho, visco, stiff, expo):
+        super().__init__(particle_system, kernel)
         print("Hallo, class WCSPH Solver starts to serve!")
 
         # Basic paras
-        self.density_0 = 1000.0  # reference density
+        self.density_0 = rho  # reference density
         self.mass = self.ps.m_V * self.density_0
         self.viscosity = visco  # viscosity
 
@@ -164,7 +164,7 @@ class WCLFSPHSolver(SPHSolver):
         self.compute_non_pressure_forces()
         self.compute_pressure_forces()
 
-    def substep_LeapFrog(self):
+    def substep(self):
         self.init_LF_f()
         self.compute_densities()
         self.LF_one_step()

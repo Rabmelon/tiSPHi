@@ -1,71 +1,62 @@
 import taichi as ti
 from eng.gguishow import *
 from eng.particle_system import *
-from eng.wcsph import *
-from eng.wcsesph import *
-from eng.muIsesph import *
-from eng.muIlfsph import *
-from eng.dpsesph import *
-from eng.dplfsph import *
+from eng.chooseSolver import *
 
-# TODO: sand cc here
-
-# ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64)
 # ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, cpu_max_num_threads=1)
 ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
-# ti.init(arch=ti.vulkan)
 
 if __name__ == "__main__":
-    print("hallo tiSPHi!")
+    print("hallo tiSPHi! This is for sand column collapse test!")
 
-    # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
-    screen_to_world_ratio = 2400   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [0.2, 0.2]   # a rectangle world start from (0, 0) to this pos
+    screen_to_world_ratio = 1400   # exp: world = (150m, 100m), ratio = 4, screen res = (600, 400)
+    rec_world = [0.55, 0.2]        # a rectangle world start from (0, 0) to this pos
     particle_radius = 0.001
     cube_size = [0.2, 0.1]
 
-    mat = 2
-    rho = 2040.0
+    mat = 2         # 1 water; 2 soil
     cmodel = 2      # for water, 1 WC; for soil, 1 muI, 2 DP
-    TDmethod = 2    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 4    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
+
+    rho = 2040.0
+    coh = 0.0
+    fric = 21.9
+    E = 5.84e6
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.gen_rangeary_particles()
     case1.add_cube(lower_corner=[0.0, 0.0], cube_size=cube_size, material=mat, density=rho)
 
-    if mat == 1 and cmodel == 1:
-        viscosity = 0.00005
-        stiffness = 50000.0
-        powcomp = 7.0
-        if TDmethod == 1:
-            solver = WCSESPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
-        elif TDmethod == 2:
-            solver = WCLFSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
-        elif TDmethod == 4:
-            solver = WCSPHSolver(case1, TDmethod, flag_kernel, viscosity, stiffness, powcomp)
-    elif mat == 2 and cmodel == 1:
-        coh = 0.0
-        fric = 21.9
-        eta0 = 0.0
-        if TDmethod == 1:
-            solver = MCmuISESPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
-        elif TDmethod == 2:
-            solver = MCmuILFSPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, eta0)
-        elif TDmethod == 4:
-            pass
-    elif mat == 2 and cmodel == 2:
-        coh = 0.0
-        fric = 21.9
-        E = 5.84e6
-        if TDmethod == 1:
-            solver = DPSESPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, E)
-        elif TDmethod == 2:
-            solver = DPLFSPHSolver(case1, TDmethod, flag_kernel, rho, coh, fric, E)
-        elif TDmethod == 4:
-            pass
+    solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=coh, para3=fric, para4=E)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title="stress yy Pa",
-             kradius=1.5, step_ggui=20, iparticle=-1, save_png=-1, pause=0, grid_line=0.05, given_max=-1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=3,
+             kradius=1.05, step_ggui=20, iparticle=-1, save_png=-1, pause_init=1, exit_step=0, grid_line=0.05, given_max=-1)
 
-    # color title: index; pressure Pa; velocity m/s; density kg/m3; d density kg/m3/s; stress yy Pa; displacement m; strain p equ;
+    '''
+    color title:
+    1 index
+    2 density
+        21 d density
+    3 velocity norm
+        31 x
+        32 y
+        33 z
+    4 position
+        41 x
+        42 y
+        43 z
+    5 stress
+        51 xx
+        52 yy
+        53 zz
+        54 xy
+        55 yz
+        56 zx
+        57 hydrostatic stress
+        58 deviatoric stress
+    6 strain
+        61 equivalent plastic strain
+    7 displacement
+    otherwise Null
+    '''

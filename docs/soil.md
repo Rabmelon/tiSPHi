@@ -454,6 +454,11 @@ $$\frac{{\rm D} \boldsymbol{f}^{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigm
 
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
 
+The relationship of variables in Drucker-Prager model:
+<div align="center">
+  <img width="800px" src="\img\DP_variables.png">
+</div>
+
 ### Symp-Euler for standard Drucker-Prager soil SPH
 
 * Known $\Delta x$, $\nu$, $E$, $D_{pq}^e$, $\rho_0$, $\boldsymbol{f}^{ext} = \vec{g}$, $\psi=0$, and paras for D-P yield criteria $c$, $\varphi$, $\alpha_{\varphi}$ and $k_c$
@@ -519,6 +524,7 @@ As for the calculation of plastic potential function item:
 <div align="center">
   <img width="800px" src="/img/flowchart_item_strain_DP.svg">
 </div>
+
 As for the implementation of RK4:
 <div align="center">
   <img width="300px" src="/img/flowchart_RK4_soil.svg">
