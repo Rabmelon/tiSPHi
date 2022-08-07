@@ -3,8 +3,8 @@ from eng.gguishow import *
 from eng.particle_system import *
 from eng.chooseSolver import *
 
-# ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, cpu_max_num_threads=1)
-ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
+ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, cpu_max_num_threads=1)
+# ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
 
 if __name__ == "__main__":
     print("hallo tiSPHi! This is for sand column collapse test!")
@@ -16,23 +16,23 @@ if __name__ == "__main__":
 
     mat = 2         # 1 water; 2 soil
     cmodel = 2      # for water, 1 WC; for soil, 1 muI, 2 DP
-    TDmethod = 2    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 1    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     rho = 2040.0
     coh = 0.0
     fric = 21.9
     E = 5.84e6
-    flag_arti_visc = 0
+    flag_arti_visc = 1
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.gen_boundary_dummy()
-    # case1.gen_boundary_rep()
+    case1.gen_boundary_rep()
     case1.add_cube(lower_corner=[0.0, 0.0], cube_size=cube_size, material=mat, density=rho)
 
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=coh, para3=fric, para4=E, para5=flag_arti_visc)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=52, kradius=1.5, step_ggui=20, iparticle=-1, save_png=10, pause_init=1, exit_step=0, grid_line=0.05, given_max=-1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=52, kradius=1.5, step_ggui=1, iparticle=3836, save_png=0, pause_init=1, exit_step=0, grid_line=0.05, given_max=-1, given_min=-1)
 
     '''
     color title:

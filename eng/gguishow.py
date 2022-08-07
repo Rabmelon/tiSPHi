@@ -6,7 +6,7 @@ from datetime import datetime
 # TODO: add different color choice
 # TODO: try to make a single color selector!!!
 
-def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1):
+def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1, given_min=-1):
     print("ggui starts to serve!")
 
     # basic paras
@@ -69,7 +69,7 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
         # draw particles
         solver.ps.copy2vis(s2w_ratio, max_res)
         solver.init_value()
-        solver.ps.v_maxmin(given_max)
+        solver.ps.v_maxmin(given_max, given_min)
         solver.ps.set_color()
         draw_radius = solver.ps.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(solver.ps.pos2vis, radius=draw_radius, per_vertex_color=solver.ps.color)   # ! WARRNING: Overriding last binding
@@ -80,8 +80,8 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)
         window.GUI.text('Total particle number: {pnum:,}'.format(pnum=solver.ps.particle_num[None]))
-        window.GUI.text('Step: {fstep:,} (dt={dt:.6f})'.format(fstep=count_step, dt=solver.dt[None]))
-        window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * count_step))
+        window.GUI.text('Step: {fstep:,}'.format(fstep=count_step))
+        window.GUI.text('Time: {t:.6f}s, dt={dt:.6f}s'.format(t=solver.dt[None] * count_step, dt=solver.dt[None]))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
         window.GUI.text('colorbar: {str}'.format(str=chooseColorTitle(color_title)))

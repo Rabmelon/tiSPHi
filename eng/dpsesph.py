@@ -1,6 +1,6 @@
 import taichi as ti
 import numpy as np
-from .sph_solver import SPHSolver
+from eng.sph_solver import SPHSolver
 
 # ! 2D only
 
@@ -442,5 +442,5 @@ class DPSESPHSolver(SPHSolver):
         if test_p_i > 0: print("---- ---- end of step")
         a = 1
 
-# test_p_i = 7266
-test_p_i = -1
+test_p_i = 3836
+# test_p_i = -1

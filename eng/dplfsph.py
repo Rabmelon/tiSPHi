@@ -1,6 +1,6 @@
 import taichi as ti
 import numpy as np
-from .sph_solver import SPHSolver
+from eng.sph_solver import SPHSolver
 
 # ! 2D only
 

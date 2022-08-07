@@ -1,6 +1,5 @@
 import taichi as ti
 import numpy as np
-import matplotlib as mpl
 from eng.colormap import *
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 
@@ -315,7 +314,7 @@ class ParticleSystem:
                 self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
 
     @ti.kernel
-    def v_maxmin(self, givenmax: float):
+    def v_maxmin(self, givenmax: float, givenmin: float):
         vmax = -float('Inf')
         vmin = float('Inf')
         for i in range(self.particle_num[None]):
@@ -323,7 +322,7 @@ class ParticleSystem:
                 ti.atomic_max(vmax, self.val[i])
                 ti.atomic_min(vmin, self.val[i])
         self.vmax[None] = vmax if givenmax == -1 or vmax < givenmax else givenmax
-        self.vmin[None] = vmin
+        self.vmin[None] = vmin if givenmin == -1 else givenmin
 
     @ti.kernel
     def set_color(self):
