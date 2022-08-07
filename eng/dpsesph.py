@@ -69,13 +69,13 @@ class DPSESPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
-                self.ps.val[p_i] = self.ps.v[p_i].norm()
+                # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
                 # self.ps.val[p_i] = self.ps.x[p_i][1]
-                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
 
     ###########################################################################
@@ -194,6 +194,25 @@ class DPSESPHSolver(SPHSolver):
             self.v_grad[p_i] = v_g * self.mass
 
     ###########################################################################
+    # Artificial terms
+    ###########################################################################
+    @ti.func
+    def cal_artificial_viscosity(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
+        res = 0.0
+        if flag_av:
+            vare = 0.01
+            xij = self.ps.x[p_i] - self.ps.x[p_j]
+            vij = self.ps.v[p_i] - self.ps.v[p_j]
+            vijxij = (vij * xij).sum()
+            if vijxij < 0.0:
+                rhoij = 0.5 * (self.ps.density[p_i] + self.ps.density[p_j])
+                hij = self.ps.smoothing_len
+                cij = self.vsound
+                phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
+                res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
+        return res
+
+    ###########################################################################
     # stress adaptation
     ###########################################################################
     @ti.func
@@ -281,14 +300,12 @@ class DPSESPHSolver(SPHSolver):
                     continue
                 dv += self.ps.density[p_j] * self.ps.m_V * (stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2 - self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j) * self.I) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
 
-                # if p_i == test_p_i:
+                if p_i == test_p_i:
                     # print("---- ---- ---- j =", p_j, "mat =", self.ps.material[p_j], "rep =", rep, "dv0 =", dv)
-                    # tmp_vijxij = ((self.ps.v[p_i] - self.ps.v[p_j]) * (self.ps.x[p_i] - self.ps.x[p_j])).sum()
-                    # if tmp_vijxij < 0:
-                    #     tmp_dv0 = stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2
-                    #     print("---- ---- ---- j =", p_j, "v*x =", tmp_vijxij, end=", ")
-                    #     print("Pi =", self.cal_artificial_visc(flag_av, alpha_Pi, beta_Pi, p_i, p_j), end=", ")
-                    #     print("dv term0 =", tmp_dv0)
+                    tmp_vijxij = ((self.ps.v[p_i] - self.ps.v[p_j]) * (self.ps.x[p_i] - self.ps.x[p_j])).sum()
+                    if tmp_vijxij < 0:
+                        tmp_dv0 = stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2
+                        print("---- ---- ---- j =", p_j, "v*x =", tmp_vijxij, "Pi =", self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j), "dv term0 =", tmp_dv0)
 
             if self.ps.dim == 2:
                 dv += ti.Vector([0.0, self.g])
@@ -321,6 +338,13 @@ class DPSESPHSolver(SPHSolver):
 
             # calculate the equivalent plastic strain
             self.d_strain_p_equ[p_i] = ti.sqrt((strain_r_e*strain_r_e).sum() * 2 / 3)
+
+            if p_i == test_p_i:
+                print("---- ---- ---- strain r =", strain_r)
+                print("---- ---- ---- strain r e =", strain_r_e)
+                print("---- ---- ---- tmp g =", tmp_g)
+                print("---- ---- ---- tmp J =", tmp_J)
+                print("---- ---- ---- tmp v =", tmp_v)
 
     @ti.kernel
     def cal_d_f_stress_Chalk2020(self):
@@ -400,22 +424,23 @@ class DPSESPHSolver(SPHSolver):
 
     def substep(self):
         self.init_basic_terms()
-        # print('---- ---- p[%d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
+        if test_p_i > 0: print('---- ---- p[%d]: fσ=[%.9f, %.9f, %.9f, %.9f], fDP=%.5f' % (test_p_i, self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3], self.fDP_old[test_p_i]))
         self.cal_v_grad()
-        # print('---- ---- ∇v=[%.9f, %.9f; %.9f, %.9f]' % (self.v_grad[test_p_i][0,0], self.v_grad[test_p_i][0,1], self.v_grad[test_p_i][1,0], self.v_grad[test_p_i][1,1]))
+        if test_p_i > 0: print('---- ---- ∇v=[%.9f, %.9f; %.9f, %.9f]' % (self.v_grad[test_p_i][0,0], self.v_grad[test_p_i][0,1], self.v_grad[test_p_i][1,0], self.v_grad[test_p_i][1,1]))
         self.cal_d_density()
         self.cal_d_f_stress_Bui2008()
-        # print('---- ---- dfσ=[%.6f, %.6f, %.6f, %.6f]' % (self.d_f_stress[test_p_i][0], self.d_f_stress[test_p_i][1], self.d_f_stress[test_p_i][2], self.d_f_stress[test_p_i][3]))
+        if test_p_i > 0: print('---- ---- dfσ=[%.6f, %.6f, %.6f, %.6f]' % (self.d_f_stress[test_p_i][0], self.d_f_stress[test_p_i][1], self.d_f_stress[test_p_i][2], self.d_f_stress[test_p_i][3]))
         self.cal_d_velocity()
-        # print('---- ---- dv=[%.3f, %.3f]' % (self.d_v[test_p_i][0], self.d_v[test_p_i][1]))
+        if test_p_i > 0: print('---- ---- dv=[%.3f, %.3f]' % (self.d_v[test_p_i][0], self.d_v[test_p_i][1]))
         self.cal_stress()
-        # print('---- ---- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3]))
+        if test_p_i > 0: print('---- ---- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.f_stress[test_p_i][0], self.f_stress[test_p_i][1], self.f_stress[test_p_i][2], self.f_stress[test_p_i][3]))
         # self.chk_stress()
-        # print('---- ---- -adapt- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2]))
+        # if test_p_i > 0: print('---- ---- -adapt- fσ=[%.6f, %.6f, %.6f, %.6f]' % (self.stress[test_p_i][0,0], self.stress[test_p_i][1,1], self.stress[test_p_i][0,1], self.stress[test_p_i][2,2]))
         self.cal_density()
         self.chk_density()
         self.advect_SE()
-        # print("---- ---- end of step")
+        if test_p_i > 0: print("---- ---- end of step")
         a = 1
 
-test_p_i = 3836
+# test_p_i = 7266
+test_p_i = -1

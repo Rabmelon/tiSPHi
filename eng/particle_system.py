@@ -322,7 +322,7 @@ class ParticleSystem:
             if self.material[i] < 10:
                 ti.atomic_max(vmax, self.val[i])
                 ti.atomic_min(vmin, self.val[i])
-        self.vmax[None] = vmax if givenmax == -1 else givenmax
+        self.vmax[None] = vmax if givenmax == -1 or vmax < givenmax else givenmax
         self.vmin[None] = vmin
 
     @ti.kernel

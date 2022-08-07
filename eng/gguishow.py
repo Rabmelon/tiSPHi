@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 # TODO: add different color choice
+# TODO: try to make a single color selector!!!
 
 def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1):
     print("ggui starts to serve!")
@@ -12,7 +13,7 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
     drawworld = [i + 2 * case.grid_size for i in world]
     res = (np.array(drawworld) * s2w_ratio).astype(int)
     w2s=s2w_ratio / res.max()
-    window = ti.ui.Window('SPH window', res=(max(res), max(res)))
+    window = ti.ui.Window('tiSPHi window', res=(max(res), max(res)))
     canvas = window.get_canvas()
     canvas.set_background_color((1,1,1))
     i_pos = ti.Vector.field(case.dim, ti.f32, shape=1)
@@ -79,7 +80,7 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
         # show text
         window.GUI.begin("Info", 0.03, 0.03, 0.4, 0.3)
         window.GUI.text('Total particle number: {pnum:,}'.format(pnum=solver.ps.particle_num[None]))
-        window.GUI.text('Step: {fstep:,}'.format(fstep=count_step))
+        window.GUI.text('Step: {fstep:,} (dt={dt:.6f})'.format(fstep=count_step, dt=solver.dt[None]))
         window.GUI.text('Time: {t:.6f}s'.format(t=solver.dt[None] * count_step))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
@@ -168,7 +169,6 @@ def chooseColorTitle(flag):
         res = "Null"
     return res
 
-# TODO: try to make a single color selector!!!
 ###########################################################################
 # colored value
 ###########################################################################

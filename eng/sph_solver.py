@@ -200,25 +200,6 @@ class SPHSolver:
         return res
 
     ###########################################################################
-    # Artificial terms
-    ###########################################################################
-    @ti.func
-    def cal_artificial_viscosity(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
-        res = 0.0
-        if flag_av:
-            vare = 0.01
-            xij = self.ps.x[p_i] - self.ps.x[p_j]
-            vij = self.ps.v[p_i] - self.ps.v[p_j]
-            vijxij = (vij * xij).sum()
-            if vijxij < 0.0:
-                rhoij = 0.5 * (self.ps.density[p_i] + self.ps.density[p_j])
-                hij = self.ps.smoothing_len
-                cij = self.vsound
-                phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
-                res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
-        return res
-
-    ###########################################################################
     # Time integration
     ###########################################################################
     def substep_SympEuler(self):

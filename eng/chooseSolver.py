@@ -34,9 +34,9 @@ def chooseSolver(case, material, cmodel, TDmethod, flag_kernel, para1=None, para
         E = para4
         flag_av = para5
         if TDmethod == 1:
-            solver = DPSESPHSolver(case, flag_kernel, rho, coh, fric, E, flag_av)
+            solver = DPSESPHSolver(case, kernel=flag_kernel, density=rho, cohesion=coh, friction=fric, EYoungMod=E, flag_av=flag_av)
         elif TDmethod == 2:
-            solver = DPLFSPHSolver(case, flag_kernel, rho, coh, fric, E, flag_av)
+            solver = DPLFSPHSolver(case, kernel=flag_kernel, density=rho, cohesion=coh, friction=fric, EYoungMod=E, flag_av=flag_av)
         elif TDmethod == 4:
             raise Exception('Not implemented yet~')
     return solver

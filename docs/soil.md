@@ -426,7 +426,7 @@ A disadvantage of using the artificial viscosity is that parameter tuning may be
 
 ### Alternative viscous damping term
 
-> @bui2020 3.3, @chalk2020 4.5.1, @nguyen2017
+> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017
 
 Alternative damping terms can be used instead of the artificial viscosity that have more physical relevance to the problem, or require less calibration. The following velocity-dependent damping term $\boldsymbol{F}_d=-\mu_d\boldsymbol{v}$ can be included as a body force in the equation of the momentum.
 
@@ -435,7 +435,7 @@ $\mu_d$ is the damping factor which can be computed by $\mu_d=\xi\sqrt{E/\rho h^
 
 ### Stress/strain regularisation
 
-> @bui2020 3.3, @nguyen2017
+> @bui2021 3.3, @nguyen2017
 
 
 ## Standard soil SPH
@@ -455,8 +455,9 @@ $$\frac{{\rm D} \boldsymbol{f}^{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigm
 In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.
 
 The relationship of variables in Drucker-Prager model:
+
 <div align="center">
-  <img width="800px" src="\img\DP_variables.png">
+  <img width="800px" src="/img/DP_variables.png">
 </div>
 
 ### Symp-Euler for standard Drucker-Prager soil SPH

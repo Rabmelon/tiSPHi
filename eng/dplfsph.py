@@ -73,12 +73,12 @@ class DPLFSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
-                self.ps.val[p_i] = self.ps.v[p_i].norm()
+                # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
 
@@ -148,7 +148,6 @@ class DPLFSPHSolver(SPHSolver):
         fDP = self.cal_fDP(vI1, sJ2)
         return stress_s, vI1, sJ2, fDP
 
-
     ###########################################################################
     # assisting kernels
     ###########################################################################
@@ -201,6 +200,25 @@ class DPLFSPHSolver(SPHSolver):
                 # tmp = self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 v_g += (self.v2[p_j] - self.v2[p_i]) @ tmp.transpose() / self.density2[p_j]
             self.v_grad[p_i] = v_g * self.mass
+
+    ###########################################################################
+    # Artificial terms
+    ###########################################################################
+    @ti.func
+    def cal_artificial_viscosity(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
+        res = 0.0
+        if flag_av:
+            vare = 0.01
+            xij = self.ps.x[p_i] - self.ps.x[p_j]
+            vij = self.v2[p_i] - self.v2[p_j]
+            vijxij = (vij * xij).sum()
+            if vijxij < 0.0:
+                rhoij = 0.5 * (self.density2[p_i] + self.density2[p_j])
+                hij = self.ps.smoothing_len
+                cij = self.vsound
+                phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
+                res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
+        return res
 
     ###########################################################################
     # stress adaptation

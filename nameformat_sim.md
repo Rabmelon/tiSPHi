@@ -7,7 +7,6 @@ case name_
 model_
 time integration_
 kernel_
-normalisation or not_
 colored property_
 comment
 
@@ -35,9 +34,6 @@ SE Symplectic Euler, LF Leap-Frog, RK4 4th order Runge-Kutta
 # kernel:
 CS cubic spline, WL wendland C2
 
-# normalisation or not:
-norm for yes; no for no
-
 # colored property:
 p pressure
 r density
@@ -49,5 +45,8 @@ ep norm of strain, also epxx, epyy, epxy, epe equivalent plastic strain
 dis displacement, norm
 
 
-
+# comment
+normalisation or not: norm for yes; no for no
+particle num
+artificial viscosity or not
 
