@@ -159,6 +159,7 @@ class SPHSolver:
                     if pos[1] < 0:
                         self.simulate_collisions(p_i, ti.Vector([0.0, 1.0]), -pos[1])
 
+    # Compute the distance between particle and boundary
     @ti.func
     def cal_d_BA(self, p_i, p_j):
         x_i = self.ps.x[p_i]

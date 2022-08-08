@@ -280,11 +280,11 @@ $\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $
 
 And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$ and $p_B=p_A$, etc. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the $\boldsymbol{f}^{\sigma}$ term) on the interior particles in the equation of momentum through the particle-dummy interaction.
 
-### A coupled dynamic solid boundary treatment
+### A "soft" repulsive force
 
 > @Chalk2020, Liu2012
 
-The repulsive particles (triangle) are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force $\hat{\boldsymbol{F}}_{ij}$ is applied to all particles that interact with the repulsive boundary particles, and is included in the SPH momentum equation:
+This is a coupled dynamic solid boundary treatment. The repulsive particles (triangle) are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force $\hat{\boldsymbol{F}}_{ij}$ is applied to all particles that **interact** with the repulsive boundary particles, and is included in the SPH momentum equation:
 
 $$\hat{\boldsymbol{F}}_{ij} = \sum_j 0.01c^2\chi\cdot\hat{f}(\gamma)\frac{\boldsymbol{x}_{ij}}{r^2}$$
 
@@ -307,7 +307,7 @@ $$\hat{f}(\gamma) = \left\{
   \end{array}
 \right.$$
 
-And this soft repulsive force has been applied to simulations of water flow and the propagation of a Bingham material.
+And this soft repulsive force was combined with dummy particles and applied to simulations of water flow and the propagation of a Bingham material.
 
 ## Time integration and advection
 

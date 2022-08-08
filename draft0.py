@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=coh, para3=fric, para4=E, para5=flag_arti_visc)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=52, kradius=1.5, step_ggui=1, iparticle=3836, save_png=0, pause_init=1, exit_step=0, grid_line=0.05, given_max=-1, given_min=-1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=52, kradius=1.5, step_ggui=1, iparticle=3836, save_png=0, pause_init=0, exit_step=10, grid_line=0.05, given_max=-1, given_min=-1)
 
     '''
     color title:
