@@ -10,10 +10,10 @@ if __name__ == "__main__":
     print("hallo tiSPHi! This is for water dambreak test!")
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
-    screen_to_world_ratio = 800   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [0.584, 0.8]   # a rectangle world start from (0, 0) to this pos
-    particle_radius = 0.001
-    cube_size = [0.146, 0.292]
+    screen_to_world_ratio = 400   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    rec_world = [2.0, 1.0]   # a rectangle world start from (0, 0) to this pos
+    particle_radius = 0.01
+    cube_size = [2.0, 0.9]
 
     mat = 1         # 1 water; 2 soil
     cmodel = 1      # for water, 1 WC; for soil, 1 muI, 2 DP
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=viscosity, para3=stiffness, para4=powcomp)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=3,
-             kradius=1.5, step_ggui=20, iparticle=-1, save_png=0, pause_init=True, grid_line=0.146)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=8,
+             kradius=1.05, step_ggui=20, iparticle=-1, save_png=0, pause_init=True, grid_line=0.1)
 
     # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;

@@ -196,6 +196,8 @@ class DPLFSPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
+                if self.ps.material[p_j] > 10:
+                    continue
                 tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 # tmp = self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 v_g += (self.v2[p_j] - self.v2[p_i]) @ tmp.transpose() / self.density2[p_j]
@@ -272,6 +274,8 @@ class DPLFSPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
+                if self.ps.material[p_j] > 10:
+                    continue
                 tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 dd += tmp[0] / self.density2[p_j]
             self.d_density[p_i] =  dd * self.mass * self.density2[p_i]
@@ -282,6 +286,7 @@ class DPLFSPHSolver(SPHSolver):
             if self.ps.material[p_i] != self.ps.material_soil:
                 continue
             dv = ti.Vector([0.0 for _ in range(self.ps.dim)])
+            rep = ti.Vector([0.0 for _ in range(self.ps.dim)])
             stress_i_2d = self.stress_stress2(self.stress[p_i])
 
             # viscous damping
@@ -291,8 +296,9 @@ class DPLFSPHSolver(SPHSolver):
             Fd = 0.0
 
             # artificial viscosity
-            alpha_Pi = 0.1
+            alpha_Pi = 0.2
             beta_Pi = 0.0
+            tmp_av = 0.0
 
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
@@ -300,12 +306,17 @@ class DPLFSPHSolver(SPHSolver):
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
                     stress_j_2d = self.stress_stress2(self.stress[p_i])
-                dv += self.density2[p_j] * self.ps.m_V * (stress_j_2d / self.density2[p_j]**2 + stress_i_2d / self.density2[p_i]**2 - self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j)) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                if self.ps.material[p_j] == self.ps.material_repulsive:
+                    rep += self.cal_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
+                    continue
+                if self.ps.material[p_j] == self.ps.material_soil:
+                    tmp_av = self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j)
+                dv += self.density2[p_j] * self.ps.m_V * (stress_j_2d / self.density2[p_j]**2 + stress_i_2d / self.density2[p_i]**2 - tmp_av * self.I) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             if self.ps.dim == 2:
                 dv += ti.Vector([0.0, self.g])
             else:
                 print("!!!!!My Error: cannot used in 3D now!")
-            self.d_v[p_i] = dv + Fd
+            self.d_v[p_i] = dv + rep + Fd
 
     @ti.kernel
     def cal_d_f_stress_Bui2008(self):

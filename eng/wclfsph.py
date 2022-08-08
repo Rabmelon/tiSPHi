@@ -28,10 +28,10 @@ class WCLFSPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.v[p_i].norm()
+                # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
                 # self.ps.val[p_i] = self.ps.density[p_i]
-                # self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
@@ -61,8 +61,8 @@ class WCLFSPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                 tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ self.kernel_derivative(x_i - x_j)
                 # tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ (self.ps.L[p_i] @ self.kernel_derivative(x_i - x_j))
-                drho += self.density2[p_j] * self.ps.m_V * tmp[0]
-            self.d_density[p_i] = drho
+                drho += tmp[0] / self.density2[p_j]
+            self.d_density[p_i] = drho * self.density2[p_i] * self.mass
 
     @ti.kernel
     def compute_densities(self):
@@ -111,10 +111,35 @@ class WCLFSPHSolver(SPHSolver):
                     print("!!!!!My Error: cannot used in 3D now!")
             self.d_velocity[p_i] = d_v
 
+    ###########################################################################
+    # Artificial terms
+    ###########################################################################
+    @ti.func
+    def cal_artificial_viscosity(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
+        res = 0.0
+        if flag_av:
+            vare = 0.01
+            xij = self.ps.x[p_i] - self.ps.x[p_j]
+            vij = self.v2[p_i] - self.v2[p_j]
+            vijxij = (vij * xij).sum()
+            if vijxij < 0.0:
+                rhoij = 0.5 * (self.density2[p_i] + self.density2[p_j])
+                hij = self.ps.smoothing_len
+                cij = self.vsound
+                phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
+                res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
+        return res
+
     # Compute the pressure force contribution, Symmetric formula
     @ti.func
     def pressure_force(self, p_i, p_j):
-        res = -self.density2[p_j] * self.ps.m_V * (self.pressure[p_i] / self.density2[p_i]**2 + self.pressure[p_j] / self.density2[p_j]**2) * self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+        alpha_Pi = 0.2
+        beta_Pi = 0.0
+        flag_av = 1
+        tmp_av = 0.0
+        if self.ps.material[p_j] == self.ps.material_soil:
+            tmp_av = self.cal_artificial_viscosity(flag_av, alpha_Pi, beta_Pi, p_i, p_j)
+        res = -self.density2[p_j] * self.ps.m_V * (self.pressure[p_i] / self.density2[p_i]**2 + self.pressure[p_j] / self.density2[p_j]**2 - tmp_av) * self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
         return res
 
     # Evaluate pressure force

@@ -16,6 +16,7 @@ class SPHSolver:
         self.dt = ti.field(float, shape=())
         self.dt[None] = 1e-5
         self.dt_min = 1e-6
+        self.vsound = 35
         self.epsilon = 1e-16
         self.alertratio = 1.25
 
@@ -188,7 +189,7 @@ class SPHSolver:
     @ti.func
     def cal_repulsive_force(self, r, vsound):
         r_norm = r.norm()
-        chi = 1.0 - r_norm / (1.5 * self.ps.particle_diameter) if (r_norm >= 0.0 and r_norm < 1.5 * self.ps.particle_diameter) else 0.0
+        chi = 1.0 - r_norm / (1.5 * self.ps.particle_radius) if (r_norm >= 0.0 and r_norm < 1.5 * self.ps.particle_radius) else 0.0
         gamma = r_norm / (0.75 * self.ps.smoothing_len)
         f = 0.0
         if gamma > 0 and gamma <= 2 / 3:

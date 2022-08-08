@@ -404,7 +404,7 @@ $$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j
 
 ### Artificial viscosity - standard approach
 
-> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017, from @Monaghan1983
+> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017, @Adami2012, from @Monaghan1983
 
 The fully dynamic equation would cause SPH particles to freely oscillate due to even small unbalanced forces, most of which is attributed to the zero-energy mode produced by the anti-symmetric kernel function with zero kernel gradient at the inflection point. However, this oscillation of SPH particles or material points is a common issue associated with any numerical method used to solve the fully dynamic motion equation.
 
@@ -420,7 +420,9 @@ $$\phi_{ij}=\frac{h_{ij}\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}}{\Vert\bolds
 
 $$c_{ij}=\frac{c_i+c_j}{2},\ \rho_{ij}=\frac{\rho_i+\rho_j}{2},\ h_{ij}=\frac{h_i+h_j}{2},\ \boldsymbol{x}_{ij}=\boldsymbol{x}_i-\boldsymbol{x}_j,\ \boldsymbol{v}_{ij}=\boldsymbol{v}_i-\boldsymbol{v}_j$$
 
-where $\alpha_{\Pi}$ and $\beta_{\Pi}$ are problem dependent tuning parameters, $c$ is the speed of sound. $\alpha_{\Pi}$ is associated with the speed of sound, while $\beta_{\Pi}$ is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. $\varepsilon=0.01$ is a numerical parameter introduced to prevent numerical divergences.
+where $\alpha_{\Pi}$ and $\beta_{\Pi}$ are problem dependent tuning parameters, $c$ is the speed of sound. $\alpha_{\Pi}$ is associated with the speed of sound, while $\beta_{\Pi}$ is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. $\varepsilon=0.01$ is a numerical parameter introduced to prevent numerical divergences, only to ensure a non-zero denominator.
+
+This artificial viscosity is applied only for interactions between material particles, i.e. no artificial dissipation is introduced for the interaction of dummy particles and real particles.
 
 A disadvantage of using the artificial viscosity is that parameter tuning may be required to obtain the optimal values which are not directly associated with any physical properties. The use of the artificial viscosity in SPH simulations is purely for the purposes of numerical stabilisation.
 

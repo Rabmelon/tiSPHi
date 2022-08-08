@@ -6,7 +6,7 @@ from datetime import datetime
 # TODO: add different color choice
 # TODO: try to make a single color selector!!!
 
-def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1, given_min=-1):
+def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1, given_min=-1, fix_max=0, fix_min=0):
     print("ggui starts to serve!")
 
     # basic paras
@@ -69,7 +69,7 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
         # draw particles
         solver.ps.copy2vis(s2w_ratio, max_res)
         solver.init_value()
-        solver.ps.v_maxmin(given_max, given_min)
+        solver.ps.v_maxmin(given_max, given_min, fix_max, fix_min)
         solver.ps.set_color()
         draw_radius = solver.ps.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(solver.ps.pos2vis, radius=draw_radius, per_vertex_color=solver.ps.color)   # ! WARRNING: Overriding last binding

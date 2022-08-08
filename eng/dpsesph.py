@@ -288,6 +288,7 @@ class DPSESPHSolver(SPHSolver):
             # artificial viscosity
             alpha_Pi = 0.1
             beta_Pi = 0.0
+            tmp_av = 0.0
 
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
@@ -297,15 +298,18 @@ class DPSESPHSolver(SPHSolver):
                     stress_j_2d = self.stress_stress2(self.stress[p_i])
                 if self.ps.material[p_j] == self.ps.material_repulsive:
                     rep += self.cal_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
+                    if p_i == test_p_i: print("---- ---- ---- j =", p_j, self.ps.x[p_j], "rep j =", self.cal_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound), "dv0 =", dv)
                     continue
-                dv += self.ps.density[p_j] * self.ps.m_V * (stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2 - self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j) * self.I) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                if self.ps.material[p_j] == self.ps.material_soil:
+                    tmp_av = self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j)
+                dv += self.ps.density[p_j] * self.ps.m_V * (stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2 - tmp_av * self.I) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
 
                 if p_i == test_p_i:
-                    # print("---- ---- ---- j =", p_j, "mat =", self.ps.material[p_j], "rep =", rep, "dv0 =", dv)
                     tmp_vijxij = ((self.ps.v[p_i] - self.ps.v[p_j]) * (self.ps.x[p_i] - self.ps.x[p_j])).sum()
                     if tmp_vijxij < 0:
                         tmp_dv0 = stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2
                         print("---- ---- ---- j =", p_j, "v*x =", tmp_vijxij, "Pi =", self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j), "dv term0 =", tmp_dv0)
+            if p_i == test_p_i: print("---- ---- ---- rep =", rep)
 
             if self.ps.dim == 2:
                 dv += ti.Vector([0.0, self.g])
@@ -338,13 +342,6 @@ class DPSESPHSolver(SPHSolver):
 
             # calculate the equivalent plastic strain
             self.d_strain_p_equ[p_i] = ti.sqrt((strain_r_e*strain_r_e).sum() * 2 / 3)
-
-            if p_i == test_p_i:
-                print("---- ---- ---- strain r =", strain_r)
-                print("---- ---- ---- strain r e =", strain_r_e)
-                print("---- ---- ---- tmp g =", tmp_g)
-                print("---- ---- ---- tmp J =", tmp_J)
-                print("---- ---- ---- tmp v =", tmp_v)
 
     @ti.kernel
     def cal_d_f_stress_Chalk2020(self):
@@ -442,5 +439,6 @@ class DPSESPHSolver(SPHSolver):
         if test_p_i > 0: print("---- ---- end of step")
         a = 1
 
+test_p_i = 2316
 test_p_i = 3836
 # test_p_i = -1

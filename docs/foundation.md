@@ -218,6 +218,38 @@ $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second orde
 >
 > 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij}$? **ANSWER**: normalised derivative of kernel function!
 
+### Shepard correction
+
+> @Liu2012, @Shepard1968, @Reinhardt2019
+
+The Shepaard correction of the smoothing kernel $W$ addresses errors introduced by the SPH discretization process due to irregularly distributed particels inside the material domain. Especially near open boundaries (e.g. fluid-air interfaces), the computation of the fluid quantity is error-prone due to the lack of neighboring particles. The corrected kernel function is:
+
+$$W_{ij}^{sh}=\frac{W_{ij}}{\sum_kV_kW_{ik}}$$
+
+And this is a zero-order reinitialization [@pysph].
+
+### MLS correction
+
+> @Nguyen2017, @Liu2012, @Dilts1999
+
+The moving least square (MLS) method is adopted to correct the kernel function.
+
+$$W_{ij}^{MLS}=[\beta_0+\beta_x(x_i-x_j)+\beta_y(y_i-y_j)]W_{ij}$$
+
+where
+
+$$[\beta_0,\beta_x,\beta_y]^T=(\sum_jV_j\boldsymbol{A}W_{ij})^{-1}[1,0,0]^T$$
+
+$$\boldsymbol{A}=\left[\begin{matrix}
+  1 &x_i-x_j &y_i-y_j \\ x_i-x_j &(x_i-x_j)^2 &(x_i-x_j)(y_i-y_j) \\ y_i-y_j &(x_i-x_j)(y_i-y_j) &(y_i-y_j)^2
+\end{matrix}\right]$$
+
+or
+
+$$\boldsymbol{A}=pp^T\ and\ p=[1,x_i-x_j,y_i-y_j]^T$$
+
+And this is the first order correction that reproduces exactly the linear variation of quantity.
+
 ## Neighbour search
 
 ### Grid method

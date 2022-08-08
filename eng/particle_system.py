@@ -314,15 +314,15 @@ class ParticleSystem:
                 self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
 
     @ti.kernel
-    def v_maxmin(self, givenmax: float, givenmin: float):
+    def v_maxmin(self, givenmax: float, givenmin: float, fixmax: int, fixmin: int):
         vmax = -float('Inf')
         vmin = float('Inf')
         for i in range(self.particle_num[None]):
             if self.material[i] < 10:
                 ti.atomic_max(vmax, self.val[i])
                 ti.atomic_min(vmin, self.val[i])
-        self.vmax[None] = vmax if givenmax == -1 or vmax < givenmax else givenmax
-        self.vmin[None] = vmin if givenmin == -1 else givenmin
+        self.vmax[None] = vmax if givenmax == -1 or vmax < givenmax and fixmax != 1 else givenmax
+        self.vmin[None] = vmin if givenmin == -1 or vmin > givenmin and fixmin != 1 else givenmin
 
     @ti.kernel
     def set_color(self):
