@@ -6,7 +6,7 @@ from datetime import datetime
 # TODO: add different color choice
 # TODO: try to make a single color selector!!!
 
-def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=-1, given_max=-1, given_min=-1, fix_max=0, fix_min=0):
+def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=None, given_max=-1, given_min=-1, fix_max=0, fix_min=0):
     print("ggui starts to serve!")
 
     # basic paras

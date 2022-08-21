@@ -9,7 +9,7 @@ ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f6
 if __name__ == "__main__":
     print("hallo tiSPHi! This is for sand column collapse test!")
 
-    screen_to_world_ratio = 2400   # exp: world = (150m, 100m), ratio = 4, screen res = (600, 400)
+    screen_to_world_ratio = 2600   # exp: world = (150m, 100m), ratio = 4, screen res = (600, 400)
     rec_world = [0.2, 0.2]        # a rectangle world start from (0, 0) to this pos
     particle_radius = 0.001
     cube_size = [0.2, 0.1]
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     coh = 0.0
     fric = 21.9
     E = 5.84e6
-    flag_arti_visc = 1
+    flag_arti_visc = 0
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.gen_boundary_dummy()
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=coh, para3=fric, para4=E, para5=flag_arti_visc)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=52, kradius=1.25, step_ggui=10, iparticle=-1, save_png=0, pause_init=1, exit_step=0, grid_line=0.05, given_max=-1, given_min=-1, fix_max=1, fix_min=1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=52, kradius=1.25, step_ggui=20, iparticle=-1, save_png=0, pause_init=1, exit_step=0, grid_line=0.05, given_max=-1, given_min=-1, fix_max=1, fix_min=1)
 
     '''
     color title:

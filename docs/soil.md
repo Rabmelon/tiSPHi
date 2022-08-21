@@ -36,7 +36,7 @@ where $\tau_f=\sqrt{\frac{3}{2}\boldsymbol{s}:\boldsymbol{s}}$ is the maximum sh
 
 > @bui2021 3.2.1.2. and yang2021 2.2
 
-The $\mu(I)$-rheological model is one of the most commonl used and widely validated rheological models, developed to capture the rate-dependent and inertial effect of granular materials in the dense flow regime.
+The $\mu(I)$-rheological model is one of the most commonly used and widely validated rheological models, developed to capture the rate-dependent and inertial effect of granular materials in the dense flow regime.
 
 It was derived based on the Bingham constitutive relation for non-Newtonian fluids. It assumes the materials behave as a rigid body or stiff elastic response before yielding and then quickly reaching their plastic flow behaviour. (假设材料在屈服前表现为刚体或刚性弹性响应？然后迅速达到其塑性流动状态即屈服后的临界状态)
 
