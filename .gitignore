@@ -9,11 +9,10 @@ sim_*/*
 *.dwl2
 *.bak
 
-# screenshot folder
-screenshots/
-
-# temp
+# folders
 temp/
+screenshots/
+results/
 
 # matlab backup file
 *.asv

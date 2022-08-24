@@ -6,7 +6,11 @@ from datetime import datetime
 # TODO: add different color choice
 # TODO: try to make a single color selector!!!
 
-def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exit_step=0, save_png=0, step_ggui=20, iparticle=-1, color_title=0, grid_line=None, given_max=-1, given_min=-1, fix_max=0, fix_min=0):
+def gguishow(case, solver, world, s2w_ratio=1,
+             pause_init=True, exit_step=0, step_ggui=1,
+             save_png=0, save_msg=False, iparticle=None,
+             kradius=1.0, grid_line=None, color_title=0,
+             given_max=-1, given_min=-1, fix_max=0, fix_min=0):
     print("ggui starts to serve!")
 
     # basic paras
@@ -16,7 +20,6 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
     window = ti.ui.Window('tiSPHi window', res=(max(res), max(res)))
     canvas = window.get_canvas()
     canvas.set_background_color((1,1,1))
-    i_pos = ti.Vector.field(case.dim, ti.f32, shape=1)
 
     # draw grid line
     if grid_line is not None and grid_line != 0.0:
@@ -44,7 +47,7 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
     show_grid = [0, 0]
     max_res = int(res.max())
 
-    # save png
+    # save png path
     cappath = os.getcwd() + r"\screenshots"
     if save_png > 0:
         timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
@@ -53,11 +56,44 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
             os.mkdir(simpath)
         os.chdir(simpath)
 
+    # prepare to draw iparticle(s)
+    if iparticle is not None:
+        num_ip = 1
+        if isinstance(iparticle, list):
+            num_ip = len(iparticle)
+        i_pos = ti.Vector.field(case.dim, ti.f32, shape=num_ip)
+        tmp_pos = np.array([[0.0 for _ in range(case.dim)] for _ in range(num_ip)])
+
+	# save messages into txt
+    if save_msg and iparticle is not None:
+        timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
+        savetxt = os.getcwd() + "\\results\\msg_" + timestamp + ".txt"
+        fid = open(savetxt, "w", encoding="utf-8")
+        fid.write("step")
+        save_title = "\tpid\tposx\tposy\tvx\tvy\tρ\tσxx\tσyy\tσxy\tσzz"
+        if not isinstance(iparticle, list):
+            iparticle = [iparticle]
+        for ip in iparticle:
+            fid.write(save_title)
+        fid.write("\n")
+
     # main loop
     while window.running:
         if not pause_init:
-            if iparticle > 0:
-                print('---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f' % (count_step, iparticle, solver.ps.x[iparticle][0], solver.ps.x[iparticle][1], solver.ps.v[iparticle][0], solver.ps.v[iparticle][1], solver.ps.density[iparticle]))
+            # print or save msg in iparticle(s)
+            if iparticle is not None:
+                if not save_msg and not isinstance(iparticle,list):
+                    str_msg = "---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f, σ=(%.6f, %.6f, %.6f, %.6f)" % (count_step, iparticle, solver.ps.x[iparticle][0], solver.ps.x[iparticle][1], solver.ps.v[iparticle][0], solver.ps.v[iparticle][1], solver.ps.density[iparticle], solver.stress[iparticle][0,0], solver.stress[iparticle][1,1], solver.stress[iparticle][0,1], solver.stress[iparticle][2,2])
+                    print(str_msg)
+                if save_msg:
+                    if not isinstance(iparticle, list):
+                        iparticle = [iparticle]
+                    fid.write("%06d" % (count_step))
+                    for ip in iparticle:
+                        istr_data = "\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f" % (ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.stress[ip][0,0], solver.stress[ip][1,1], solver.stress[ip][0,1], solver.stress[ip][2,2])
+                        fid.write(istr_data)
+                    fid.write("\n")
+
             for i in range(step_ggui):
                 solver.step()
                 count_step += 1
@@ -73,8 +109,14 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
         solver.ps.set_color()
         draw_radius = solver.ps.particle_radius * s2w_ratio * kradius / max_res
         canvas.circles(solver.ps.pos2vis, radius=draw_radius, per_vertex_color=solver.ps.color)   # ! WARRNING: Overriding last binding
-        if iparticle > 0:
-            i_pos.from_numpy(np.array([solver.ps.pos2vis[iparticle]], dtype=np.float32))
+
+        # draw iparticle(s)
+        if iparticle is not None:
+            if not isinstance(iparticle, list):
+                iparticle = [iparticle]
+            for nip in range(num_ip):
+                tmp_pos[nip] = solver.ps.pos2vis[iparticle[nip]]
+            i_pos.from_numpy(np.array(tmp_pos, dtype=np.float32))
             canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))   # ! WARRNING: Overriding last binding
 
         # show text
@@ -110,10 +152,13 @@ def gguishow(case, solver, world, s2w_ratio=1, kradius=1.0, pause_init=True, exi
 
         window.show()
 
+    if save_msg and iparticle is not None:
+        fid.close()
+
 def captureScreen(window, cappath):
     timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
     fname = os.path.join(cappath, f"screenshot{timestamp}.jpg")
-    window.write_image(fname)
+    window.save_image(fname)
     print(f"Screenshot has been saved to {fname}")
 
 def chooseColorTitle(flag):

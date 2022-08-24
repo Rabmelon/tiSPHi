@@ -23,16 +23,19 @@ if __name__ == "__main__":
     coh = 0.0
     fric = 21.9
     E = 5.84e6
-    flag_arti_visc = 0
+    flag_arti_visc = 1
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.gen_boundary_dummy()
     # case1.gen_boundary_rep()
     case1.add_cube(lower_corner=[0.0, 0.0], cube_size=cube_size, material=mat, density=rho)
-
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=coh, para3=fric, para4=E, para5=flag_arti_visc)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=52, kradius=1.25, step_ggui=20, iparticle=-1, save_png=0, pause_init=1, exit_step=0, grid_line=0.05, given_max=-1, given_min=-1, fix_max=1, fix_min=1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio,
+             pause_init=1, exit_step=75001, step_ggui=20,
+             save_png=0,  save_msg=0, iparticle=[1236, 1260, 1285, 2486, 2510, 2535, 3736, 3760, 3785],
+             kradius=1.25, grid_line=0.05, color_title=52,
+             given_max=-1, given_min=-1, fix_max=1, fix_min=1)
 
     '''
     color title:

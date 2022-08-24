@@ -382,7 +382,8 @@ class DPLFSPHSolver(SPHSolver):
     def advect_LF_half(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
-                self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
+                self.density2[p_i] = self.density_0
+                # self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
                 self.v2[p_i] += self.d_v[p_i] * self.dt[None] * 0.5
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None] * 0.5
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
@@ -392,7 +393,8 @@ class DPLFSPHSolver(SPHSolver):
     def advect_LF(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
-                self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
+                self.ps.density[p_i] = self.density_0
+                # self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
                 self.ps.v[p_i] += self.d_v[p_i] * self.dt[None]
                 self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
