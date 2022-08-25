@@ -32,7 +32,10 @@ class ParticleSystem:
         self.smoothing_len = self.kh * self.particle_diameter
         self.support_radius = self.kappa * self.smoothing_len
         self.m_V = self.particle_diameter**self.dim     # m2 or m3 for cubic discrete
-        self.particle_max_num = 2**16  # the max number of all particles, as 65536
+
+        # ! the max number of all particles, as 2**16=65536, 2**20=1048576. This will affect the performance!!!!!!
+        # MEMORY max 4G in GUT, 6G in Legion. 2**20 particles need about 1.2GB GPU memory
+        self.particle_max_num = 2**14
         self.particle_max_num_per_cell = 100  # the max number of particles in each cell
         self.particle_max_num_neighbors = 100  # the max number of neighbour particles of each particle
         self.particle_num = ti.field(int, shape=())  # record the number of current particles
@@ -49,7 +52,6 @@ class ParticleSystem:
         # Basic
         self.x = ti.Vector.field(self.dim, dtype=float)     # position
         self.pos2vis = ti.Vector.field(self.dim, dtype=ti.f32)   # position to visualization
-        self.L = ti.Matrix.field(self.dim, self.dim, dtype=float)     # the normalised matrix
         self.val = ti.field(dtype=float)                      # store a value
         self.particle_neighbors_num = ti.field(int)         # total number of neighbour particles
         self.particle_neighbors = ti.field(int)             # index of neighbour particles
@@ -70,18 +72,18 @@ class ParticleSystem:
         self.vminmin = ti.field(float, shape=())
 
         # Place nodes on root
-        self.particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
-        self.particles_node.place(self.x, self.pos2vis, self.L, self.val, self.material, self.color)
-        self.particles_node.place(self.density, self.v, self.x0, self.stress, self.strain)
-        self.particles_node.place(self.particle_neighbors_num)
-        particle_node = self.particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
+        particles_node = ti.root.dense(ti.i, self.particle_max_num)    # 使用稠密数据结构开辟每个粒子数据的存储空间，按列存储
+        particles_node.place(self.x, self.pos2vis, self.val, self.material, self.color)
+        particles_node.place(self.density, self.v, self.x0, self.stress, self.strain)
+        particles_node.place(self.particle_neighbors_num)
+        particle_node = particles_node.dense(ti.j, self.particle_max_num_neighbors)    # 使用稠密数据结构开辟每个粒子邻域粒子编号的存储空间，按行存储
         particle_node.place(self.particle_neighbors)
 
         grid_index = ti.ij if self.dim == 2 else ti.ijk          # 建立格网维度索引变量，xy or xyz
-        self.grid_node = ti.root.dense(grid_index, self.grid_num)     # 使用稠密数据结构开辟每个格网中粒子总数的存储空间
-        self.grid_node.place(self.grid_particles_num)
+        grid_node = ti.root.dense(grid_index, self.grid_num)     # 使用稠密数据结构开辟每个格网中粒子总数的存储空间
+        grid_node.place(self.grid_particles_num)
         cell_index = ti.k if self.dim == 2 else ti.l        # 建立粒子索引变量
-        cell_node = self.grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子编号的存储空间
+        cell_node = grid_node.dense(cell_index, self.particle_max_num_per_cell)     # 使用稠密数据结构开辟每个格网中存储粒子编号的存储空间
         cell_node.place(self.grid_particles)
 
     ###########################################################################
@@ -311,7 +313,7 @@ class ParticleSystem:
     def copy2vis(self, s2w_ratio: float, max_res: int):
         for i in range(self.particle_num[None]):
             for j in ti.static(range(self.dim)):
-                self.pos2vis[i][j] = (self.x[i][j] + self.grid_size) * s2w_ratio / max_res
+                self.pos2vis[i][j] = ti.cast((self.x[i][j] + self.grid_size) * s2w_ratio / max_res, ti.f32)
 
     @ti.kernel
     def v_maxmin(self, givenmax: float, givenmin: float, fixmax: int, fixmin: int):

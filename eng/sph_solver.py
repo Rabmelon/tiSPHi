@@ -16,9 +16,15 @@ class SPHSolver:
         self.dt = ti.field(float, shape=())
         self.dt[None] = 1e-5
         self.dt_min = 1e-6
-        self.vsound = 35
+        self.vsound = 35.0
         self.epsilon = 1e-16
         self.alertratio = 1.25
+
+        self.CSPM_L = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)     # the normalised matrix
+        self.CSPM_f = ti.field(dtype=float)
+        self.MLS_f = ti.field(dtype=float)
+        particles_node = ti.root.dense(ti.i, self.ps.particle_max_num)
+        particles_node.place(self.CSPM_L, self.CSPM_f, self.MLS_f)
 
     ###########################################################################
     # colored value
@@ -33,22 +39,50 @@ class SPHSolver:
     # Assist
     ###########################################################################
     @ti.kernel
-    def cal_L(self):
-        for p_i in range(self.ps.particle_num[None]):
-            x_i = self.ps.x[p_i]
-            tmpL = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
-            for j in range(self.ps.particle_neighbors_num[p_i]):
-                p_j = self.ps.particle_neighbors[p_i, j]
-                x_j = self.ps.x[p_j]
-                tmp = self.kernel_derivative(x_i - x_j)
-                tmpL += self.ps.m_V * (x_j - x_i) @ tmp.transpose()
-            self.ps.L[p_i] = tmpL.inverse()
-
-    @ti.kernel
     def assign_x0(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 self.ps.x0[p_i] = self.ps.x[p_i]
+
+    ###########################################################################
+    # Kernel correction
+    ###########################################################################
+    @ti.kernel
+    def calc_CSPM_f(self):
+        for p_i in range(self.ps.particle_num[None]):
+            tmp_CSPM_f = 0.0
+            for j in range(self.ps.particle_neighbors_num[p_i]):
+                p_j = self.ps.particle_neighbors[p_i, j]
+                tmp_CSPM_f += self.ps.m_V * self.kernel(self.ps.x[p_i] - self.ps.x[p_j])
+            self.CSPM_f[p_i] = 1.0 / tmp_CSPM_f
+
+    @ti.kernel
+    def calc_CSPM_L(self):
+        for p_i in range(self.ps.particle_num[None]):
+            tmp_CSPM_L = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
+            for j in range(self.ps.particle_neighbors_num[p_i]):
+                p_j = self.ps.particle_neighbors[p_i, j]
+                tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                tmp_CSPM_L += self.ps.m_V * (self.ps.x[p_j] - self.ps.x[p_i]) @ tmp.transpose()
+            self.CSPM_L[p_i] = tmp_CSPM_L.inverse()
+
+    @ti.kernel
+    def calc_MLS_f(self):
+        for p_i in range(self.ps.particle_num[None]):
+            x_i = self.ps.x[p_i]
+            tmp_MLS_f = 0.0
+            multi = ti.Vector([1.0, 0.0, 0.0])
+            beta = ti.Vector([0.0, 0.0, 0.0])
+            p = ti.Vector([0.0, 0.0, 0.0])
+            A = ti.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+            for j in range(self.ps.particle_neighbors_num[p_i]):
+                p_j = self.ps.particle_neighbors[p_i, j]
+                x_j = self.ps.x[p_j]
+                p = ti.Vector([1.0, x_i[0]-x_j[0], x_i[1]-x_j[1]])
+                A = (p @ p.transpose()).inverse()
+                beta += self.ps.m_V * A * self.kernel(x_i - x_j) @ multi
+            self.MLS_f[p_i] = tmp_MLS_f
+
 
     ###########################################################################
     # Kernel functions
@@ -162,7 +196,7 @@ class SPHSolver:
 
     # Compute the distance between particle and boundary
     @ti.func
-    def cal_d_BA(self, p_i, p_j):
+    def calc_d_BA(self, p_i, p_j):
         x_i = self.ps.x[p_i]
         x_j = self.ps.x[p_j]
         boundary = ti.Vector([self.ps.world[1], 0.0, self.ps.world[0], 0.0])
@@ -187,7 +221,7 @@ class SPHSolver:
 
     # repulsive forces
     @ti.func
-    def cal_repulsive_force(self, r, vsound):
+    def calc_repulsive_force(self, r, vsound):
         r_norm = r.norm()
         chi = 1.0 - r_norm / (1.5 * self.ps.particle_radius) if (r_norm >= 0.0 and r_norm < 1.5 * self.ps.particle_radius) else 0.0
         gamma = r_norm / (0.75 * self.ps.smoothing_len)
@@ -240,7 +274,8 @@ class SPHSolver:
 
     def step(self):
         self.ps.initialize_particle_system()
-        # self.cal_L()
+        self.calc_CSPM_L()
+        self.calc_CSPM_f()
         self.substep()
         # if self.TDmethod == 1:
         #     self.substep_SympEuler()
@@ -248,4 +283,4 @@ class SPHSolver:
         #     self.substep_LeapFrog()
         # elif self.TDmethod == 4:
         #     self.substep_RK4()
-        # self.enforce_boundary()   # Needed in WCSPH
+        self.enforce_boundary()   # Needed in WCSPH

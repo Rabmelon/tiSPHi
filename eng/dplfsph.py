@@ -78,8 +78,9 @@ class DPLFSPHSolver(SPHSolver):
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
-                # self.ps.val[p_i] = self.strain_p_equ[p_i]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -(self.stress[p_i][0,0] + self.stress[p_i][1,1] + self.stress[p_i][2,2]) / 3
+                self.ps.val[p_i] = self.strain_p_equ[p_i]
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
 
     ###########################################################################
@@ -88,7 +89,7 @@ class DPLFSPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.density2[p_j] = self.density_0
-        self.v2[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.v2[p_i]
+        self.v2[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA(p_i, p_j))) * self.v2[p_i]
 
     @ti.func
     def cal_f_v(self, v):
@@ -199,7 +200,7 @@ class DPLFSPHSolver(SPHSolver):
                 if self.ps.material[p_j] > 10:
                     continue
                 tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                # tmp = self.ps.L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                # tmp = self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 v_g += (self.v2[p_j] - self.v2[p_i]) @ tmp.transpose() / self.density2[p_j]
             self.v_grad[p_i] = v_g * self.mass
 
@@ -296,8 +297,8 @@ class DPLFSPHSolver(SPHSolver):
             Fd = 0.0
 
             # artificial viscosity
-            alpha_Pi = 0.2
-            beta_Pi = 0.0
+            alpha_Pi = 1.0
+            beta_Pi = 1.0
             tmp_av = 0.0
 
             for j in range(self.ps.particle_neighbors_num[p_i]):
@@ -307,7 +308,7 @@ class DPLFSPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                     stress_j_2d = self.stress_stress2(self.stress[p_i])
                 if self.ps.material[p_j] == self.ps.material_repulsive:
-                    rep += self.cal_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
+                    rep += self.calc_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
                     continue
                 if self.ps.material[p_j] == self.ps.material_soil:
                     tmp_av = self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j)
@@ -382,8 +383,8 @@ class DPLFSPHSolver(SPHSolver):
     def advect_LF_half(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
-                self.density2[p_i] = self.density_0
-                # self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
+                # self.density2[p_i] = self.density_0
+                self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
                 self.v2[p_i] += self.d_v[p_i] * self.dt[None] * 0.5
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None] * 0.5
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
@@ -393,8 +394,8 @@ class DPLFSPHSolver(SPHSolver):
     def advect_LF(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
-                self.ps.density[p_i] = self.density_0
-                # self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
+                # self.ps.density[p_i] = self.density_0
+                self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
                 self.ps.v[p_i] += self.d_v[p_i] * self.dt[None]
                 self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
@@ -416,4 +417,3 @@ class DPLFSPHSolver(SPHSolver):
         self.LF_one_step()
         self.advect_LF()
         self.chk_density()
-

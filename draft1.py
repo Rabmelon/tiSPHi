@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     mat = 1         # 1 water; 2 soil
     cmodel = 1      # for water, 1 WC; for soil, 1 muI, 2 DP
-    TDmethod = 2    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 4    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     rho = 1000.0
@@ -31,7 +31,24 @@ if __name__ == "__main__":
 
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=viscosity, para3=stiffness, para4=powcomp)
 
-    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=8,
-             kradius=1.05, step_ggui=20, iparticle=-1, save_png=0, pause_init=True, grid_line=0.1)
+    gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=2,
+             kradius=1.05, step_ggui=20, iparticle=-1, save_png=0, pause_flag=True, grid_line=0.1)
 
-    # color title: pressure Pa; velocity m/s; density N/m3; d density N/m3/s;
+    '''
+    color title:
+    1 index
+    2 density
+        21 d density
+    3 velocity norm
+        31 x 32 y 33 z
+    4 position
+        41 x 42 y 43 z
+    5 stress
+        51 xx 52 yy 53 zz 54 xy 55 yz 56 zx
+        57 hydrostatic stress 58 deviatoric stress
+    6 strain
+        61 equivalent plastic strain
+    7 displacement
+    8 pressure
+    otherwise Null
+    '''

@@ -198,25 +198,29 @@ A corrective term can be multiplied to the smoothing kernel to improve the accur
 
 After doing the Taylor expansion of $f_j$:
 
-$$f_j=f_i+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}+O(h^2)$$
+$$f_j=f_i+\frac{\partial f_i}{\partial \boldsymbol{x}_i^{\alpha}}(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}+O(h^2)$$
 
-We have:
+Neglecting all the derivative terms, we have the corrective kernel estimate:
 
-$$\nabla^{\beta}f_i\approx\sum_jV_jf_j\nabla^{\beta}_iW_{ij}\approx f_i{\color{Salmon} \sum_jV_j\nabla^{\beta}_iW_{ij}}+\frac{\partial f_i}{\partial \boldsymbol{x}^{\alpha}}{\color{Green} \sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}}+O(h^2)$$
+$$f_i\approx\sum_jV_jf_jW_{ij}\approx f_i{\color{Salmon}\sum_jV_jW_{ij}}+O(h)$$
+
+where the term ${\color{Salmon} 1}$ should be $1$. Then divide the ${\color{Salmon} 1}$ term, leading to:
+
+$$f_i\approx\frac{\sum_jV_jf_jW_{ij}}{\sum_jV_jW_{ij}}=\sum_jV_jf_jW_{ij}^{CSPM} $$
+
+and for the first derivative:
+
+$$\nabla^{\beta}f_i\approx\sum_jV_jf_j\nabla^{\beta}_iW_{ij}\approx f_i{\color{Salmon} \sum_jV_j\nabla^{\beta}_iW_{ij}}+\frac{\partial f_i}{\partial \boldsymbol{x}_i^{\alpha}}{\color{Green} \sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}}+O(h^2)$$
 
 where the term ${\color{Salmon} 1}$ should be $0$ and the term ${\color{Green} 2}$ should be $1$ or $\delta^{\alpha\beta}$.
 
 To completely eliminate these errors, one could subtract the ${\color{Salmon} 1}$ term and then divide the ${\color{Green} 2}$ term, leading to the normalised SPH formulation for the kernel derivative:
 
-$$\nabla f_i\approx\sum_{j=1}^N V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1}^N V_j(f_j-f_i)\nabla_i\widetilde{W}_{ij} $$
+$$\nabla f_i\approx\sum_{j=1} V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1} V_j(f_j-f_i)\nabla_iW_{ij}^{CSPM} $$
 
 $$\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}]^{-1}$$
 
 $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second order accuracy. Additionally, it also removes the boundary effects. But although it is a good operator, it also may become a bad one. Such as in formulations that DO NOT conserve linear momentum like force and stress. So we need an operator to conserve both linear and angular momenta.
-
-> **QUESTIONS**
->
-> 1. What is the exact meaning and value of $\boldsymbol{L}_{ij}$ and $\widetilde{W}_{ij}$? **ANSWER**: normalised derivative of kernel function!
 
 ### Shepard correction
 
@@ -230,7 +234,7 @@ And this is a zero-order reinitialization [@pysph].
 
 ### MLS correction
 
-> @Nguyen2017, @Liu2012, @Dilts1999
+> @Nguyen2017, @Liu2012, @Dilts1999, @Belytschko1998
 
 The moving least square (MLS) method is adopted to correct the kernel function.
 
@@ -246,9 +250,14 @@ $$\boldsymbol{A}=\left[\begin{matrix}
 
 or
 
-$$\boldsymbol{A}=pp^T\ and\ p=[1,x_i-x_j,y_i-y_j]^T$$
+$$\boldsymbol{A}=pp^T\ and\ p=[1,\ x_i-x_j,\ y_i-y_j]^T$$
 
 And this is the first order correction that reproduces exactly the linear variation of quantity.
+
+> **QUESTIONS**
+>
+> 1. Only suitable for 2D problems?
+> 2. How to compare with CSPM?
 
 ## Neighbour search
 

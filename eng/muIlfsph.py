@@ -87,7 +87,7 @@ class MCmuILFSPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.density2[p_j] = self.density_0
-        self.v2[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.v2[p_i]
+        self.v2[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA(p_i, p_j))) * self.v2[p_i]
         self.pressure[p_j] = self.pressure[p_i]
 
     @ti.kernel

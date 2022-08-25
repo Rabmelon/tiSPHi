@@ -30,8 +30,8 @@ class WCLFSPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                # self.ps.val[p_i] = self.ps.density[p_i]
-                self.ps.val[p_i] = self.pressure[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
     @ti.kernel
@@ -43,7 +43,7 @@ class WCLFSPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.density2[p_j] = self.density_0
-        self.v2[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.v2[p_i]
+        self.v2[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA(p_i, p_j))) * self.v2[p_i]
         self.pressure[p_j] = self.pressure[p_i]
 
     # Evaluate density
@@ -76,9 +76,8 @@ class WCLFSPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                self.density2[p_i] += self.ps.m_V * self.kernel(x_i - x_j)
-            self.density2[p_i] *= self.density_0
-            self.density2[p_i] = ti.max(self.density2[p_i], self.density_0)
+                self.density2[p_i] += self.ps.m_V * self.density2[p_j] * self.kernel(x_i - x_j) * self.CSPM_f[p_i]
+            # self.density2[p_i] = ti.max(self.density2[p_i], self.density_0)
 
     # Compute the viscosity force contribution, Anti-symmetric formula
     @ti.func
@@ -135,9 +134,9 @@ class WCLFSPHSolver(SPHSolver):
     def pressure_force(self, p_i, p_j):
         alpha_Pi = 0.2
         beta_Pi = 0.0
-        flag_av = 1
+        flag_av = 0
         tmp_av = 0.0
-        if self.ps.material[p_j] == self.ps.material_soil:
+        if self.ps.material[p_j] == self.ps.material_fluid:
             tmp_av = self.cal_artificial_viscosity(flag_av, alpha_Pi, beta_Pi, p_i, p_j)
         res = -self.density2[p_j] * self.ps.m_V * (self.pressure[p_i] / self.density2[p_i]**2 + self.pressure[p_j] / self.density2[p_j]**2 - tmp_av) * self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
         return res
@@ -186,12 +185,12 @@ class WCLFSPHSolver(SPHSolver):
 
     def LF_one_step(self):
         # self.compute_d_density()
+        self.compute_densities()
         self.compute_non_pressure_forces()
         self.compute_pressure_forces()
 
     def substep(self):
         self.init_LF_f()
-        self.compute_densities()
         self.LF_one_step()
         self.advect_LF_half()
         self.LF_one_step()

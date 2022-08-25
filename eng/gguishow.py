@@ -7,9 +7,9 @@ from datetime import datetime
 # TODO: try to make a single color selector!!!
 
 def gguishow(case, solver, world, s2w_ratio=1,
-             pause_init=True, exit_step=0, step_ggui=1,
+             step_ggui=1, pause_flag=True, stop_step=0, exit_flag=False,
              save_png=0, save_msg=False, iparticle=None,
-             kradius=1.0, grid_line=None, color_title=0,
+             kradius=1.0, grid_line=None, color_title=None,
              given_max=-1, given_min=-1, fix_max=0, fix_min=0):
     print("ggui starts to serve!")
 
@@ -43,9 +43,11 @@ def gguishow(case, solver, world, s2w_ratio=1,
 
     # control paras
     count_step = 0
+    count_stop = 0
     show_pos = [0.0, 0.0]
     show_grid = [0, 0]
     max_res = int(res.max())
+    str_color_title = chooseColorTitle(color_title)
 
     # save png path
     cappath = os.getcwd() + r"\screenshots"
@@ -64,7 +66,7 @@ def gguishow(case, solver, world, s2w_ratio=1,
         i_pos = ti.Vector.field(case.dim, ti.f32, shape=num_ip)
         tmp_pos = np.array([[0.0 for _ in range(case.dim)] for _ in range(num_ip)])
 
-	# save messages into txt
+# save messages into txt
     if save_msg and iparticle is not None:
         timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
         savetxt = os.getcwd() + "\\results\\msg_" + timestamp + ".txt"
@@ -79,10 +81,10 @@ def gguishow(case, solver, world, s2w_ratio=1,
 
     # main loop
     while window.running:
-        if not pause_init:
+        if not pause_flag:
             # print or save msg in iparticle(s)
             if iparticle is not None:
-                if not save_msg and not isinstance(iparticle,list):
+                if not save_msg and not isinstance(iparticle, list) and iparticle >= 0:
                     str_msg = "---- %06d, p[%d]: x=(%.6f, %.6f), v=(%.6f, %.6f), ρ=%.3f, σ=(%.6f, %.6f, %.6f, %.6f)" % (count_step, iparticle, solver.ps.x[iparticle][0], solver.ps.x[iparticle][1], solver.ps.v[iparticle][0], solver.ps.v[iparticle][1], solver.ps.density[iparticle], solver.stress[iparticle][0,0], solver.stress[iparticle][1,1], solver.stress[iparticle][0,1], solver.stress[iparticle][2,2])
                     print(str_msg)
                 if save_msg:
@@ -116,7 +118,7 @@ def gguishow(case, solver, world, s2w_ratio=1,
                 iparticle = [iparticle]
             for nip in range(num_ip):
                 tmp_pos[nip] = solver.ps.pos2vis[iparticle[nip]]
-            i_pos.from_numpy(np.array(tmp_pos, dtype=np.float32))
+            i_pos.from_numpy(tmp_pos)
             canvas.circles(i_pos, radius=1.5*draw_radius, color=(1.0, 0.0, 0.0))   # ! WARRNING: Overriding last binding
 
         # show text
@@ -126,7 +128,7 @@ def gguishow(case, solver, world, s2w_ratio=1,
         window.GUI.text('Time: {t:.6f}s, dt={dt:.6f}s'.format(t=solver.dt[None] * count_step, dt=solver.dt[None]))
         window.GUI.text('Pos: {px:.3f}, {py:.3f}'.format(px=show_pos[0], py=show_pos[1]))
         window.GUI.text('Grid: {gx:.1f}, {gy:.1f}'.format(gx=show_grid[0], gy=show_grid[1]))
-        window.GUI.text('colorbar: {str}'.format(str=chooseColorTitle(color_title)))
+        window.GUI.text('colorbar: {str}'.format(str=str_color_title))
         window.GUI.text('max value: {maxv:.3f}'.format(maxv=solver.ps.vmax[None]))
         window.GUI.text('min value: {minv:.3f}'.format(minv=solver.ps.vmin[None]))
         window.GUI.end()
@@ -136,19 +138,22 @@ def gguishow(case, solver, world, s2w_ratio=1,
             if e.key == ti.ui.ESCAPE:
                 window.running = False
             elif e.key == ti.ui.SPACE:
-                pause_init = not pause_init
+                pause_flag = not pause_flag
             elif e.key == ti.ui.LMB:
                 show_pos = [i / s2w_ratio * max_res - case.grid_size for i in window.get_cursor_pos()]
                 show_grid = [(i - j) // case.grid_size for i,j in zip(show_pos, case.bound[0])]
         if window.is_pressed('p'):
             captureScreen(window, cappath)
-        if exit_step > 0 and count_step > exit_step - step_ggui:
-            captureScreen(window, cappath)
-            window.running = False
+        if stop_step > 0 and count_step > stop_step - step_ggui and count_stop == 0:
+            pause_flag = True
+            count_stop += 1
+            if exit_flag:
+                captureScreen(window, cappath)
+                window.running = False
 
         # output
         if save_png > 0 and count_step % (save_png * step_ggui) == 0:
-            window.write_image(f"{count_step:06d}.png")
+            window.save_image(f"{count_step:06d}.png")
 
         window.show()
 
@@ -162,56 +167,59 @@ def captureScreen(window, cappath):
     print(f"Screenshot has been saved to {fname}")
 
 def chooseColorTitle(flag):
-    if flag == 1:
-        res = "index"
-    elif flag == 2:
-        res = "density kg/m3"
-    elif flag == 21:
-        res = "d density kg/m3/s"
-    elif flag == 3:
-        res = "velocity norm m/s"
-    elif flag == 31:
-        res = "velocity x m/s"
-    elif flag == 32:
-        res = "velocity y m/s"
-    elif flag == 33:
-        res = "velocity z m/s"
-    elif flag == 4:
-        res = "position m"
-    elif flag == 41:
-        res = "position x m"
-    elif flag == 42:
-        res = "position y m"
-    elif flag == 43:
-        res = "position z m"
-    elif flag == 5:
-        res = "stress Pa"
-    elif flag == 51:
-        res = "stress xx Pa"
-    elif flag == 52:
-        res = "stress yy Pa"
-    elif flag == 53:
-        res = "stress zz Pa"
-    elif flag == 54:
-        res = "stress xy Pa"
-    elif flag == 55:
-        res = "stress yz Pa"
-    elif flag == 56:
-        res = "stress zx Pa"
-    elif flag == 57:
-        res = "stress hydro Pa"
-    elif flag == 58:
-        res = "stress devia Pa"
-    elif flag == 6:
-        res = "strain"
-    elif flag == 61:
-        res = "strain pla equ"
-    elif flag == 7:
-        res = "displacement norm m"
-    elif flag == 8:
-        res = "pressure Pa"
-    else:
-        res = "Null"
+    if flag is not None:
+        if isinstance(flag, str):
+            res = flag
+        elif flag == 1:
+            res = "index"
+        elif flag == 2:
+            res = "density kg/m3"
+        elif flag == 21:
+            res = "d density kg/m3/s"
+        elif flag == 3:
+            res = "velocity norm m/s"
+        elif flag == 31:
+            res = "velocity x m/s"
+        elif flag == 32:
+            res = "velocity y m/s"
+        elif flag == 33:
+            res = "velocity z m/s"
+        elif flag == 4:
+            res = "position m"
+        elif flag == 41:
+            res = "position x m"
+        elif flag == 42:
+            res = "position y m"
+        elif flag == 43:
+            res = "position z m"
+        elif flag == 5:
+            res = "stress Pa"
+        elif flag == 51:
+            res = "stress xx Pa"
+        elif flag == 52:
+            res = "stress yy Pa"
+        elif flag == 53:
+            res = "stress zz Pa"
+        elif flag == 54:
+            res = "stress xy Pa"
+        elif flag == 55:
+            res = "stress yz Pa"
+        elif flag == 56:
+            res = "stress zx Pa"
+        elif flag == 57:
+            res = "stress hydro Pa"
+        elif flag == 58:
+            res = "stress devia Pa"
+        elif flag == 6:
+            res = "strain"
+        elif flag == 61:
+            res = "strain pla equ"
+        elif flag == 7:
+            res = "displacement norm m"
+        elif flag == 8:
+            res = "pressure Pa"
+        else:
+            res = "Null"
     return res
 
 ###########################################################################

@@ -439,6 +439,17 @@ $\mu_d$ is the damping factor which can be computed by $\mu_d=\xi\sqrt{E/\rho h^
 
 > @bui2021 3.3, @nguyen2017
 
+While the kinematics of SPH simulation is generally realistic, the stress-pressure fields of SPH particles undergoing large deformation can exhibit large oscillations. This problem is known as the sort-length-scale-noise and is identified as one of the key challenges of the standard SPH method tha needs to be addressed in order to improve the accuracy of SPH simulations.
+
+The problem becomes worse when the artificial viscosity is not adopted in SPH simulations, although the viscous damping force could slow down the numerical instability process.
+
+Nguyen2017 suggests regularising the stresses and strains of each SPH particle over its kernel integral domain after a certain number of computational cycles and uses MLS method:
+
+$$\langle\boldsymbol{\sigma}_{i}\rangle=\sum_jV_j\boldsymbol{\sigma}_{j}W^{WLS}_{ij}$$
+
+$$\langle\boldsymbol{\epsilon}_{i}\rangle=\sum_jV_j\boldsymbol{\epsilon}_{j}W^{WLS}_{ij}$$
+
+And Nguyen2017 suggestes applying the above MLS correction every 5 steps.
 
 ## Standard soil SPH
 

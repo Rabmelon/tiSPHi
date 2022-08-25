@@ -84,7 +84,7 @@ class DPSESPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.density_0
-        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.cal_d_BA(p_i, p_j))) * self.ps.v[p_i]
+        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA(p_i, p_j))) * self.ps.v[p_i]
 
     @ti.func
     def cal_f_v(self, v):
@@ -297,8 +297,8 @@ class DPSESPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                     stress_j_2d = self.stress_stress2(self.stress[p_i])
                 if self.ps.material[p_j] == self.ps.material_repulsive:
-                    rep += self.cal_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
-                    if p_i == test_p_i: print("---- ---- ---- j =", p_j, self.ps.x[p_j], "rep j =", self.cal_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound), "dv0 =", dv)
+                    rep += self.calc_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
+                    if p_i == test_p_i: print("---- ---- ---- j =", p_j, self.ps.x[p_j], "rep j =", self.calc_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound), "dv0 =", dv)
                     continue
                 if self.ps.material[p_j] == self.ps.material_soil:
                     tmp_av = self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j)
