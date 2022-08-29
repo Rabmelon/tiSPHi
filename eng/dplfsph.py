@@ -78,9 +78,9 @@ class DPLFSPHSolver(SPHSolver):
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = -(self.stress[p_i][0,0] + self.stress[p_i][1,1] + self.stress[p_i][2,2]) / 3
-                self.ps.val[p_i] = self.strain_p_equ[p_i]
+                # self.ps.val[p_i] = self.strain_p_equ[p_i]
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
 
     ###########################################################################
@@ -223,6 +223,39 @@ class DPLFSPHSolver(SPHSolver):
                 res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
         return res
 
+    # these two regularisation ways does not make effort!
+    # @ti.kernel
+    # def regu_stress(self):
+    #     for p_i in range(self.ps.particle_num[None]):
+    #         if self.ps.material[p_i] != self.ps.material_soil:
+    #             continue
+    #         tmp = ti.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+    #         for j in range(self.ps.particle_neighbors_num[p_i]):
+    #             p_j = self.ps.particle_neighbors[p_i, j]
+    #             stress_j = self.stress[p_j]
+    #             if self.ps.material[p_j] == self.ps.material_dummy:
+    #                 self.update_boundary_particles(p_i, p_j)
+    #                 stress_j = self.stress[p_i]
+    #             if self.ps.material[p_j] > 10:
+    #                 continue
+    #             tmp += self.mass / self.density2[p_j] * stress_j * self.kernel(self.ps.x[p_i] - self.ps.x[p_j])
+    #         self.stress[p_i] = tmp * self.CSPM_f[p_i]
+
+    @ti.func
+    def regu_stress(self, p_i):
+        tmp = ti.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+        for j in range(self.ps.particle_neighbors_num[p_i]):
+            p_j = self.ps.particle_neighbors[p_i, j]
+            stress_j = self.stress[p_j]
+            if self.ps.material[p_j] == self.ps.material_dummy:
+                self.update_boundary_particles(p_i, p_j)
+                stress_j = self.stress[p_i]
+            if self.ps.material[p_j] > 10:
+                continue
+            tmp += self.mass / self.density2[p_j] * stress_j * self.kernel(self.ps.x[p_i] - self.ps.x[p_j])
+        self.stress[p_i] = tmp * self.CSPM_f[p_i]
+
+
     ###########################################################################
     # stress adaptation
     ###########################################################################
@@ -298,7 +331,7 @@ class DPLFSPHSolver(SPHSolver):
 
             # artificial viscosity
             alpha_Pi = 1.0
-            beta_Pi = 1.0
+            beta_Pi = 0.0
             tmp_av = 0.0
 
             for j in range(self.ps.particle_neighbors_num[p_i]):
@@ -367,6 +400,8 @@ class DPLFSPHSolver(SPHSolver):
                     self.f_v[p_j] = self.cal_f_v(self.v2[p_j])
                 tmp_v += (self.f_v[p_j] - self.f_v[p_i]) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]) / self.density2[p_j]
             self.d_f_stress[p_i] += tmp_J + tmp_g + tmp_v * self.mass
+            # self.d_f_stress[p_i] *= self.CSPM_f[p_i]      # this works! but make no sense in theory!
+
 
     ###########################################################################
     # advection
@@ -386,6 +421,7 @@ class DPLFSPHSolver(SPHSolver):
                 # self.density2[p_i] = self.density_0
                 self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
                 self.v2[p_i] += self.d_v[p_i] * self.dt[None] * 0.5
+                self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None] * 0.5
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None] * 0.5
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
                 self.stress[p_i] = self.adapt_stress(self.stress[p_i])
@@ -398,8 +434,8 @@ class DPLFSPHSolver(SPHSolver):
                 self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
                 self.ps.v[p_i] += self.d_v[p_i] * self.dt[None]
                 self.ps.x[p_i] += self.ps.v[p_i] * self.dt[None]
-                self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
                 self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None]
+                self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
                 self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 

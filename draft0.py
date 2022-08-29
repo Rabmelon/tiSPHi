@@ -29,12 +29,11 @@ if __name__ == "__main__":
     solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=coh, para3=fric, para4=E, para5=flag_arti_visc)
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio,
-             pause_flag=1, stop_step=160001, step_ggui=20,
-             save_png=5,  save_msg=0, iparticle=[2316, 2365, 7266, 7315], # for cc test
+             pause_flag=1, stop_step=160001, step_ggui=10, exit_flag=0,
+             save_png=0,  save_msg=0, iparticle=[2316, 2365, 4840, 7266, 7315], # for cc test
             #  save_png=0,  save_msg=0, iparticle=[1236, 1260, 1285, 2486, 2510, 2535, 3736, 3760, 3785], # for is test
-            #  save_png=0,  save_msg=0, iparticle=[3760], # for is test
-             kradius=1.25, grid_line=0.05, color_title=61,
-             given_max=3, given_min=-1, fix_max=1, fix_min=1)
+             kradius=1.25, grid_line=0.05, color_title=52,
+             given_max=2600, given_min=0, fix_max=1, fix_min=1)
 
     '''
     color title:

@@ -89,7 +89,7 @@ class SPHSolver:
     ###########################################################################
     @ti.func
     def kernel(self, r):
-        res = ti.cast(0.0, ti.f32)
+        res = 0.0
         if self.flagKernel == 1:
             res = self.cubic_kernel(r)
         elif self.flagKernel == 2:
@@ -108,7 +108,7 @@ class SPHSolver:
     # Cubic spline kernel
     @ti.func
     def cubic_kernel(self, r):
-        res = ti.cast(0.0, ti.f32)
+        res = 0.0
         h1 = 1.0 / self.ps.smoothing_len
         k = 1.0 if self.ps.dim == 1 else 15.0 / 7.0 / np.pi if self.ps.dim == 2 else 3.0 / 2.0 / np.pi
         k *= h1**self.ps.dim
@@ -143,7 +143,7 @@ class SPHSolver:
     # Wendland C2 kernel
     @ti.func
     def WendlandC2_kernel(self, r):
-        res = ti.cast(0.0, ti.f32)
+        res = 0.0
         h1 = 1.0 / self.ps.smoothing_len
         k = 7.0 / (4.0 * np.pi) if self.ps.dim == 2 else 21.0 / (2.0 * np.pi) if self.ps.dim == 3 else 0.0
         k *= h1**self.ps.dim

@@ -1,6 +1,7 @@
 import taichi as ti
 import numpy as np
 import os
+import csv
 from datetime import datetime
 
 # TODO: add different color choice
@@ -51,7 +52,7 @@ def gguishow(case, solver, world, s2w_ratio=1,
 
     # save png path
     cappath = os.getcwd() + r"\screenshots"
-    if save_png > 0:
+    if save_png > 0 or save_msg:
         timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
         simpath = os.getcwd() + "\\sim_" + timestamp
         if not os.path.exists(simpath):
@@ -66,18 +67,19 @@ def gguishow(case, solver, world, s2w_ratio=1,
         i_pos = ti.Vector.field(case.dim, ti.f32, shape=num_ip)
         tmp_pos = np.array([[0.0 for _ in range(case.dim)] for _ in range(num_ip)])
 
-# save messages into txt
+    # save messages into txt
     if save_msg and iparticle is not None:
         timestamp = datetime.today().strftime('%Y_%m_%d_%H%M%S')
-        savetxt = os.getcwd() + "\\results\\msg_" + timestamp + ".txt"
-        fid = open(savetxt, "w", encoding="utf-8")
-        fid.write("step")
-        save_title = "\tpid\tposx\tposy\tvx\tvy\tρ\tσxx\tσyy\tσxy\tσzz"
+        savecsv = simpath + "\\msg_" + timestamp + ".csv"
+        fid = open(savecsv, "w", encoding="utf-8", newline='')
+        fid_writer = csv.writer(fid)
+        str_row0 = ["step"]
+        save_title = ["pid", "posx", "posy", "vx", "vy", "rho", "sxx", "syy", "sxy", "szz"]
         if not isinstance(iparticle, list):
             iparticle = [iparticle]
         for ip in iparticle:
-            fid.write(save_title)
-        fid.write("\n")
+            str_row0 += save_title
+        fid_writer.writerow(str_row0)
 
     # main loop
     while window.running:
@@ -90,11 +92,12 @@ def gguishow(case, solver, world, s2w_ratio=1,
                 if save_msg:
                     if not isinstance(iparticle, list):
                         iparticle = [iparticle]
-                    fid.write("%06d" % (count_step))
+                    str_i = [count_step]
                     for ip in iparticle:
-                        istr_data = "\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f" % (ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.stress[ip][0,0], solver.stress[ip][1,1], solver.stress[ip][0,1], solver.stress[ip][2,2])
-                        fid.write(istr_data)
-                    fid.write("\n")
+                        istr_data = [ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.stress[ip][0,0], solver.stress[ip][1,1], solver.stress[ip][0,1], solver.stress[ip][2,2]]
+                        # istr_data = "\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f" % (ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.stress[ip][0,0], solver.stress[ip][1,1], solver.stress[ip][0,1], solver.stress[ip][2,2])
+                        str_i += istr_data
+                    fid_writer.writerow(str_i)
 
             for i in range(step_ggui):
                 solver.step()
