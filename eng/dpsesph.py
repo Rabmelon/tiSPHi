@@ -84,7 +84,7 @@ class DPSESPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.density_0
-        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA(p_i, p_j))) * self.ps.v[p_i]
+        self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA_rec(p_i, p_j))) * self.ps.v[p_i]
 
     @ti.func
     def cal_f_v(self, v):

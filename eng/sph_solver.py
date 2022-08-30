@@ -22,9 +22,9 @@ class SPHSolver:
 
         self.CSPM_L = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)     # the normalised matrix
         self.CSPM_f = ti.field(dtype=float)
-        self.MLS_f = ti.field(dtype=float)
+        self.MLS_beta = ti.Vector.field(3, dtype=float)
         particles_node = ti.root.dense(ti.i, self.ps.particle_max_num)
-        particles_node.place(self.CSPM_L, self.CSPM_f, self.MLS_f)
+        particles_node.place(self.CSPM_L, self.CSPM_f, self.MLS_beta)
 
     ###########################################################################
     # colored value
@@ -67,21 +67,17 @@ class SPHSolver:
             self.CSPM_L[p_i] = tmp_CSPM_L.inverse()
 
     @ti.kernel
-    def calc_MLS_f(self):
+    def calc_MLS_beta(self):
         for p_i in range(self.ps.particle_num[None]):
-            x_i = self.ps.x[p_i]
-            tmp_MLS_f = 0.0
             multi = ti.Vector([1.0, 0.0, 0.0])
-            beta = ti.Vector([0.0, 0.0, 0.0])
-            p = ti.Vector([0.0, 0.0, 0.0])
-            A = ti.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+            A0 = ti.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-                x_j = self.ps.x[p_j]
-                p = ti.Vector([1.0, x_i[0]-x_j[0], x_i[1]-x_j[1]])
-                A = (p @ p.transpose()).inverse()
-                beta += self.ps.m_V * A * self.kernel(x_i - x_j) @ multi
-            self.MLS_f[p_i] = tmp_MLS_f
+                xij = self.ps.x[p_i] - self.ps.x[p_j]
+                p = ti.Vector([1.0, xij[0], xij[1]])
+                Ap = p @ p.transpose()
+                A0 += self.ps.m_V * self.kernel(xij) * Ap
+            self.MLS_beta[p_i] = A0.inverse() @ multi * 0.5     # ! Why it needs to multi 0.5 here?????
 
 
     ###########################################################################
@@ -196,7 +192,7 @@ class SPHSolver:
 
     # Compute the distance between particle and boundary
     @ti.func
-    def calc_d_BA(self, p_i, p_j):
+    def calc_d_BA_rec(self, p_i, p_j):
         x_i = self.ps.x[p_i]
         x_j = self.ps.x[p_j]
         boundary = ti.Vector([self.ps.world[1], 0.0, self.ps.world[0], 0.0])
@@ -276,6 +272,7 @@ class SPHSolver:
         self.ps.initialize_particle_system()
         self.calc_CSPM_L()
         self.calc_CSPM_f()
+        self.calc_MLS_beta()
         self.substep()
         # if self.TDmethod == 1:
         #     self.substep_SympEuler()
@@ -283,4 +280,4 @@ class SPHSolver:
         #     self.substep_LeapFrog()
         # elif self.TDmethod == 4:
         #     self.substep_RK4()
-        self.enforce_boundary()   # Needed in WCSPH
+        # self.enforce_boundary()   # Needed in WCSPH

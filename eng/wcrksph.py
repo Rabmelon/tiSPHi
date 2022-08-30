@@ -66,7 +66,7 @@ class WCRKSPHSolver(SPHSolver):
     @ti.func
     def update_boundary_particles(self, p_i, p_j):
         self.ps.density[p_j] = self.ps.density[p_i]
-        self.v1234[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA(p_i, p_j))) * self.v1234[p_i]
+        self.v1234[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA_rec(p_i, p_j))) * self.v1234[p_i]
         self.pressure[p_j] = self.pressure[p_i]
 
     # Evaluate density

@@ -420,7 +420,7 @@ $$\phi_{ij}=\frac{h_{ij}\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}}{\Vert\bolds
 
 $$c_{ij}=\frac{c_i+c_j}{2},\ \rho_{ij}=\frac{\rho_i+\rho_j}{2},\ h_{ij}=\frac{h_i+h_j}{2},\ \boldsymbol{x}_{ij}=\boldsymbol{x}_i-\boldsymbol{x}_j,\ \boldsymbol{v}_{ij}=\boldsymbol{v}_i-\boldsymbol{v}_j$$
 
-where $\alpha_{\Pi}$ and $\beta_{\Pi}$ are problem dependent tuning parameters, $c$ is the speed of sound. $\alpha_{\Pi}$ is associated with the speed of sound, while $\beta_{\Pi}$ is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. $\varepsilon=0.01$ is a numerical parameter introduced to prevent numerical divergences, only to ensure a non-zero denominator.
+where $\alpha_{\Pi}$ and $\beta_{\Pi}$ are problem dependent tuning parameters, $c$ is the speed of sound. $\alpha_{\Pi}$ is associated with the speed of sound and is related to the linear term, while $\beta_{\Pi}$ is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. $\varepsilon=0.01$ is a numerical parameter introduced to prevent numerical divergences, only to ensure a non-zero denominator.
 
 This artificial viscosity is applied only for interactions between material particles, i.e. no artificial dissipation is introduced for the interaction of dummy particles and real particles.
 
@@ -445,9 +445,9 @@ The problem becomes worse when the artificial viscosity is not adopted in SPH si
 
 Nguyen2017 suggests regularising the stresses and strains of each SPH particle over its kernel integral domain after a certain number of computational cycles and uses MLS method:
 
-$$\langle\boldsymbol{\sigma}_{i}\rangle=\sum_jV_j\boldsymbol{\sigma}_{j}W^{WLS}_{ij}$$
+$$\langle\boldsymbol{\sigma}_{i}\rangle=\sum_jV_j\boldsymbol{\sigma}_{j}W^{MLS}_{ij}$$
 
-$$\langle\boldsymbol{\epsilon}_{i}\rangle=\sum_jV_j\boldsymbol{\epsilon}_{j}W^{WLS}_{ij}$$
+$$\langle\boldsymbol{\epsilon}_{i}\rangle=\sum_jV_j\boldsymbol{\epsilon}_{j}W^{MLS}_{ij}$$
 
 And Nguyen2017 suggestes applying the above MLS correction every 5 steps.
 

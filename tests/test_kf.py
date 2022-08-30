@@ -28,12 +28,23 @@ class ChkKernel(SPHSolver):
 
     @ti.func
     def ff(self, x):
-        # res = (x**2).sum()
         res = x.sum()
+        # res = (x**2).sum()
+        # res = x[0]**2 + x[1]**1.5
         return res
 
     @ti.kernel
-    def cal_f(self):
+    def cal_f_std(self):
+        for p_i in range(self.ps.particle_num[None]):
+            x_i = self.ps.x[p_i]
+            self.fv[p_i] = 0.0
+            for j in range(self.ps.particle_neighbors_num[p_i]):
+                p_j = self.ps.particle_neighbors[p_i, j]
+                x_j = self.ps.x[p_j]
+                self.fv[p_i] += self.ps.m_V * self.kernel(x_i - x_j) * self.ff(x_j)
+
+    @ti.kernel
+    def cal_f_CSPM(self):
         for p_i in range(self.ps.particle_num[None]):
             x_i = self.ps.x[p_i]
             self.fv[p_i] = 0.0
@@ -46,7 +57,7 @@ class ChkKernel(SPHSolver):
 
 
     @ti.kernel
-    def cal_grad_f(self):
+    def cal_grad_f_CSPM(self):
         for p_i in range(self.ps.particle_num[None]):
             x_i = self.ps.x[p_i]
             self.d_fv[p_i] = ti.Vector([0.0 for _ in range(self.ps.dim)])
@@ -68,13 +79,32 @@ class ChkKernel(SPHSolver):
                 tmp = self.CSPM_L[p_i] @ self.kernel_derivative(x_i - x_j)
                 self.g_fv[p_i] += self.ps.m_V * (self.ff(x_j) - self.ff(x_i)) @ tmp.transpose()
 
+    @ti.kernel
+    def cal_f_MLS(self):
+        for p_i in range(self.ps.particle_num[None]):
+            self.g_fv[p_i] = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
+            for j in range(self.ps.particle_neighbors_num[p_i]):
+                p_j = self.ps.particle_neighbors[p_i, j]
+                xij = self.ps.x[p_i] - self.ps.x[p_j]
+                Wij_MLS = self.kernel(xij) * (self.MLS_beta[p_i][0] + self.MLS_beta[p_i][1] * xij[0] + self.MLS_beta[p_i][2] * xij[1])
+                self.fv[p_i] += self.ps.m_V * self.ff(self.ps.x[p_j]) * Wij_MLS
+
+
     def step(self):
         self.ps.initialize_particle_system()
         self.calc_CSPM_L()
         self.calc_CSPM_f()
-        self.cal_f()
-        self.cal_grad_f()
+        self.calc_MLS_beta()
+
+        # self.cal_f_std()
+        # self.cal_f_CSPM()
+        self.cal_f_MLS()
+
+        # self.cal_grad_f_CSPM()
+
         # self.cal_f2()
+
+        a = 1
 
 if __name__ == "__main__":
     print("hallo test kernel function accuracy!")
@@ -88,7 +118,6 @@ if __name__ == "__main__":
 
     solver = ChkKernel(case1, 2)
     gguishow(case1, solver, rec_world, screen_to_world_ratio,
-             step_ggui=1, pause_flag=0, stop_step=2,
-             iparticle=-1, kradius=1.05, color_title="f=x+y, f, WLC2")
-    # f=x+y, f, |f'|, f'[0,0], CS, WLC2, Gaus
+             step_ggui=1, pause_flag=0, stop_step=2, iparticle=-1, kradius=1.05, color_title="f=x+y, f, WLC2")
+    # f=x2+y2, f=x+y, f, |f'|, f'[0,0], CS, WLC2, Gaus
 

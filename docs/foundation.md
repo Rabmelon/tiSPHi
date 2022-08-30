@@ -206,7 +206,9 @@ $$f_i\approx\sum_jV_jf_jW_{ij}\approx f_i{\color{Salmon}\sum_jV_jW_{ij}}+O(h)$$
 
 where the term ${\color{Salmon} 1}$ should be $1$. Then divide the ${\color{Salmon} 1}$ term, leading to:
 
-$$f_i\approx\frac{\sum_jV_jf_jW_{ij}}{\sum_jV_jW_{ij}}=\sum_jV_jf_jW_{ij}^{CSPM} $$
+$$f_i\approx\frac{\sum_jV_jf_jW_{ij}}{\sum_jV_jW_{ij}}=\sum_jV_jf_jW_{ij}^{CSPM}$$
+
+$$W_{ij}^{CSPM}=\frac{W_{ij}}{\sum_kV_kW_{ik}}$$
 
 and for the first derivative:
 
@@ -216,9 +218,11 @@ where the term ${\color{Salmon} 1}$ should be $0$ and the term ${\color{Green} 2
 
 To completely eliminate these errors, one could subtract the ${\color{Salmon} 1}$ term and then divide the ${\color{Green} 2}$ term, leading to the normalised SPH formulation for the kernel derivative:
 
-$$\nabla f_i\approx\sum_{j=1} V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1} V_j(f_j-f_i)\nabla_iW_{ij}^{CSPM} $$
+$$\nabla f_i\approx\sum_{j=1} V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1} V_j(f_j-f_i)\nabla_iW_{ij}^{CSPM}$$
 
 $$\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}]^{-1}$$
+
+$$\nabla_iW_{ij}^{CSPM}=[\sum_kV_k(\boldsymbol{x}_k-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ik}]^{-1}\nabla_i W_{ij} $$
 
 $\boldsymbol{L}_{ij}$ is the normalised matrix. This formulation has second order accuracy. Additionally, it also removes the boundary effects. But although it is a good operator, it also may become a bad one. Such as in formulations that DO NOT conserve linear momentum like force and stress. So we need an operator to conserve both linear and angular momenta.
 
@@ -231,6 +235,10 @@ The Shepaard correction of the smoothing kernel $W$ addresses errors introduced 
 $$W_{ij}^{sh}=\frac{W_{ij}}{\sum_kV_kW_{ik}}$$
 
 And this is a zero-order reinitialization [@pysph].
+
+> **QUESTIONS**
+>
+> 1. Isn't it the CSPM for $f_i$?
 
 ### MLS correction
 
