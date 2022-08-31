@@ -1,7 +1,7 @@
 import taichi as ti
 from eng.gguishow import *
 from eng.particle_system import *
-from eng.chooseSolver import *
+from eng.choose_solver import *
 
 # ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, cpu_max_num_threads=1)
 ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.75, default_fp=ti.f64)     # MEMORY max 4G in GUT, 6G in Legion
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     case1.gen_boundary_dummy()
     case1.add_cube(lower_corner=[0.0, 0.0], cube_size=cube_size, material=mat, density=rho)
 
-    solver = chooseSolver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=viscosity, para3=stiffness, para4=powcomp)
+    solver = choose_solver(case1, mat, cmodel, TDmethod, flag_kernel, para1=rho, para2=viscosity, para3=stiffness, para4=powcomp)
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio, color_title=2,
              kradius=1.05, step_ggui=20, iparticle=-1, save_png=0, pause_flag=True, grid_line=0.1)

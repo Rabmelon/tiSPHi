@@ -5,7 +5,7 @@ from eng.sph_solver import SPHSolver
 # ! 2D only
 
 class DPSESPHSolver(SPHSolver):
-    def __init__(self, particle_system, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0, flag_av=False):
+    def __init__(self, particle_system, kernel, density, cohesion, friction, EYoungMod=5.0e6, poison=0.3, dilatancy=0.0):
         super().__init__(particle_system, kernel)
         print("Class Drucker-Prager Soil SPH Solver starts to serve!")
 
@@ -16,7 +16,6 @@ class DPSESPHSolver(SPHSolver):
         self.EYoungMod = EYoungMod
         self.poi = poison
         self.dila = dilatancy / 180 * np.pi
-        self.flag_av = flag_av
 
         self.mass = self.ps.m_V * self.density_0
         self.dim = 3
@@ -194,7 +193,7 @@ class DPSESPHSolver(SPHSolver):
             self.v_grad[p_i] = v_g * self.mass
 
     ###########################################################################
-    # Artificial terms
+    # ! old Artificial terms
     ###########################################################################
     @ti.func
     def cal_artificial_viscosity(self, flag_av, alpha_Pi, beta_Pi, p_i, p_j):
@@ -285,11 +284,6 @@ class DPSESPHSolver(SPHSolver):
             # Fd = -cd * self.ps.v[p_i]
             Fd = 0.0
 
-            # artificial viscosity
-            alpha_Pi = 0.1
-            beta_Pi = 0.0
-            tmp_av = 0.0
-
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 stress_j_2d = self.stress_stress2(self.stress[p_j])
@@ -300,15 +294,13 @@ class DPSESPHSolver(SPHSolver):
                     rep += self.calc_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
                     if p_i == test_p_i: print("---- ---- ---- j =", p_j, self.ps.x[p_j], "rep j =", self.calc_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound), "dv0 =", dv)
                     continue
-                if self.ps.material[p_j] == self.ps.material_soil:
-                    tmp_av = self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j)
-                dv += self.ps.density[p_j] * self.ps.m_V * (stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2 - tmp_av * self.I) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                dv += self.ps.density[p_j] * self.ps.m_V * (stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
 
                 if p_i == test_p_i:
                     tmp_vijxij = ((self.ps.v[p_i] - self.ps.v[p_j]) * (self.ps.x[p_i] - self.ps.x[p_j])).sum()
                     if tmp_vijxij < 0:
                         tmp_dv0 = stress_j_2d / self.ps.density[p_j]**2 + stress_i_2d / self.ps.density[p_i]**2
-                        print("---- ---- ---- j =", p_j, "v*x =", tmp_vijxij, "Pi =", self.cal_artificial_viscosity(self.flag_av, alpha_Pi, beta_Pi, p_i, p_j), "dv term0 =", tmp_dv0)
+                        print("---- ---- ---- j =", p_j, "v*x =", tmp_vijxij, "dv term0 =", tmp_dv0)
             if p_i == test_p_i: print("---- ---- ---- rep =", rep)
 
             if self.ps.dim == 2:

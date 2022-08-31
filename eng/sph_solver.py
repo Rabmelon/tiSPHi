@@ -18,7 +18,7 @@ class SPHSolver:
         self.dt_min = 1e-6
         self.vsound = 35.0
         self.epsilon = 1e-16
-        self.alertratio = 1.25
+        self.alertratio = 1.05
 
         self.CSPM_L = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)     # the normalised matrix
         self.CSPM_f = ti.field(dtype=float)
@@ -77,7 +77,7 @@ class SPHSolver:
                 p = ti.Vector([1.0, xij[0], xij[1]])
                 Ap = p @ p.transpose()
                 A0 += self.ps.m_V * self.kernel(xij) * Ap
-            self.MLS_beta[p_i] = A0.inverse() @ multi * 0.5     # ! Why it needs to multi 0.5 here?????
+            self.MLS_beta[p_i] = A0.inverse() @ multi * 0.5     # ! Why it needs to multi 0.5 here in my code?????
 
 
     ###########################################################################

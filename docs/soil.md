@@ -400,57 +400,6 @@ To exactly conserve momentum, we should use the symmetric form:
 
 $$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i$$
 
-## Numerical oscillations and dissipations in SPH
-
-### Artificial viscosity - standard approach
-
-> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017, @Adami2012, from @Monaghan1983
-
-The fully dynamic equation would cause SPH particles to freely oscillate due to even small unbalanced forces, most of which is attributed to the zero-energy mode produced by the anti-symmetric kernel function with zero kernel gradient at the inflection point. However, this oscillation of SPH particles or material points is a common issue associated with any numerical method used to solve the fully dynamic motion equation.
-
-An adapted artificial viscosity was implemented with SPH to dampen the irregular particle motion and pressure fluctuations, and to prevent the non-physical collisions of two approaching particles. The artificial viscosity term $\Pi_{ij}$ is included in the SPH momentum equation as:
-
-$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\Pi_{ij}\boldsymbol{I})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i$$
-
-And the most widely used form of artificial viscosity is:
-
-$$\Pi_{ij}=\begin{cases} \frac{-\alpha_{\Pi}c_{ij}\phi_{ij}+\beta_{\Pi}\phi_{ij}^2}{\rho_{ij}},&\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}<0\\ 0,&\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}\ge0\\ \end{cases}$$
-
-$$\phi_{ij}=\frac{h_{ij}\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}}{\Vert\boldsymbol{x}_{ij}\Vert^2+\varepsilon h_{ij}^2}$$
-
-$$c_{ij}=\frac{c_i+c_j}{2},\ \rho_{ij}=\frac{\rho_i+\rho_j}{2},\ h_{ij}=\frac{h_i+h_j}{2},\ \boldsymbol{x}_{ij}=\boldsymbol{x}_i-\boldsymbol{x}_j,\ \boldsymbol{v}_{ij}=\boldsymbol{v}_i-\boldsymbol{v}_j$$
-
-where $\alpha_{\Pi}$ and $\beta_{\Pi}$ are problem dependent tuning parameters, $c$ is the speed of sound. $\alpha_{\Pi}$ is associated with the speed of sound and is related to the linear term, while $\beta_{\Pi}$ is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. $\varepsilon=0.01$ is a numerical parameter introduced to prevent numerical divergences, only to ensure a non-zero denominator.
-
-This artificial viscosity is applied only for interactions between material particles, i.e. no artificial dissipation is introduced for the interaction of dummy particles and real particles.
-
-A disadvantage of using the artificial viscosity is that parameter tuning may be required to obtain the optimal values which are not directly associated with any physical properties. The use of the artificial viscosity in SPH simulations is purely for the purposes of numerical stabilisation.
-
-### Alternative viscous damping term
-
-> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017
-
-Alternative damping terms can be used instead of the artificial viscosity that have more physical relevance to the problem, or require less calibration. The following velocity-dependent damping term $\boldsymbol{F}_d=-\mu_d\boldsymbol{v}$ can be included as a body force in the equation of the momentum.
-
-$\mu_d$ is the damping factor which can be computed by $\mu_d=\xi\sqrt{E/\rho h^2}$ with $\xi$ being a non-dimensional damping coefficient that requires calibrations for different applications. For the simulation of granular flows, such as the flow of granular column collapse experiments in *Nguyen2017*, a constant value of $\xi=5\times10^{-5}$ is recommended.
-
-
-### Stress/strain regularisation
-
-> @bui2021 3.3, @nguyen2017
-
-While the kinematics of SPH simulation is generally realistic, the stress-pressure fields of SPH particles undergoing large deformation can exhibit large oscillations. This problem is known as the sort-length-scale-noise and is identified as one of the key challenges of the standard SPH method tha needs to be addressed in order to improve the accuracy of SPH simulations.
-
-The problem becomes worse when the artificial viscosity is not adopted in SPH simulations, although the viscous damping force could slow down the numerical instability process.
-
-Nguyen2017 suggests regularising the stresses and strains of each SPH particle over its kernel integral domain after a certain number of computational cycles and uses MLS method:
-
-$$\langle\boldsymbol{\sigma}_{i}\rangle=\sum_jV_j\boldsymbol{\sigma}_{j}W^{MLS}_{ij}$$
-
-$$\langle\boldsymbol{\epsilon}_{i}\rangle=\sum_jV_j\boldsymbol{\epsilon}_{j}W^{MLS}_{ij}$$
-
-And Nguyen2017 suggestes applying the above MLS correction every 5 steps.
-
 ## Standard soil SPH
 
 ### Discretization

@@ -168,7 +168,7 @@ $$\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
   6(q^3-q^2)+1, &0\leq q \leq 0.5 \\ 2(1-q)^3, &0.5 < q \leq 1 \\ 0, &otherwise
-\end{cases} $$
+\end{cases}$$
 
 where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{4}{3h}$, $k_2=\frac{40}{7\pi h^2}$, $k_3=\frac{8}{\pi h^3}$.
 
@@ -178,7 +178,7 @@ where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factor
 
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
   (1-0.5q)^4(1+2q), &0\leq q \leq 2 \\ 0, &otherwise
-\end{cases} $$
+\end{cases}$$
 
 where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=2,3$ and $k_2=\frac{7}{4\pi h^2}$, $k_3=\frac{21}{2\pi h^3}$. For 1d, the formulation is changed. The kernel is $C^2$ continuous.
 
@@ -276,7 +276,22 @@ And this is the first order correction that reproduces exactly the linear variat
 
 ## Boundary treatment
 
-### Simplest treatments
+### Types of boundary conditions
+
+> @Bui2021, @Bui lecture
+
+Like any other numerical methods, the treatment of boundary condditions in SPH is required to facilitate its applications to a wide range of engineering problems.
+
+1. Solid boundary conditions such as **fully-fixed**, **free-slip** (or **free-roller**) or **symmetric**.
+2. Flexible **confining stress** boundary conditions such as prescribed pressure of confining stress in triaxial tests.
+3. **Free-surface** condition.
+
+<div align="center">
+  <img width="500px" src="/img/Boundary_conditions_basic.png">
+</div>
+
+
+### Simplest treatments for water
 
 > @taichiCourse01-10 PPT p43 and 79-85
 
@@ -305,9 +320,9 @@ The particles that comprise the free surface should satisfy a stress-free condit
 >
 > 1. BUT how does the free surface condition implement?
 
-### Dummy particles
+### Dummy particles (or fixed-boundary particles)
 
-> @Chalk2020
+> @Chalk2020, @Bui2021, @Zhao2019
 
 虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。
 
@@ -328,6 +343,24 @@ $$\boldsymbol{v}_B = (1-\beta)\boldsymbol{v}_A+\beta\boldsymbol{v}_{wall}\ ,\ \b
 $\beta_{max}$ have been found to be between $1.5\rightarrow2$, and here we use $\beta_{max}=1.5$.
 
 And we have $\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A$ and $p_B=p_A$, etc. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the $\boldsymbol{f}^{\sigma}$ term) on the interior particles in the equation of momentum through the particle-dummy interaction.
+
+From *Bui's lecture*, the stress and velocity of fixed boundary particles ($a$) can also be interpolated from real particles ($b$). For the fully-fixed boundary:
+
+$$\boldsymbol{v}_i^a=-\sum_jV_i^b\boldsymbol{v}_i^b\widetilde{W}_{ij},\ \boldsymbol{\sigma}_i^a=\sum_jV_i^b\boldsymbol{\sigma}_i^b\widetilde{W}_{ij}$$
+
+While for the free-slip boundary:
+
+$$\boldsymbol{v}_i^{a,n}=\sum_jV_j^b(\boldsymbol{v}_i^{a,n}-2\boldsymbol{v}_j^{b,n})\widetilde{W}_{ij}\ or\ \boldsymbol{v}_i^{a,n}=-\sum_jV_j^b\boldsymbol{v}_j^{b,n}\widetilde{W}_{ij},\ \boldsymbol{v}_i^{a,t}=\sum_jV_j^b\boldsymbol{v}_j^{b,t}\widetilde{W}_{ij}$$
+
+$$\sigma_i^{a, \alpha\beta}=\begin{cases}
+  \sum_jV_j^b\sigma_j^{b, \alpha\beta}\widetilde{W}_{ij}, &\alpha=\beta \\ -\sum_jV_j^b\sigma_j^{b, \alpha\beta}\widetilde{W}_{ij}, & \alpha \neq \beta
+\end{cases}$$
+
+where $\boldsymbol{v}^{a,n}$ and $\boldsymbol{v}^{a,t}$ are the normal and shear velocity components of particle $a$ with respect to the solid boundary surface. To calculate the normal vector for each particle on the open boundary, refer to *@Zhao2019 Sec 4.1*.
+
+<div align="center">
+  <img width="160px" src="/img/Boundary_normal.png">
+</div>
 
 ### A "soft" repulsive force
 
@@ -437,5 +470,57 @@ $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{v}_
 or just Symplectic Euler:
 
 $$\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{v}_i^{t+\Delta t}$$
+
+## Numerical oscillations and dissipations in SPH
+
+### Artificial viscosity - standard approach
+
+> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017, @Adami2012, from @Monaghan1983
+
+The fully dynamic equation would cause SPH particles to freely oscillate due to even small unbalanced forces, most of which is attributed to the zero-energy mode produced by the anti-symmetric kernel function with zero kernel gradient at the inflection point. However, this oscillation of SPH particles or material points is a common issue associated with any numerical method used to solve the fully dynamic motion equation.
+
+An adapted artificial viscosity was implemented with SPH to dampen the irregular particle motion and pressure fluctuations, and to prevent the non-physical collisions of two approaching particles. The artificial viscosity term $\Pi_{ij}$ is included in the SPH momentum equation as:
+
+$$\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\Pi_{ij}\boldsymbol{I})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i$$
+
+And the most widely used form of artificial viscosity is:
+
+$$\Pi_{ij}=\begin{cases} \frac{-\alpha_{\Pi}c_{ij}\phi_{ij}+\beta_{\Pi}\phi_{ij}^2}{\rho_{ij}},&\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}<0\\ 0,&\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}\ge0\\ \end{cases}$$
+
+$$\phi_{ij}=\frac{h_{ij}\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}}{\Vert\boldsymbol{x}_{ij}\Vert^2+\varepsilon h_{ij}^2}$$
+
+$$c_{ij}=\frac{c_i+c_j}{2},\ \rho_{ij}=\frac{\rho_i+\rho_j}{2},\ h_{ij}=\frac{h_i+h_j}{2},\ \boldsymbol{x}_{ij}=\boldsymbol{x}_i-\boldsymbol{x}_j,\ \boldsymbol{v}_{ij}=\boldsymbol{v}_i-\boldsymbol{v}_j$$
+
+where $\alpha_{\Pi}$ and $\beta_{\Pi}$ are problem dependent tuning parameters, $c$ is the speed of sound. $\alpha_{\Pi}$ is associated with the speed of sound and is related to the linear term, while $\beta_{\Pi}$ is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. $\varepsilon=0.01$ is a numerical parameter introduced to prevent numerical divergences, only to ensure a non-zero denominator.
+
+This artificial viscosity is applied only for interactions between material particles, i.e. no artificial dissipation is introduced for the interaction of dummy particles and real particles.
+
+A disadvantage of using the artificial viscosity is that parameter tuning may be required to obtain the optimal values which are not directly associated with any physical properties. The use of the artificial viscosity in SPH simulations is purely for the purposes of numerical stabilisation.
+
+### Alternative viscous damping term
+
+> @bui2021 3.3, @chalk2020 4.5.1, @nguyen2017
+
+Alternative damping terms can be used instead of the artificial viscosity that have more physical relevance to the problem, or require less calibration. The following velocity-dependent damping term can be included as a body force in the equation of the momentum:
+
+$$\boldsymbol{F}_d=-\mu_d\boldsymbol{v}$$
+
+$\mu_d$ is the damping factor which can be computed by $\mu_d=\xi\sqrt{E/\rho h^2}$ with $\xi$ being a non-dimensional damping coefficient that requires calibrations for different applications. For the simulation of granular flows, such as the flow of granular column collapse experiments in *Nguyen2017*, a constant value of $\xi=5\times10^{-5}$ is recommended.
+
+### Stress/strain regularisation
+
+> @bui2021 3.3, @nguyen2017
+
+While the kinematics of SPH simulation is generally realistic, the stress-pressure fields of SPH particles undergoing large deformation can exhibit large oscillations. This problem is known as the sort-length-scale-noise and is identified as one of the key challenges of the standard SPH method tha needs to be addressed in order to improve the accuracy of SPH simulations.
+
+The problem becomes worse when the artificial viscosity is not adopted in SPH simulations, although the viscous damping force could slow down the numerical instability process.
+
+*Nguyen2017* suggests regularising the stresses and strains of each SPH particle over its kernel integral domain after a certain number of computational cycles and uses MLS method:
+
+$$\langle\boldsymbol{\sigma}_{i}\rangle=\sum_jV_j\boldsymbol{\sigma}_{j}W^{MLS}_{ij}$$
+
+$$\langle\boldsymbol{\epsilon}_{i}\rangle=\sum_jV_j\boldsymbol{\epsilon}_{j}W^{MLS}_{ij}$$
+
+And *Nguyen2017* suggestes applying the above MLS correction every 5 steps.
 
 ## Tensile instability

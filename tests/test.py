@@ -30,5 +30,7 @@ if __name__ == "__main__":
     print("An,", An)
     foo()
 
+    A1A2 = A1 * A2
+    print(A1A2)
 
     flag_end = 1
