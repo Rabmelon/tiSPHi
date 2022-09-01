@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Basic knowledge - tiSPHi</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Basic knowledge";
+        var mkdocs_page_input_path = "basic.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> tiSPHi
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Basic knowledge</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#tensor">Tensor</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#einstein-summation-convention">Einstein summation convention</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#kronecker-delta">Kronecker delta</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#levi-civita-symbol">Levi-Civita symbol</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tensor-equation-algebra">Tensor equation / algebra</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#some-commonly-used-special-tensors">Some commonly used special tensors</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#chain-rule-in-derivative">Chain rule in derivative</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#the-spatial-derivative-operators-in-3d">The spatial derivative operators in 3D</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#material-derivative">Material derivative</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fluid-and-solid">Fluid and solid</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#strain-and-strain-rate-tensor">Strain and strain-rate tensor</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#strain">Strain</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#small-strain">Small strain</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#boldsymboluboldsymboli-strain">\(\boldsymbol{U}−\boldsymbol{I}\) strain</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#green-strain-tensor">Green strain tensor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#hydrostatic-strain">Hydrostatic strain</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#volumetric-strain">Volumetric strain</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#deviatoric-strain">Deviatoric strain</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#strain-rate-tensor">Strain-rate tensor</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#stress">Stress</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#invariants">Invariants</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#hookes-law">Hooke's Law</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#other-mathematical-components">Other mathematical components</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../foundation/">SPH foundations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../fluid/">SPH for fluid</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../soil/">SPH for soil</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../taichi/">Taichi Lang</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../codeframe/">Code frame</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../about/">About</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">tiSPHi</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>Basic knowledge</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="basic-mathematics-and-mechanics">Basic mathematics and mechanics</h1>
+<h2 id="tensor">Tensor</h2>
+<p>Tensors are simply mathematical objects that can be used to describe physical properties, a tensor is something that transforms like a tensor. The laws of physics described in tensor automatically guarantee this property of being invariant with the reference frame.
+The rank (or order) of a tensor is defined by the number of directions required to describe it. A scalar is a 0 rank tensor, a vector is a first rank tensor, a matrix is a two rank tensor. In general, in a 3D space, an <span class="arithmatex">\(n^{th}\)</span> rank tensor can be described by <span class="arithmatex">\(3^n\)</span> coefficients.</p>
+<h3 id="einstein-summation-convention">Einstein summation convention</h3>
+<p>Einstein summation convention is a notational convention that implies summation over a set of indexed terms in a formula, thus achieving brevity.
+* <strong>Summation index (dummy index)</strong>: an index that is summed over.
+  <span class="arithmatex">\(i\)</span> in <span class="arithmatex">\(y=\sum_{i=1}^3c_ix_i=c_1x_1+c_2x_2+c_3x_3=c_ix_i\)</span>
+  * A dummy index can only appear twice in one item. If there are more dummy indexes in one item, it should be added a summation symbol:
+    <span class="arithmatex">\(a_1b_1c_1+a_2b_2c_2+a_3b_3c_3=\sum_{i=1}^3a_ib_ic_i\)</span> <strong>not just</strong> <span class="arithmatex">\(a_ib_ic_i\)</span>
+* <strong>Free index</strong>: an index that is not summed over.
+  <span class="arithmatex">\(j\)</span> in <span class="arithmatex">\(v_i=\sum_{j=1}^3=a_ib_jx_j=a_ib_1x_1+a_ib_2x_2+a_ib_3x_3\)</span>
+  * A free index cannot be written twice in one item.</p>
+<p>Unless otherwise specified, <span class="arithmatex">\(i,j,k,...\)</span> represent 3D index, and <span class="arithmatex">\(\alpha,\beta,\gamma,...\)</span> represent 2D index: <span class="arithmatex">\(\boldsymbol{a}\cdot\boldsymbol{b}=a_ib_i=a_1b_1+a_2b_2+a_3b_3\)</span> and <span class="arithmatex">\(\boldsymbol{a}\cdot\boldsymbol{b}=a_{\alpha}b_{\alpha}=a_1b_1+a_2b_2\)</span></p>
+<h3 id="kronecker-delta">Kronecker delta</h3>
+<h3 id="levi-civita-symbol">Levi-Civita symbol</h3>
+<h3 id="tensor-equation-algebra">Tensor equation / algebra</h3>
+<h3 id="some-commonly-used-special-tensors">Some commonly used special tensors</h3>
+<h2 id="chain-rule-in-derivative">Chain rule in derivative</h2>
+<div class="arithmatex">\[
+\begin{aligned}
+  h &amp;= f(g(x)) \\ h &amp;= (f\circ g)(x) \\ h'(x) &amp;= f'(g(x))g'(x) \\ \frac{{\rm d}(f\circ g)}{{\rm d}x} &amp;= \frac{{\rm d}f}{{\rm d}g}\frac{{\rm d}g}{{\rm d}x} \\ \frac{{\rm d}^2(f\circ g)}{{\rm d}x^2} &amp;= \frac{{\rm d}^2f}{{\rm d}g^2}(\frac{{\rm d}g}{{\rm d}x})^2+\frac{{\rm d}f}{{\rm d}g}\frac{{\rm d}^2g}{{\rm d}x^2} \\ \frac{{\rm d}^3(f\circ g)}{{\rm d}x^3} &amp;= \frac{{\rm d}^3f}{{\rm d}g^3} (\frac{{\rm d}g}{{\rm d}x})^3+3\frac{{\rm d}^2f}{{\rm d}g^2}\frac{{\rm d}g}{{\rm d}x}\frac{{\rm d}^2g}{{\rm d}x^2}+\frac{{\rm d}f}{{\rm d}g}\frac{{\rm d}^3g}{{\rm d}x^3}
+\end{aligned}
+\]</div>
+<h2 id="the-spatial-derivative-operators-in-3d">The spatial derivative operators in 3D</h2>
+<p><span class="arithmatex">\(\nabla\)</span> 算子的三个语义:</p>
+<div class="arithmatex">\[\nabla=\boldsymbol{i}\frac{\partial}{\partial x}+\boldsymbol{j}\frac{\partial}{\partial y}+\boldsymbol{k}\frac{\partial}{\partial z}\]</div>
+<p><strong>梯度Gradient</strong>：作用于<strong>标量</strong><span class="arithmatex">\(f(x, y, z)\)</span>得到<strong>矢量</strong>。<span class="arithmatex">\(\mathbb{R}^1\rightarrow\mathbb{R}^3, \nabla\)</span></p>
+<div class="arithmatex">\[grad\ f=\nabla f=(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}, \frac{\partial f}{\partial z})\]</div>
+<p>作用于张量则张量rank+1</p>
+<div class="arithmatex">\[\nabla\boldsymbol{v}=\frac{\partial v_i}{\partial x_j}\boldsymbol{e}_i\boldsymbol{e}_j=v_{i,j} \]</div>
+<p><strong>散度Divergence</strong>：作用于<strong>矢量</strong><span class="arithmatex">\((f_x, f_y, f_z)\)</span>得到<strong>标量</strong>。<span class="arithmatex">\(\mathbb{R}^3\rightarrow\mathbb{R}^1, \nabla\cdot\)</span></p>
+<div class="arithmatex">\[div\ \boldsymbol{f}=\nabla\cdot \boldsymbol{f}=\frac{\partial f_x}{\partial x} + \frac{\partial f_y}{\partial y} + \frac{\partial f_z}{\partial z}\]</div>
+<p><strong>旋度Curl</strong>：作用于<strong>矢量</strong><span class="arithmatex">\((f_x, f_y, f_z)\)</span>得到<strong>矢量</strong>。<span class="arithmatex">\(\mathbb{R}^3\rightarrow\mathbb{R}^3, \nabla\times\)</span></p>
+<div class="arithmatex">\[curl\ \boldsymbol{f}=\nabla\times\boldsymbol{f}=\begin{vmatrix} \boldsymbol{i} &amp;\boldsymbol{j} &amp;\boldsymbol{k}\\ \frac{\partial}{\partial x} &amp;\frac{\partial}{\partial y} &amp;\frac{\partial}{\partial z}\\ f_x &amp;f_y &amp;f_z \end{vmatrix}=(\frac{\partial f_z}{\partial y}-\frac{\partial f_y}{\partial z}, \frac{\partial f_x}{\partial z}-\frac{\partial f_z}{\partial x}, \frac{\partial f_y}{\partial x}-\frac{\partial f_x}{\partial y})\]</div>
+<p><strong>拉普拉斯Laplace</strong>: 梯度的散度，作用于任意维度的变量。 <span class="arithmatex">\(\mathbb{R}^n\rightarrow\mathbb{R}^n, \nabla \cdot \nabla=\nabla^2\)</span></p>
+<div class="arithmatex">\[laplace\ f=div(grad\ f)=\nabla^2f=\frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2} + \frac{\partial^2 f}{\partial z^2}\]</div>
+<h2 id="material-derivative">Material derivative</h2>
+<p>For a scalar field:</p>
+<div class="arithmatex">\[\frac{{\rm D}f}{{\rm D}t}=\frac{\partial f}{\partial t}+\boldsymbol{v}\cdot\nabla f,\ r=f_{,t}+v_if_{,i}\]</div>
+<p>And for a vector field:</p>
+<div class="arithmatex">\[\frac{{\rm D}\boldsymbol{f}}{{\rm D}t}=\frac{\partial \boldsymbol{f}}{\partial t}+\boldsymbol{v}\cdot\nabla \boldsymbol{f},\ r_i=f_{i,t}+v_kf_{i,k}\]</div>
+<p>This is <strong>material derivative</strong> in fluid mechanics, total derivative in math. 数学上的全导数，流体力学中的物质导数、随体导数，为流体质点在运动时所具有的物理量对时间的全导数。</p>
+<p><a href="https://en.wikipedia.org/wiki/Material_derivative">Wiki</a>: In continuum mechanics, the material derivative describes the time rate of change of some physical quantity (like heat or momentum) of a material element that is subjected to a space-and-time-dependent macroscopic velocity field. The material derivative can serve as a link between Eulerian and Lagrangian descriptions of continuum deformation.<br>
+运动的流体微团的物理量随时间的变化率，它等于该物理量由当地时间变化所引起的变化率与由流体对流引起的变化率的和。<br>
+从偏导数全微分的摡念出发，密度变化可以认为是密度分布函数（密度场）的时间偏导数项（不定常）和空间偏导数项（空间不均匀）的和。时间偏导项叫局部导数或就地导数。空间偏导项叫位变导数或对流导数。
+中科院的李新亮研究员给出了一个更加形象的例子：高铁的电子显示屏上会实时显示车外的温度，如果我们将高铁看作是一个流体微元，它早上从北京出发，中午到达上海，显示屏上记录的室外温度的变化就是物质导数，它包含了两个部分，一是从北京到上海的地理位置的变化所带来的温度变化，即对流导数；二是由于早上到中午由于时间不同而引起的温度变化，即当地导数。)</p>
+<blockquote>
+<p>@Koschier2019</p>
+</blockquote>
+<p>However, given the same field quantity once described in Eulerian coordinates <span class="arithmatex">\(f^E(t, \boldsymbol{x})\)</span> and Lagrangian coordinates <span class="arithmatex">\(f^L(t)\)</span> the material derivative has the following explicit forms:</p>
+<div class="arithmatex">\[\frac{{\rm D}f^E}{{\rm D}t}=\frac{\partial f^E}{\partial t}+\boldsymbol{v}\cdot\nabla f^E\ and\ \frac{{\rm D}f^L}{{\rm D}t}=\frac{\partial f^L}{\partial t} \]</div>
+<p>The second term of the material derivative for Eulerian coordinates is referred to as <em>convection term</em> or <em>self-advection</em> term. As opposed to some people's beliefs, the convection term is non-existent when a quantity is described in Lagrangian coordinates.</p>
+<h2 id="fluid-and-solid">Fluid and solid</h2>
+<p><strong>Solid</strong>: Applied tengential force/area (or shear stress) <span class="arithmatex">\(\tau\)</span> produces a proportional deformation angle (or strain) <span class="arithmatex">\(\theta\)</span>. The constant of proportionality <span class="arithmatex">\(G\)</span> is called the <em>elastic modulus</em> and has the units of <span class="arithmatex">\(force/area\)</span>.</p>
+<div class="arithmatex">\[\tau=G\theta\]</div>
+<p><strong>Fluid</strong>: Applied shear stress <span class="arithmatex">\(\tau\)</span> produces a proportional continuously-increasing deformation (or strain rate) <span class="arithmatex">\(\dot\theta\)</span>. The constant of proportionality <span class="arithmatex">\(\mu\)</span> is called the <em>viscosity</em> and has the units of <span class="arithmatex">\(force \times time/area\)</span>.</p>
+<div class="arithmatex">\[\tau=\mu\dot\theta\]</div>
+<div align="center">
+  <img width="400px" src="/img/Solid_Fluid.png">
+</div>
+
+<h2 id="strain-and-strain-rate-tensor">Strain and strain-rate tensor</h2>
+<h3 id="strain">Strain</h3>
+<p>For <a href="https://www.continuummechanics.org/strain.html">strain</a>, tensorial shear terms are written as <span class="arithmatex">\(\epsilon_{ij}\)</span> and are one-half of <span class="arithmatex">\(\gamma_{ij}\)</span> (<em>engineering shear strain</em>) such that <span class="arithmatex">\(\gamma_{ij}=2\epsilon_{ij}, i\neq j\)</span>.</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Deformation_(physics)#Engineering_strain">true shear strain</a> is defined as the change in the angle (in radians) between two material line elements initially perpendicular to each other in the undeformed or initial configuration. The engineering shear strain is defined as the tangent of that angle, and is equal to the length of deformation at its maximum divided by the perpendicular length in the plane of force application which sometimes makes it easier to calculate.</p>
+<div class="arithmatex">\[\epsilon_{Eng}=\frac{L_F-L_0}{L_0}=\frac{\Delta L}{L_0}\]</div>
+<div class="arithmatex">\[\epsilon_{True}=\int^{L_F}_{L_0}\frac{{\rm d}L}{L}=\ln(\frac{L_F}{L_0})\]</div>
+<p>and</p>
+<div class="arithmatex">\[\epsilon_{True}=\ln(1+\epsilon_{Eng})\]</div>
+<h3 id="small-strain">Small strain</h3>
+<p>The best defination of <a href="https://www.continuummechanics.org/smallstrain.html">small strain</a> is based on the deformation gradient, in terms of displacements <span class="arithmatex">\(\boldsymbol{u}=\boldsymbol{x}-\boldsymbol{x}_0\)</span>, it can be written as:</p>
+<div class="arithmatex">\[\epsilon_{ij}=\frac{1}{2}(u_{i,j}+u_{j,i})\]</div>
+<p>or</p>
+<div class="arithmatex">\[\boldsymbol{\epsilon}=\frac{1}{2}(\boldsymbol{F}+\boldsymbol{F}^T)-\boldsymbol{I} \]</div>
+<p>where <span class="arithmatex">\(\boldsymbol{F}\)</span> is the <a href="https://www.continuummechanics.org/deformationgradient.html">deformation gradient</a>, which <span class="arithmatex">\(F_{ij}=x_{i,j}=\delta_{ij}+u_{i,j}\)</span>. And <span class="arithmatex">\(\boldsymbol{F}\)</span> is a Lagrangian quantity.</p>
+<p>But it is limited to applications involving small rotations and can only be used to calculate small strains without rotation or within very small rotation (like 5° may cause 3% differences).</p>
+<h3 id="boldsymboluboldsymboli-strain"><span class="arithmatex">\(\boldsymbol{U}−\boldsymbol{I}\)</span> strain</h3>
+<p>In fact, a perfectly acceptable definition of strain, even for very large strains and rotations will be:</p>
+<div class="arithmatex">\[\boldsymbol{\epsilon}=\boldsymbol{U}-\boldsymbol{I}\]</div>
+<p>where <span class="arithmatex">\(\boldsymbol{U}\)</span> is the stretch tensor and independent of rigid body rotation (because they are all contained in <span class="arithmatex">\(\boldsymbol{R}\)</span>).</p>
+<h3 id="green-strain-tensor">Green strain tensor</h3>
+<p>But as <span class="arithmatex">\(\boldsymbol{U}\)</span> is very difficult to compute, <strong><a href="https://www.continuummechanics.org/greenstrain.html">Green strain tensor</a></strong> is needed that is easy to calculate and is not corrupted by rigid body rotations:</p>
+<div class="arithmatex">\[E_{ij}=\frac{1}{2}(F_{ki}F_{kj}-\delta_{ij})=\frac{1}{2}(u_{i,j}+u_{j,i}+u_{k,i}u_{k,j})\]</div>
+<p>or</p>
+<div class="arithmatex">\[\boldsymbol{E}=\frac{1}{2}(\boldsymbol{F}^T\cdot\boldsymbol{F}-\boldsymbol{I})\]</div>
+<p>The terms can be grouped into <em>Green strain = Small strain terms + Quadratic terms</em>. The quadratic terms are what gives the Green strain tensor its rotation independence.</p>
+<p>For smaller strains still, the <strong>Green strain tensor</strong> and <span class="arithmatex">\(\boldsymbol{U}−\boldsymbol{I}\)</span> will become very close to each other, regardless of the level of rotation. But the quadratic terms will affect actual strains when the strains are large.</p>
+<h3 id="hydrostatic-strain">Hydrostatic strain</h3>
+<p><a href="https://www.continuummechanics.org/hydrodeviatoricstrain.html">Hydrostatic strain</a> is simply the average of the three normal strains of any strain tensor.</p>
+<div class="arithmatex">\[\epsilon_H=\frac{1}{3}\epsilon_{kk}\]</div>
+<p>Note that hydrostatic strain is in fact a mathematical construct more than a direct physical measure of volume and its change. After all, it is the determinant of the deformation gradient that is the true measure of volume change, and hydrostatic strain is only a convenient approximation of that when the strains are small. Hydrostatic strain is only an approximation of volume change, not an exact measure.</p>
+<p>At large strains, hydrostatic strain loses its link to volume because it is no longer an approximation of its change. It is reduced to a mere mathematical property of a strain tensor.</p>
+<h3 id="volumetric-strain">Volumetric strain</h3>
+<p>The <a href="https://www.continuummechanics.org/hydrodeviatoricstrain.html">volumetric strain</a> is defined from the volume change as:</p>
+<div class="arithmatex">\[\epsilon_{V}=\frac{\Delta V}{V_0}\]</div>
+<p>For all strains, there is always the relationship between volumetric strain and principal strain:</p>
+<div class="arithmatex">\[\epsilon_{V}=(1+\epsilon_1)(1+\epsilon_2)(1+\epsilon_3)=\det(\boldsymbol{F})\]</div>
+<p>Here <span class="arithmatex">\(\det(\boldsymbol{F})\)</span> gives a special symbol, <span class="arithmatex">\(J\)</span>, and a special name, the <em>Jacobian</em>.</p>
+<p>And for small strains, the relationship between volumetric strain and hydrostatic strain is:</p>
+<div class="arithmatex">\[\epsilon_{V}=\epsilon_1+\epsilon_2+\epsilon_3=\epsilon_H\]</div>
+<h3 id="deviatoric-strain">Deviatoric strain</h3>
+<p><a href="https://www.continuummechanics.org/hydrodeviatoricstrain.html">Deviatoric strain</a> means all the deformations that cause a shape change without changing the volume if the strains are small.</p>
+<div class="arithmatex">\[e_{ij}=\epsilon_{ij}'=\epsilon_{ij}-\frac{1}{3}\delta_{ij}\epsilon_{kk} \]</div>
+<h3 id="strain-rate-tensor">Strain-rate tensor</h3>
+<blockquote>
+<p>@<a href="https://en.wikipedia.org/wiki/Strain-rate_tensor#">wiki: strain-rate tensor</a></p>
+</blockquote>
+<p>In continuum mechanics, the <a href="https://www.continuummechanics.org/velocitygradient.html">gradient of the velocity</a> <span class="arithmatex">\(\nabla\boldsymbol{v}\)</span> is a second-order tensor:</p>
+<div class="arithmatex">\[\boldsymbol{L}=\nabla\boldsymbol{v}=\frac{\partial\boldsymbol{v}}{\partial\boldsymbol{x}}=\left[\begin{matrix} \frac{\partial v_x}{\partial x} &amp;\frac{\partial v_x}{\partial y} &amp;\frac{\partial v_x}{\partial z}\\ \frac{\partial v_y}{\partial x} &amp;\frac{\partial v_y}{\partial y} &amp;\frac{\partial v_y}{\partial z}\\ \frac{\partial v_z}{\partial x} &amp;\frac{\partial v_z}{\partial y} &amp;\frac{\partial v_z}{\partial z} \end{matrix}\right]\]</div>
+<p>or</p>
+<div class="arithmatex">\[L_{ij}=\frac{\partial v_i}{\partial x_j}=v_{i,j} \]</div>
+<p><span class="arithmatex">\(\boldsymbol{L}\)</span> is an Eulerian quantity and can be decomposed into the sum of a symmetric matrix <span class="arithmatex">\(\boldsymbol{E}\)</span> and a skew-symmetric matrix <span class="arithmatex">\(\boldsymbol{W}\)</span>:</p>
+<div class="arithmatex">\[\boldsymbol{E}=\frac{1}{2}(\boldsymbol{L}+\boldsymbol{L}^T)\]</div>
+<div class="arithmatex">\[\boldsymbol{W}=\frac{1}{2}(\boldsymbol{L}-\boldsymbol{L}^T)\]</div>
+<p><span class="arithmatex">\(\boldsymbol{E}\)</span> is called the <strong>strain rate tensor</strong> or the rate of deformation tensor and describes the rate of stretching and shearing. <span class="arithmatex">\(\boldsymbol{W}\)</span> is called the <strong>spin tensor</strong> and describes the rate of rotation.</p>
+<p>Also, the strain-rate tensor can be noted as <span class="arithmatex">\(\dot{\boldsymbol{\epsilon}}\)</span> or <span class="arithmatex">\(\dot{\epsilon}_{ij}\)</span>, and the spin rate tensor as <span class="arithmatex">\(\dot{\boldsymbol{\omega}}\)</span> or <span class="arithmatex">\(\dot{\omega}_{ij}\)</span>.</p>
+<p>And the rate of deformation equals the rate of <a href="https://www.continuummechanics.org/truestrain.html">true strain</a>: <span class="arithmatex">\(\int E{\rm d}t=\epsilon_{True}\)</span> and <span class="arithmatex">\(E=\dot{\epsilon}_{True}\)</span>. However, things get complicated when the rate of deformation tensor is integrated over time to obtain true strain while rigid body rotations are present. But we can compute <span class="arithmatex">\(\boldsymbol{\epsilon}_{True}=\int \boldsymbol{R}^T\cdot\boldsymbol{E}\cdot\boldsymbol{R}{\rm d}t\)</span> instead of directly calculate <span class="arithmatex">\(\int \boldsymbol{E}{\rm d}t\)</span> when rotations are present. This gives a true strain result that is in the initial reference orientation.</p>
+<p>For compressible materials, since the ratio of initial to final volume is <span class="arithmatex">\(\epsilon_V^{True}\)</span>:</p>
+<div class="arithmatex">\[\epsilon_1^{True}+\epsilon_2^{True}+\epsilon_3^{True}=\epsilon_V^{True}\]</div>
+<p>Also:</p>
+<div class="arithmatex">\[\dot{\epsilon}_1^{True}+\dot{\epsilon}_2^{True}+\dot{\epsilon}_3^{True}=\dot{\epsilon}_V^{True}\]</div>
+<p>which means:</p>
+<div class="arithmatex">\[E_{kk}=\dot{\epsilon}_V^{True}\]</div>
+<p>For incompressible materials, just take <span class="arithmatex">\(\epsilon_V^{True}=0\)</span> (<span class="arithmatex">\(V_F/V_0=1\)</span>) and <span class="arithmatex">\(\dot{\epsilon}_V^{True}=0\)</span>. And this above applies for finite strains, not just infinitesimal ones, and not just in principal orientations.</p>
+<p>The strain-rate tensor describes the rate of change of the deformation of a material in the neighborhood of a certain point, at a certain moment of time. It can be defined as the derivative of the strain tensor with respect to time, or as the symmetric component of the Jacobian matrix of the flow velocity.</p>
+<h2 id="stress">Stress</h2>
+<p>Stress: <span class="arithmatex">\(\boldsymbol{\sigma}\)</span> or <span class="arithmatex">\(\sigma_{ij}\)</span> (Stretch for positive and Compress for negative)</p>
+<p>Principal stress: <span class="arithmatex">\(\sigma_1\)</span>, <span class="arithmatex">\(\sigma_2\)</span> and <span class="arithmatex">\(\sigma_3\)</span></p>
+<p>Hydrostatic stress: <span class="arithmatex">\(\sigma_H=\sigma_{mm}/3\)</span></p>
+<p>Hydrostatic pressure in geomechanic: <span class="arithmatex">\(p=-\sigma_H\)</span></p>
+<p>Deviatoric stress: <span class="arithmatex">\(\boldsymbol{s}=\boldsymbol{\sigma}'=\boldsymbol{\sigma}-\sigma_H\boldsymbol{I}\)</span> or <span class="arithmatex">\(s_{ij}=\sigma'_{ij}=\sigma_{ij}-\delta_{ij}\sigma_H\)</span></p>
+<h2 id="invariants">Invariants</h2>
+<p>Here we difine the firse invariant of the stress tensor <span class="arithmatex">\(I_1\)</span> and the second invariant of the deviatoric stress tensor <span class="arithmatex">\(J_2\)</span>:</p>
+<div class="arithmatex">\[I_1 = \sigma_{xx}+\sigma_{yy}+\sigma_{zz}\ ,\ J_2 = \frac{1}{2}\boldsymbol{s}:\boldsymbol{s}\]</div>
+<p>where <span class="arithmatex">\(\boldsymbol{s}\)</span> is the <strong>deviatoric stress tensor</strong>: <span class="arithmatex">\(\boldsymbol{s} = \boldsymbol{\sigma}+p\boldsymbol{I}\)</span> and <span class="arithmatex">\(\boldsymbol{I}\)</span> is the identity matrix. <span class="arithmatex">\(\boldsymbol{s}:\boldsymbol{s}\)</span> means <span class="arithmatex">\(s_{ij}s_{ij}\)</span>.</p>
+<h2 id="hookes-law">Hooke's Law</h2>
+<p>Hooke's Law can be written in matrix notation as:</p>
+<div class="arithmatex">\[\boldsymbol{\epsilon}=\frac{1}{E}[(1+\nu)\boldsymbol{\sigma}-\nu\boldsymbol{I}{\rm tr}(\boldsymbol{\sigma})]\]</div>
+<p>and in tensor notation as:</p>
+<div class="arithmatex">\[\epsilon_{ij}=\frac{1}{E}[(1+\nu)\sigma_{ij}-\nu\delta_{ij}\sigma_{kk}] \]</div>
+<p>The inverting Hooke's Law:</p>
+<div class="arithmatex">\[\sigma_{ij}=\frac{E}{1+\nu}[\epsilon_{ij}+\frac{\nu}{1-2\nu}\delta_{ij}\epsilon_{kk}] \]</div>
+<p>In <a href="https://www.continuummechanics.org/hookeslaw.html">Hooke's Law</a>, we have <span class="arithmatex">\(\tau_{xy}=G\gamma_{xy}=2G\epsilon_{xy}\)</span> and <span class="arithmatex">\(\epsilon_{xx}+\epsilon_{yy}+\epsilon_{zz}=\epsilon_{V}=\sigma_m/K=(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})/3K\)</span>.</p>
+<p><span class="arithmatex">\(E\)</span> is the <strong>elastic modulus</strong> or <strong>Young's modulus</strong>, <span class="arithmatex">\(\nu\)</span> is the <strong>Poisson's ratio</strong>, <span class="arithmatex">\(G = E/2(1+\nu)\)</span> is the <strong>shear modulus</strong> and <span class="arithmatex">\(K = E/3(1-2\nu)\)</span> is the <strong>elastic bulk modulus</strong>.</p>
+<p>And for stiffness tensor:</p>
+<div class="arithmatex">\[C_{ijkl}=\frac{E}{1+\nu}[\frac{1}{2}(\delta_{ik}\delta_{jl}+\delta_{jk}\delta_{il})+\frac{\nu}{1-2\nu}\delta_{ij}\delta_{kl}]\]</div>
+<p>The deviatoric stress <span class="arithmatex">\(\boldsymbol{s}=\boldsymbol{\sigma}'\)</span> and strain <span class="arithmatex">\(\boldsymbol{\epsilon}'\)</span> are directly proportional to each other:</p>
+<div class="arithmatex">\[s_{ij}=2G\epsilon'_{ij}\]</div>
+<h2 id="other-mathematical-components">Other mathematical components</h2>
+<ol>
+<li><span class="arithmatex">\(\dot{\#}\)</span> - the accent-dot indicates the time derivative of the vector/tensor quantities. <em>@Bui2021, 3.2.1.1. p15</em></li>
+<li>The speed of sound: 343m/s in air, 1481m/s in water, 5120m/s in iron.</li>
+</ol>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../foundation/" class="btn btn-neutral float-right" title="SPH foundations">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../foundation/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../javascripts/mathjax.js" defer></script>
+      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

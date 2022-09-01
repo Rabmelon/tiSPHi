@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>SPH foundations - tiSPHi</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SPH foundations";
+        var mkdocs_page_input_path = "foundation.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> tiSPHi
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../basic/">Basic knowledge</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">SPH foundations</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#basic-formulations">Basic formulations</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#the-integral-estimation">The integral estimation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#particle-approximations">Particle approximations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#spatial-derivatives">Spatial derivatives</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#improving-approximations-for-spatial-derivatives">Improving approximations for spatial derivatives</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#kernel-functions">Kernel functions</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#pairing-instability">Pairing instability</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#the-cubic-spline-kernel">The cubic spline kernel</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#the-wendland-c2-kernel">The Wendland C2 kernel</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cspm-gradient-normalisation">CSPM gradient normalisation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#shepard-correction">Shepard correction</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#mls-correction">MLS correction</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#neighbour-search">Neighbour search</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#grid-method">Grid method</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#hash-grid-method">Hash grid method</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#boundary-treatment">Boundary treatment</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#types-of-boundary-conditions">Types of boundary conditions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#simplest-treatments-for-water">Simplest treatments for water</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#free-surface-problems">Free surface problems</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#dummy-particles-or-fixed-boundary-particles">Dummy particles (or fixed-boundary particles)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#a-soft-repulsive-force">A "soft" repulsive force</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#time-integration-and-advection">Time integration and advection</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#courant-friedrichs-lewy-cfl">Courant-Friedrichs-Lewy (CFL)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#symp-euler-symplectic-euler-se">Symp Euler - Symplectic Euler (SE)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#leap-frog-lf">Leap-Frog (LF)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#rk4-4th-order-runge-kutta-rk4">RK4 - 4th order Runge-Kutta (RK4)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#xsph">XSPH</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#numerical-oscillations-and-dissipations-in-sph">Numerical oscillations and dissipations in SPH</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#artificial-viscosity-standard-approach">Artificial viscosity - standard approach</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#alternative-viscous-damping-term">Alternative viscous damping term</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#stressstrain-regularisation">Stress/strain regularisation</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tensile-instability">Tensile instability</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../fluid/">SPH for fluid</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../soil/">SPH for soil</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../taichi/">Taichi Lang</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../codeframe/">Code frame</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../about/">About</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">tiSPHi</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>SPH foundations</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="foundation-of-sph">Foundation of SPH</h1>
+<h2 id="basic-formulations">Basic formulations</h2>
+<h3 id="the-integral-estimation">The integral estimation</h3>
+<blockquote>
+<p>@Chalk2019 4.2</p>
+</blockquote>
+<p>The integral approximation involves representing a function <span class="arithmatex">\(f(\boldsymbol{x})\)</span> as an integral:</p>
+<div class="arithmatex">\[f(\boldsymbol{x})=\int_{\Omega}f(\boldsymbol{x}')\delta(\boldsymbol{x}-\boldsymbol{x}'){\rm d}\boldsymbol{x}'\]</div>
+<p>where <span class="arithmatex">\(\Omega\)</span> donates the integral domain and <span class="arithmatex">\(\delta(\boldsymbol{x}-\boldsymbol{x}')\)</span> is the Dirac delta function defined as:</p>
+<div class="arithmatex">\[\delta(\boldsymbol{x}-\boldsymbol{x}')=\begin{cases}
+  1, &amp;\boldsymbol{x}=\boldsymbol{x}' \\ 0, &amp;\boldsymbol{x}\neq\boldsymbol{x}'
+\end{cases} \]</div>
+<p>In the derivation of SPH, the integral approximation is obtained by replacing the Dirac delta with a smoothing function <span class="arithmatex">\(W\)</span>:</p>
+<div class="arithmatex">\[\langle f(\boldsymbol{x})\rangle=\int_{\Omega}f(\boldsymbol{x}')W(\boldsymbol{x}-\boldsymbol{x}', h){\rm d}\boldsymbol{x}' \]</div>
+<p>The smoothing function, or kernel, must satisfy three conditions:</p>
+<div class="arithmatex">\[\begin{aligned}
+    \begin{array}{rl}
+    Normalisation\ condition: &amp;\int_{\Omega}W(\boldsymbol{x}-\boldsymbol{x}',h){\rm d}\boldsymbol{x}'=1 \\
+    Compact\ support: &amp;W(\boldsymbol{x}-\boldsymbol{x}',h)=0\ when\ |\boldsymbol{x}-\boldsymbol{x}'|&gt;\kappa h \\
+    Satisfy\ the\ \delta\ function\ condition: &amp;\underset{h\rightarrow0}{\lim}W(\boldsymbol{x}-\boldsymbol{x}',h)=\delta(\boldsymbol{x}-\boldsymbol{x}')
+    \end{array}
+\end{aligned} \]</div>
+<p>With these conditions for the smoothing kernel, the integral approximation is of second order accuracy, so that:</p>
+<div class="arithmatex">\[f(\boldsymbol{x})=\int_{\Omega}f(\boldsymbol{x}')W(\boldsymbol{x}-\boldsymbol{x}',h){\rm d}\boldsymbol{x}'+O(h^2) \]</div>
+<h3 id="particle-approximations">Particle approximations</h3>
+<p>The particle approximation is utilised to discretise the integral equation over a set of particles. This involves writing the integral approximation in discrete form using a summation approach:</p>
+<div class="arithmatex">\[\langle f(\boldsymbol{x})\rangle=\sum_{j=1}^Nf(\boldsymbol{x}_j)W(\boldsymbol{x}-\boldsymbol{x}_j,h)V_j \]</div>
+<p>where <span class="arithmatex">\(V_j\)</span> is the discrete volume at each point and <span class="arithmatex">\(N\)</span> is the total number of particles within the region defined by <span class="arithmatex">\(W\)</span> and <span class="arithmatex">\(h\)</span>. Here, the function <span class="arithmatex">\(f(\boldsymbol{x})\)</span> is approximated by summing over all discrete particles <span class="arithmatex">\(j\)</span> within the domain of influence at the position <span class="arithmatex">\(\boldsymbol{x}\)</span>. So the summation approach can be expressed for a specific particle <span class="arithmatex">\(i\)</span> as:</p>
+<div class="arithmatex">\[f(\boldsymbol{x}_i)\approx\sum_{j=1}^N V_jf(\boldsymbol{x}_j)W(\boldsymbol{x}_i-\boldsymbol{x}_j,h) \]</div>
+<p>This equation describes the SPH evaluation of a function or variable at a particle <span class="arithmatex">\(i\)</span>.</p>
+<p>Now, replace <span class="arithmatex">\(f\equiv\nabla f\)</span>, we have:</p>
+<div class="arithmatex">\[\nabla f(\boldsymbol{x}_i)\approx\sum_{j=1}^N V_j\nabla f(\boldsymbol{x}_j)W(\boldsymbol{x}_i-\boldsymbol{x}_j,h) \]</div>
+<p>Applying the Gaussian theorem (in a symmetric and positive weighting function, <span class="arithmatex">\({\rm d}V=\vec n\cdot{\rm d}S\)</span>, and also <span class="arithmatex">\(\partial W/\partial \boldsymbol{x}_i=-\partial W/\partial \boldsymbol{x}_j\)</span>):</p>
+<div class="arithmatex">\[\nabla f(\boldsymbol{x}_i)\approx\sum_{j=1}^N V_jf(\boldsymbol{x}_j)\nabla_i W(\boldsymbol{x}_i-\boldsymbol{x}_j,h) \]</div>
+<h3 id="spatial-derivatives">Spatial derivatives</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p59 and 72</p>
+</blockquote>
+<p>Approximate a function <span class="arithmatex">\(f(\boldsymbol{x})\)</span> using finite probes <span class="arithmatex">\(f(\boldsymbol{x}_j)\)</span>, and the degree of freedom <span class="arithmatex">\((\boldsymbol{x})\)</span> goes inside the kernel functions (<strong>anti-sym</strong> and <strong>sym</strong>).</p>
+<ul>
+<li>SPH discretization:</li>
+</ul>
+<div class="arithmatex">\[f(x) \approx \sum_j V_jf(x_j)W(x-x_j, h) \]</div>
+<ul>
+<li>SPH spatial derivatives:</li>
+</ul>
+<div class="arithmatex">\[{\color{Salmon} \nabla} f(x) \approx \sum_j V_jf(x_j){\color{Salmon} \nabla}W(x-x_j, h)  \]</div>
+<div class="arithmatex">\[{\color{Salmon} \nabla\cdot} \boldsymbol{f}(x) \approx \sum_j V_j\boldsymbol{f}(x_j){\color{Salmon} \cdot\nabla}W(x-x_j, h)  \]</div>
+<div class="arithmatex">\[{\color{Salmon} \nabla\times} \boldsymbol{f}(x) \approx -\sum_j V_j\boldsymbol{f}(x_j){\color{Salmon} \times\nabla}W(x-x_j, h)  \]</div>
+<div class="arithmatex">\[{\color{Salmon} \nabla^2} f(x) \approx \sum_j V_jf(x_j){\color{Salmon} \nabla^2}W(x-x_j, h)  \]</div>
+<p>with <span class="arithmatex">\(W(\boldsymbol{x}_i-\boldsymbol{x}_j, h) = W_{ij}\)</span> in discrete view, and:</p>
+<div class="arithmatex">\[\nabla_i W_{ij}=\frac{\partial W_{ij}}{\partial \boldsymbol{x}_i} \]</div>
+<div class="arithmatex">\[\nabla^2_i W_{ij}=\frac{\partial^2 W_{ij}}{\partial \boldsymbol{x}_i^2} \]</div>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>How to calculate <span class="arithmatex">\(\nabla W\)</span> and <span class="arithmatex">\(\nabla^2 W\)</span>? <strong>ANSWER</strong>: just directly take the partial derivative!</li>
+</ol>
+</blockquote>
+<h3 id="improving-approximations-for-spatial-derivatives">Improving approximations for spatial derivatives</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p60-70</p>
+</blockquote>
+<ul>
+<li>Let <span class="arithmatex">\(f(r) \equiv 1\)</span>, we have:<ul>
+<li><span class="arithmatex">\(1 \approx \sum_j \frac{m_j}{\rho_j}W(r-r_j, h)\)</span></li>
+<li><span class="arithmatex">\(0 \approx \sum_j \frac{m_j}{\rho_j}\nabla W(r-r_j, h)\)</span></li>
+</ul>
+</li>
+<li>Since <span class="arithmatex">\(f(r)\equiv f(r) * 1\)</span>, we have:<ul>
+<li><span class="arithmatex">\(\nabla f(r) = \nabla f(r)*1+f(r)*\nabla 1\)</span></li>
+<li>Or equivalently: <span class="arithmatex">\(\nabla f(r) = \nabla f(r)*1-f(r)*\nabla 1\)</span></li>
+</ul>
+</li>
+<li>Then use <span class="arithmatex">\({\color{Salmon} \nabla} f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j){\color{Salmon} \nabla}W(r-r_j, h)\)</span> to derivate <span class="arithmatex">\(\nabla f(r)\)</span> and <span class="arithmatex">\(\nabla 1\)</span>, we have:<ul>
+<li><span class="arithmatex">\(\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}f(r_j)\nabla W(r-r_j, h) - f(r)\sum_j \frac{m_j}{\rho_j}\nabla W(r-r_j, h)\)</span></li>
+<li><span class="arithmatex">\(\nabla f(r) \approx \sum_j \frac{m_j}{\rho_j}(f(r_j)-f(r))\nabla W(r-r_j, h)\)</span>, we call it the <strong>anti-symmetric form</strong></li>
+</ul>
+</li>
+<li>
+<p>A more general case:</p>
+<div class="arithmatex">\[\nabla f(r) \approx \sum_j m_j(\frac{f(r_j)\rho_j^{n-1}}{\rho^n}-\frac{nf(r)}{\rho})\nabla W(r-r_j, h)\]</div>
+<ul>
+<li>When <span class="arithmatex">\(n=-1\)</span>: <span class="arithmatex">\(\nabla f(r) \approx \rho\sum_j m_j(\frac{f(r_j)}{\rho_j^2}+\frac{f(r)}{\rho^2})\nabla W(r-r_j, h)\)</span>, we call it the <strong>symmetric form</strong></li>
+</ul>
+</li>
+<li>
+<p>通常会使用一些反对称(<strong>anti-sym</strong>)或对称型(<strong>sym</strong>)来进行一些SPH的空间求导(spatial derivative)，而不直接使用SPH的原型。但两者的选择是个经验性的问题，其中，当<span class="arithmatex">\(f(r)\)</span>是一个力的时候，从动量守恒的角度去推导，使用<strong>sym</strong>更好；当做散度、需要投影的时候，使用<strong>anti-sym</strong>更好。</p>
+<ul>
+<li>或许可以说，当<span class="arithmatex">\(f\)</span>是粒子<span class="arithmatex">\(i\)</span>和<span class="arithmatex">\(j\)</span>的相互作用时，用对称型；当<span class="arithmatex">\(f\)</span>是粒子本身的属性时，用反对称型？</li>
+</ul>
+</li>
+</ul>
+<p>Like to approximate the velocity gradient <span class="arithmatex">\(\nabla\boldsymbol{v}\)</span>, using anti-symmtric form to ensure that the gradients of a constant velocity field vanish:</p>
+<div class="arithmatex">\[v_{\alpha,\beta}=\frac{\partial v^{\alpha}}{\partial x^{\beta}}=\sum_jV_j(v^{\alpha}_j-v^{\alpha}_i)\cdot\nabla_iW_{ij}^{\beta}\]</div>
+<h2 id="kernel-functions">Kernel functions</h2>
+<h3 id="pairing-instability">Pairing instability</h3>
+<blockquote>
+<p>@bui lecture</p>
+</blockquote>
+<p>A commmon misconception of SPH:</p>
+<p>Wrong choice of kernel function lead to "pairing instability" and this was often cited as SPH instability issue!</p>
+<p>The source of pairing instability in SPH comes from the gradient term <span class="arithmatex">\(\nabla_iW_{ij}\)</span>:</p>
+<ol>
+<li>Each kernel function <strong>could only accomodate</strong> a certain number of particles, which means forcing more particles in a kernel approximation cause SPH errors.</li>
+<li>Each kernel function has <strong>a inflection point</strong> (i.e. zero kernel gradient), which means particles at this point would not gain enough repulsive force due to SPH errors.</li>
+<li>However, the appropriate choice of kernel function and its parameters would <strong>completely eliminate pairing instability</strong> issues.</li>
+</ol>
+<p><strong>Remarks</strong>:</p>
+<ul>
+<li>Pairing instability issue only occurs in a situation where there are more neighbouring particles in the influence domain that a kernel function can accodomate.</li>
+<li>Kernel functions whose Fourier transformation is negative for some wave vectors will trigger pairing instability at sufficient large number of neighbouring particles. (So that's why Wendland C2 kernel function wins, because all of its Fourier transformations for wave vectors are positive.)</li>
+<li>If we actually use a suitable kernel function with a suitable supporting length, we don't have the problem of pairing instability, and this issue is not because SPH instability.</li>
+</ul>
+<h3 id="the-cubic-spline-kernel">The cubic spline kernel</h3>
+<blockquote>
+<p>@bui2021</p>
+</blockquote>
+<div class="arithmatex">\[W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  \frac{2}{3}-q^2+\frac{1}{2}q^3, &amp;0\leq q \leq 1 \\ \frac{1}{6}(2-q)^3, &amp;1 &lt; q \leq 2 \\ 0, &amp;otherwise
+\end{cases} \]</div>
+<p>where <span class="arithmatex">\(q = \Vert\boldsymbol{r}\Vert/h\)</span>, <span class="arithmatex">\(k_d\)</span> is the kernel normalization factors for respective dimensions <span class="arithmatex">\(d=1,2,3\)</span> and <span class="arithmatex">\(k_1=\frac{1}{h}\)</span>, <span class="arithmatex">\(k_2=\frac{15}{7\pi h^2}\)</span>, <span class="arithmatex">\(k_3=\frac{3}{2\pi h^3}\)</span>.</p>
+<p>The first-order derivation:</p>
+<div class="arithmatex">\[\nabla W_{ij}=\frac{\partial W}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i}=\frac{\partial W}{\partial q}\cdot\frac{1}{h}\cdot\frac{x_i-x_j}{\Vert\boldsymbol{r}\Vert},\ \boldsymbol{r}=x_i-x_j \]</div>
+<div class="arithmatex">\[\frac{\partial W}{\partial q}=k_d\begin{cases}
+  \frac{3}{2}q^2-2q, &amp;0\leq q \leq 1 \\ -\frac{1}{2}(2-q)^2, &amp;1 &lt; q \leq 2 \\ 0, &amp;otherwise
+\end{cases} \]</div>
+<p>The second-order derivation:</p>
+<div class="arithmatex">\[\nabla^2W_{ij}=\frac{\partial^2 W}{\partial x_i^2}=\frac{\partial}{\partial x_i}(\frac{\partial W}{\partial x_i})=\frac{\partial^2 W}{\partial q^2}\cdot(\frac{\partial q}{\partial r}\cdot\frac{\partial r}{\partial x_i})^2=\frac{\partial^2 W}{\partial q^2}\cdot\frac{1}{h^2}\cdot\frac{(x_i-x_j)^2}{\Vert\boldsymbol{r}\Vert^2} \]</div>
+<div class="arithmatex">\[\frac{\partial^2 W}{\partial q^2}=k_d\begin{cases}
+  3q-2, &amp;0\leq q \leq 1 \\ 2-q, &amp;1 &lt; q \leq 2 \\ 0, &amp;otherwise
+\end{cases} \]</div>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>The second-order derivation is wrong!!!!!!!!!!!!!!!!!!</li>
+<li>Why <span class="arithmatex">\(0&lt;q&lt;2\)</span>? The support domain should be <span class="arithmatex">\(h\)</span>, or <span class="arithmatex">\(2h\)</span>? It only depends on the choice and should be <span class="arithmatex">\(2\)</span> in kernel function but <span class="arithmatex">\(h\)</span> in neighbor search? <strong>ANSWER</strong>: @peng lecture. <span class="arithmatex">\(h\)</span> is called "smoothing length" and controls the shape of kernel function, <span class="arithmatex">\(\kappa h\)</span> is the compact support radius determining the region of support domain, also the neighbour search condition should be <span class="arithmatex">\(|\boldsymbol{x}_i-\boldsymbol{x}_j|\le\kappa h\)</span>. <span class="arithmatex">\(\kappa\)</span> is usually taking as <span class="arithmatex">\(2\)</span>.</li>
+</ol>
+<p>@koschier2019</p>
+</blockquote>
+<div class="arithmatex">\[W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  6(q^3-q^2)+1, &amp;0\leq q \leq 0.5 \\ 2(1-q)^3, &amp;0.5 &lt; q \leq 1 \\ 0, &amp;otherwise
+\end{cases}\]</div>
+<p>where <span class="arithmatex">\(q = \Vert\boldsymbol{r}\Vert/h\)</span>, <span class="arithmatex">\(k_d\)</span> is the kernel normalization factors for respective dimensions <span class="arithmatex">\(d=1,2,3\)</span> and <span class="arithmatex">\(k_1=\frac{4}{3h}\)</span>, <span class="arithmatex">\(k_2=\frac{40}{7\pi h^2}\)</span>, <span class="arithmatex">\(k_3=\frac{8}{\pi h^3}\)</span>.</p>
+<h3 id="the-wendland-c2-kernel">The Wendland C2 kernel</h3>
+<blockquote>
+<p>@bui2021 2.3</p>
+</blockquote>
+<div class="arithmatex">\[W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  (1-0.5q)^4(1+2q), &amp;0\leq q \leq 2 \\ 0, &amp;otherwise
+\end{cases}\]</div>
+<p>where <span class="arithmatex">\(q = \Vert\boldsymbol{r}\Vert/h\)</span>, <span class="arithmatex">\(k_d\)</span> is the kernel normalization factors for respective dimensions <span class="arithmatex">\(d=2,3\)</span> and <span class="arithmatex">\(k_2=\frac{7}{4\pi h^2}\)</span>, <span class="arithmatex">\(k_3=\frac{21}{2\pi h^3}\)</span>. For 1d, the formulation is changed. The kernel is <span class="arithmatex">\(C^2\)</span> continuous.</p>
+<p>The first-order derivation:</p>
+<div class="arithmatex">\[\nabla_i W_{ij}^{\alpha}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i^{\alpha}-x_j^{\alpha}}{\Vert\boldsymbol{r}\Vert}\]</div>
+<p>The second-order derivation:</p>
+<p>???</p>
+<h3 id="cspm-gradient-normalisation">CSPM gradient normalisation</h3>
+<blockquote>
+<p>@Bui2021, @Chalk2020, @Chen1999</p>
+</blockquote>
+<p>A corrective term can be multiplied to the smoothing kernel to improve the accuracy of the SPH approximation. The Corrective Smoothed Particle Method (CSPM) increases the accuracy of the kernel via a normalisation procedure, which is based on a Taylor series expansion of the SPH equations.</p>
+<p>After doing the Taylor expansion of <span class="arithmatex">\(f_j\)</span>:</p>
+<div class="arithmatex">\[f_j=f_i+\frac{\partial f_i}{\partial \boldsymbol{x}_i^{\alpha}}(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}+O(h^2)\]</div>
+<p>Neglecting all the derivative terms, we have the corrective kernel estimate:</p>
+<div class="arithmatex">\[f_i\approx\sum_jV_jf_jW_{ij}\approx f_i{\color{Salmon}\sum_jV_jW_{ij}}+O(h)\]</div>
+<p>where the term <span class="arithmatex">\({\color{Salmon} 1}\)</span> should be <span class="arithmatex">\(1\)</span>. Then divide the <span class="arithmatex">\({\color{Salmon} 1}\)</span> term, leading to:</p>
+<div class="arithmatex">\[f_i\approx\frac{\sum_jV_jf_jW_{ij}}{\sum_jV_jW_{ij}}=\sum_jV_jf_jW_{ij}^{CSPM}\]</div>
+<div class="arithmatex">\[W_{ij}^{CSPM}=\frac{W_{ij}}{\sum_kV_kW_{ik}}\]</div>
+<p>and for the first derivative:</p>
+<div class="arithmatex">\[\nabla^{\beta}f_i\approx\sum_jV_jf_j\nabla^{\beta}_iW_{ij}\approx f_i{\color{Salmon} \sum_jV_j\nabla^{\beta}_iW_{ij}}+\frac{\partial f_i}{\partial \boldsymbol{x}_i^{\alpha}}{\color{Green} \sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}}+O(h^2)\]</div>
+<p>where the term <span class="arithmatex">\({\color{Salmon} 1}\)</span> should be <span class="arithmatex">\(0\)</span> and the term <span class="arithmatex">\({\color{Green} 2}\)</span> should be <span class="arithmatex">\(1\)</span> or <span class="arithmatex">\(\delta^{\alpha\beta}\)</span>.</p>
+<p>To completely eliminate these errors, one could subtract the <span class="arithmatex">\({\color{Salmon} 1}\)</span> term and then divide the <span class="arithmatex">\({\color{Green} 2}\)</span> term, leading to the normalised SPH formulation for the kernel derivative:</p>
+<div class="arithmatex">\[\nabla f_i\approx\sum_{j=1} V_j(f_j-f_i)\boldsymbol{L_{ij}}\nabla_i W_{ij}=\sum_{j=1} V_j(f_j-f_i)\nabla_iW_{ij}^{CSPM}\]</div>
+<div class="arithmatex">\[\boldsymbol{L_{ij}}=[\sum_jV_j(\boldsymbol{x}_j-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ij}]^{-1}\]</div>
+<div class="arithmatex">\[\nabla_iW_{ij}^{CSPM}=[\sum_kV_k(\boldsymbol{x}_k-\boldsymbol{x}_i)^{\alpha}\nabla^{\beta}_iW_{ik}]^{-1}\nabla_i W_{ij} \]</div>
+<p><span class="arithmatex">\(\boldsymbol{L}_{ij}\)</span> is the normalised matrix. This formulation has second order accuracy. Additionally, it also removes the boundary effects. But although it is a good operator, it also may become a bad one. Such as in formulations that DO NOT conserve linear momentum like force and stress. So we need an operator to conserve both linear and angular momenta.</p>
+<h3 id="shepard-correction">Shepard correction</h3>
+<blockquote>
+<p>@Liu2012, @Shepard1968, @Reinhardt2019</p>
+</blockquote>
+<p>The Shepaard correction of the smoothing kernel <span class="arithmatex">\(W\)</span> addresses errors introduced by the SPH discretization process due to irregularly distributed particels inside the material domain. Especially near open boundaries (e.g. fluid-air interfaces), the computation of the fluid quantity is error-prone due to the lack of neighboring particles. The corrected kernel function is:</p>
+<div class="arithmatex">\[W_{ij}^{sh}=\frac{W_{ij}}{\sum_kV_kW_{ik}}\]</div>
+<p>And this is a zero-order reinitialization [@pysph].</p>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>Isn't it the CSPM for <span class="arithmatex">\(f_i\)</span>?</li>
+</ol>
+</blockquote>
+<h3 id="mls-correction">MLS correction</h3>
+<blockquote>
+<p>@Nguyen2017, @Liu2012, @Dilts1999, @Belytschko1998</p>
+</blockquote>
+<p>The moving least square (MLS) method is adopted to correct the kernel function.</p>
+<div class="arithmatex">\[W_{ij}^{MLS}=[\beta_0+\beta_x(x_i-x_j)+\beta_y(y_i-y_j)]W_{ij}\]</div>
+<p>where</p>
+<div class="arithmatex">\[[\beta_0,\beta_x,\beta_y]^T=(\sum_jV_j\boldsymbol{A}W_{ij})^{-1}[1,0,0]^T\]</div>
+<div class="arithmatex">\[\boldsymbol{A}=\left[\begin{matrix}
+  1 &amp;x_i-x_j &amp;y_i-y_j \\ x_i-x_j &amp;(x_i-x_j)^2 &amp;(x_i-x_j)(y_i-y_j) \\ y_i-y_j &amp;(x_i-x_j)(y_i-y_j) &amp;(y_i-y_j)^2
+\end{matrix}\right]\]</div>
+<p>or</p>
+<div class="arithmatex">\[\boldsymbol{A}=pp^T\ and\ p=[1,\ x_i-x_j,\ y_i-y_j]^T\]</div>
+<p>And this is the first order correction that reproduces exactly the linear variation of quantity.</p>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>Only suitable for 2D problems?</li>
+<li>How to compare with CSPM?</li>
+</ol>
+</blockquote>
+<h2 id="neighbour-search">Neighbour search</h2>
+<h3 id="grid-method">Grid method</h3>
+<h3 id="hash-grid-method">Hash grid method</h3>
+<h2 id="boundary-treatment">Boundary treatment</h2>
+<h3 id="types-of-boundary-conditions">Types of boundary conditions</h3>
+<blockquote>
+<p>@Bui2021, @Bui lecture</p>
+</blockquote>
+<p>Like any other numerical methods, the treatment of boundary condditions in SPH is required to facilitate its applications to a wide range of engineering problems.</p>
+<ol>
+<li>Solid boundary conditions such as <strong>fully-fixed</strong>, <strong>free-slip</strong> (or <strong>free-roller</strong>) or <strong>symmetric</strong>.</li>
+<li>Flexible <strong>confining stress</strong> boundary conditions such as prescribed pressure of confining stress in triaxial tests.</li>
+<li><strong>Free-surface</strong> condition.</li>
+</ol>
+<div align="center">
+  <img width="500px" src="/img/Boundary_conditions_basic.png">
+</div>
+
+<h3 id="simplest-treatments-for-water">Simplest treatments for water</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p43 and 79-85</p>
+</blockquote>
+<ul>
+<li>Mainly two styles: <strong>free surface</strong> and <strong>solid boundary</strong></li>
+<li>Problems: There are not enough samples within the supporting radius.</li>
+<li>For free surface:<ul>
+<li>Problem: Density <span class="arithmatex">\(\downarrow\)</span>, pressure <span class="arithmatex">\(\downarrow\)</span>; and generate outward pressure.</li>
+<li>Solution: Clamp the negative pressure (everywhere); assume <span class="arithmatex">\(p = max(0,k(\rho-\rho_0))\)</span></li>
+<li>会导致液面可能会向外膨胀一点</li>
+</ul>
+</li>
+<li>For solid boundary:<ul>
+<li>Problem: Density <span class="arithmatex">\(\downarrow\)</span>, pressure <span class="arithmatex">\(\downarrow\)</span>; and fluid leakage (due to outbound velocity)</li>
+<li>Solution: <span class="arithmatex">\(p = max(0,k(\rho-\rho_0))\)</span>;</li>
+<li>Solution for leakage:<ol>
+<li>Reflect the outbound velocity when close to boundary. 还可以将垂直边界方向的速度乘上一个衰减值。这样处理大抵应该是不会导致粒子飞出去。</li>
+<li>Pad a layer of solid particles (or called ghost particles, dummy particles) underneath the boundaries with <span class="arithmatex">\(\rho_{solid} = \rho_0\)</span> and <span class="arithmatex">\(v_{solid} = 0\)</span>. 总体来说比方法1稳定，但可能会导致边界附近粒子的数值黏滞。</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>多介质的流体混合时，多介质的界面？？？</li>
+</ol>
+</blockquote>
+<h3 id="free-surface-problems">Free surface problems</h3>
+<p>The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.</p>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>BUT how does the free surface condition implement?</li>
+</ol>
+</blockquote>
+<h3 id="dummy-particles-or-fixed-boundary-particles">Dummy particles (or fixed-boundary particles)</h3>
+<blockquote>
+<p>@Chalk2020, @Bui2021, @Zhao2019</p>
+</blockquote>
+<p>虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。</p>
+<p>The dummy particle (or ghost particle) method is used to represent the wall boundary. For dummy particles outside the wall boundary, they are spaced apart by <span class="arithmatex">\(\Delta x\)</span>. For repulsive particles at the wall boundary, are <span class="arithmatex">\(\Delta x/2\)</span>.</p>
+<div align="center">
+  <img width="300px" src="/img/Dummy_particles.png">
+</div>
+
+<p>For an interior particle A (circle) that contains a dummy particle B (square) within its neighbourhood, the normal distances <span class="arithmatex">\(d_A\)</span> and <span class="arithmatex">\(d_B\)</span> to the wall are calculated. An artificial velocity <span class="arithmatex">\(\boldsymbol{v}_B\)</span> is then assigned to the dummy particle:</p>
+<div class="arithmatex">\[\boldsymbol{v}_B = -\frac{d_B}{d_A}\boldsymbol{v}_A\]</div>
+<p>To account for extremely large values of the dummy particle velocity when an interior particle approaches the boundary (and <span class="arithmatex">\(d_A\)</span> approaches 0), a parameter <span class="arithmatex">\(\beta\)</span> is introduced:</p>
+<div class="arithmatex">\[\boldsymbol{v}_B = (1-\beta)\boldsymbol{v}_A+\beta\boldsymbol{v}_{wall}\ ,\ \beta = min(\beta_{max}, 1+\frac{d_B}{d_A})\]</div>
+<p><span class="arithmatex">\(\beta_{max}\)</span> have been found to be between <span class="arithmatex">\(1.5\rightarrow2\)</span>, and here we use <span class="arithmatex">\(\beta_{max}=1.5\)</span>.</p>
+<p>And we have <span class="arithmatex">\(\boldsymbol{\sigma}_B=\boldsymbol{\sigma}_A\)</span> and <span class="arithmatex">\(p_B=p_A\)</span>, etc. The simple definition ensures that there is a uniform stress distribution for the particles that are near the wall boundaries, and it contributes to smooth stress distributions (through the <span class="arithmatex">\(\boldsymbol{f}^{\sigma}\)</span> term) on the interior particles in the equation of momentum through the particle-dummy interaction.</p>
+<p>From <em>Bui's lecture</em>, the stress and velocity of fixed boundary particles (<span class="arithmatex">\(a\)</span>) can also be interpolated from real particles (<span class="arithmatex">\(b\)</span>). For the fully-fixed boundary:</p>
+<div class="arithmatex">\[\boldsymbol{v}_i^a=-\sum_jV_i^b\boldsymbol{v}_i^b\widetilde{W}_{ij},\ \boldsymbol{\sigma}_i^a=\sum_jV_i^b\boldsymbol{\sigma}_i^b\widetilde{W}_{ij}\]</div>
+<p>While for the free-slip boundary:</p>
+<div class="arithmatex">\[\boldsymbol{v}_i^{a,n}=\sum_jV_j^b(\boldsymbol{v}_i^{a,n}-2\boldsymbol{v}_j^{b,n})\widetilde{W}_{ij}\ or\ \boldsymbol{v}_i^{a,n}=-\sum_jV_j^b\boldsymbol{v}_j^{b,n}\widetilde{W}_{ij},\ \boldsymbol{v}_i^{a,t}=\sum_jV_j^b\boldsymbol{v}_j^{b,t}\widetilde{W}_{ij}\]</div>
+<div class="arithmatex">\[\sigma_i^{a, \alpha\beta}=\begin{cases}
+  \sum_jV_j^b\sigma_j^{b, \alpha\beta}\widetilde{W}_{ij}, &amp;\alpha=\beta \\ -\sum_jV_j^b\sigma_j^{b, \alpha\beta}\widetilde{W}_{ij}, &amp; \alpha \neq \beta
+\end{cases}\]</div>
+<p>where <span class="arithmatex">\(\boldsymbol{v}^{a,n}\)</span> and <span class="arithmatex">\(\boldsymbol{v}^{a,t}\)</span> are the normal and shear velocity components of particle <span class="arithmatex">\(a\)</span> with respect to the solid boundary surface. To calculate the normal vector for each particle on the open boundary, refer to <em>@Zhao2019 Sec 4.1</em>.</p>
+<div align="center">
+  <img width="160px" src="/img/Boundary_normal.png">
+</div>
+
+<h3 id="a-soft-repulsive-force">A "soft" repulsive force</h3>
+<blockquote>
+<p>@Chalk2020, Liu2012</p>
+</blockquote>
+<p>This is a coupled dynamic solid boundary treatment. The repulsive particles (triangle) are set to apply the no-slip effect and always guarantee that the particles do not penetrate the wall boundary. They can apply a soft repulsive force to the particles near the wall boundary, which is incorporated as a body force in the momentum equation. The definition of the repulsive force is introduced that prevents particle penetration without obviously disturbing the interior particels. The force <span class="arithmatex">\(\hat{\boldsymbol{F}}_{ij}\)</span> is applied to all particles that <strong>interact</strong> with the repulsive boundary particles, and is included in the SPH momentum equation:</p>
+<div class="arithmatex">\[\hat{\boldsymbol{F}}_{ij} = \sum_j 0.01c^2\chi\cdot\hat{f}(\gamma)\frac{\boldsymbol{x}_{ij}}{r^2}\]</div>
+<p>where:</p>
+<div class="arithmatex">\[\chi = \left\{
+\begin{array}{ll}
+  1-\frac{r}{1.5\Delta x}, &amp;0\leq r&lt;1.5\Delta x \\0, &amp;r\geq 1.5\Delta x
+\end{array}
+\right.\]</div>
+<div class="arithmatex">\[\gamma = \frac{r}{0.75h_{ij}}\]</div>
+<div class="arithmatex">\[\hat{f}(\gamma) = \left\{
+  \begin{array}{ll}
+    \frac{2}{3}, &amp;0&lt;\gamma\leq\frac{2}{3}\\
+    2\gamma-1.5\gamma^2, &amp;\frac{2}{3}&lt;\gamma\leq 1\\
+    0.5(2-\gamma)^2, &amp;1&lt;\gamma&lt;2\\
+    0, &amp;\gamma\geq 2
+  \end{array}
+\right.\]</div>
+<p>And this soft repulsive force was combined with dummy particles and applied to simulations of water flow and the propagation of a Bingham material.</p>
+<h2 id="time-integration-and-advection">Time integration and advection</h2>
+<h3 id="courant-friedrichs-lewy-cfl">Courant-Friedrichs-Lewy (CFL)</h3>
+<blockquote>
+<p>@Bui2021 3.6, Yang2021 2.5 and Koschier2019 2.9</p>
+</blockquote>
+<p>The CFL condition is a necessary condition for the convergence of numerical solvers for differential equations and, as a result, provides an upper bound for the time step width.</p>
+<p>The size of <span class="arithmatex">\(\Delta t\)</span> is determined using the Courant-Friedrichs-Lewy (CFL) stability condition, which, for SPH states that:</p>
+<div class="arithmatex">\[\Delta t=C_{CFL}\frac{h}{\Vert \boldsymbol{v}^{max}\Vert}\]</div>
+<p>where a suitable constant value for <span class="arithmatex">\(C_{CFL}\)</span> was found to be 0.2 from Yang2021, 0.1 from Bui2021, 0.4 from Koschier2019.
+<span class="arithmatex">\(h\)</span> is the smoothing length and <span class="arithmatex">\(\boldsymbol{v}^{max}\)</span> is the velocity at which the fastest particle travels, which can be the speed of sound <span class="arithmatex">\(c\)</span> of the material with <span class="arithmatex">\(c=\sqrt{E/\rho}\)</span>.</p>
+<h3 id="symp-euler-symplectic-euler-se">Symp Euler - Symplectic Euler (SE)</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p77</p>
+</blockquote>
+<p>Also referred to as semi-implicit Euler or Euler-Cromer scheme.</p>
+<div class="arithmatex">\[v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*\]</div>
+<h3 id="leap-frog-lf">Leap-Frog (LF)</h3>
+<blockquote>
+<p>@yang2021</p>
+</blockquote>
+<p>Leap-Frog(LF) time-integration scheme is sufficiently stable, accurate, and fast due to only requiring one calculation of forces for each timestep. For a given time-step, the density and velocity are brought forward to the mid-increment using material derivatives from the previous timestep(if available), and the position is updated at full-increments:</p>
+<div class="arithmatex">\[f_{n+\frac{1}{2}}=f_n+\frac{\Delta t}{2}(\frac{{\rm D}f}{{\rm D}t})_{n-1}\]</div>
+<p><span class="arithmatex">\(f\)</span> is density or velocity or stress. Then calculate <span class="arithmatex">\((\frac{{\rm D}f}{{\rm D}t})_{n}\)</span></p>
+<div class="arithmatex">\[f_{n+1}=f_n+\Delta t(\frac{{\rm D}f}{{\rm D}t})_{n}\]</div>
+<div class="arithmatex">\[\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{u}_{n+1}\]</div>
+<h3 id="rk4-4th-order-runge-kutta-rk4">RK4 - 4th order Runge-Kutta (RK4)</h3>
+<blockquote>
+<p>@Chalk2020 Appendix B.</p>
+</blockquote>
+<p>The RK4 scheme has fourth order accuracy and relatively simple implementation.
+Consider a general ordinary differential equation for a variable <span class="arithmatex">\(\phi\)</span> with an initial condition <span class="arithmatex">\(\phi^0\)</span> at an initial time <span class="arithmatex">\(t^0\)</span>:</p>
+<div class="arithmatex">\[\dot{\phi} = f(t, \phi),\ \phi(t^0) = \phi^0\]</div>
+<p>where <span class="arithmatex">\(f\)</span> is a function of <span class="arithmatex">\(\phi\)</span> and time <span class="arithmatex">\(t\)</span>. The RK4 method is employed to increment <span class="arithmatex">\(\phi\)</span> by a time step <span class="arithmatex">\(\Delta t\)</span> to obtain the solution at time <span class="arithmatex">\(t = t+\Delta t\)</span>:</p>
+<div class="arithmatex">\[\phi^{t+\Delta t}=\phi^t+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4)\]</div>
+<div class="arithmatex">\[k_1=f(\phi_1),\ k_2=f(\phi_2),\ k_3=f(\phi_3),\ k_4=f(\phi_4)\]</div>
+<div class="arithmatex">\[\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\Delta tk_3\]</div>
+<h3 id="xsph">XSPH</h3>
+<p>In addition to the velocity and stress, the position vectors of each particle <span class="arithmatex">\(\boldsymbol{x}_i\)</span> are updated via the XSPH method at the end of each time step as:</p>
+<div class="arithmatex">\[\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij}\]</div>
+<p>Alternatively, the discretised XSPH equation is:</p>
+<div class="arithmatex">\[\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + \Delta t\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{x}_i^t + \Delta t(\boldsymbol{v}_i^{t+\Delta t} + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij})\]</div>
+<p>where <span class="arithmatex">\(\epsilon_x\)</span> is a tuning para, <span class="arithmatex">\(0\leq\epsilon_x\leq1\)</span>.</p>
+<p>While, in standard SPH, the simplest way is:</p>
+<div class="arithmatex">\[\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i\]</div>
+<p>And for the particle position update (Leap-Frog):</p>
+<div class="arithmatex">\[\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{v}_i^{t+\frac{\Delta t}{2}}\ and\ \boldsymbol{v}_i^{t+\frac{\Delta t}{2}} = \frac{1}{2}(\boldsymbol{v}_i^{t+\Delta t}+\boldsymbol{v}_i^t)\]</div>
+<p>or just Symplectic Euler:</p>
+<div class="arithmatex">\[\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + {\Delta t}\boldsymbol{v}_i^{t+\Delta t}\]</div>
+<h2 id="numerical-oscillations-and-dissipations-in-sph">Numerical oscillations and dissipations in SPH</h2>
+<h3 id="artificial-viscosity-standard-approach">Artificial viscosity - standard approach</h3>
+<blockquote>
+<p>@bui2021 3.3, @chalk2020 4.5.1, @nguyen2017, @Adami2012, from @Monaghan1983</p>
+</blockquote>
+<p>The fully dynamic equation would cause SPH particles to freely oscillate due to even small unbalanced forces, most of which is attributed to the zero-energy mode produced by the anti-symmetric kernel function with zero kernel gradient at the inflection point. However, this oscillation of SPH particles or material points is a common issue associated with any numerical method used to solve the fully dynamic motion equation.</p>
+<p>An adapted artificial viscosity was implemented with SPH to dampen the irregular particle motion and pressure fluctuations, and to prevent the non-physical collisions of two approaching particles. The artificial viscosity term <span class="arithmatex">\(\Pi_{ij}\)</span> is included in the SPH momentum equation as:</p>
+<div class="arithmatex">\[\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\Pi_{ij}\boldsymbol{I})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i\]</div>
+<p>And the most widely used form of artificial viscosity is:</p>
+<div class="arithmatex">\[\Pi_{ij}=\begin{cases} \frac{-\alpha_{\Pi}c_{ij}\phi_{ij}+\beta_{\Pi}\phi_{ij}^2}{\rho_{ij}},&amp;\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}&lt;0\\ 0,&amp;\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}\ge0\\ \end{cases}\]</div>
+<div class="arithmatex">\[\phi_{ij}=\frac{h_{ij}\boldsymbol{v}_{ij}\cdot\boldsymbol{x}_{ij}}{\Vert\boldsymbol{x}_{ij}\Vert^2+\varepsilon h_{ij}^2}\]</div>
+<div class="arithmatex">\[c_{ij}=\frac{c_i+c_j}{2},\ \rho_{ij}=\frac{\rho_i+\rho_j}{2},\ h_{ij}=\frac{h_i+h_j}{2},\ \boldsymbol{x}_{ij}=\boldsymbol{x}_i-\boldsymbol{x}_j,\ \boldsymbol{v}_{ij}=\boldsymbol{v}_i-\boldsymbol{v}_j\]</div>
+<p>where <span class="arithmatex">\(\alpha_{\Pi}\)</span> and <span class="arithmatex">\(\beta_{\Pi}\)</span> are problem dependent tuning parameters, <span class="arithmatex">\(c\)</span> is the speed of sound. <span class="arithmatex">\(\alpha_{\Pi}\)</span> is associated with the speed of sound and is related to the linear term, while <span class="arithmatex">\(\beta_{\Pi}\)</span> is associated with the square of the velocity and has little effect in problems where the flow velocity is not comparable to the speed of sound. <span class="arithmatex">\(\varepsilon=0.01\)</span> is a numerical parameter introduced to prevent numerical divergences, only to ensure a non-zero denominator.</p>
+<p>This artificial viscosity is applied only for interactions between material particles, i.e. no artificial dissipation is introduced for the interaction of dummy particles and real particles.</p>
+<p>A disadvantage of using the artificial viscosity is that parameter tuning may be required to obtain the optimal values which are not directly associated with any physical properties. The use of the artificial viscosity in SPH simulations is purely for the purposes of numerical stabilisation.</p>
+<h3 id="alternative-viscous-damping-term">Alternative viscous damping term</h3>
+<blockquote>
+<p>@bui2021 3.3, @chalk2020 4.5.1, @nguyen2017</p>
+</blockquote>
+<p>Alternative damping terms can be used instead of the artificial viscosity that have more physical relevance to the problem, or require less calibration. The following velocity-dependent damping term can be included as a body force in the equation of the momentum:</p>
+<div class="arithmatex">\[\boldsymbol{F}_d=-\mu_d\boldsymbol{v}\]</div>
+<p><span class="arithmatex">\(\mu_d\)</span> is the damping factor which can be computed by <span class="arithmatex">\(\mu_d=\xi\sqrt{E/\rho h^2}\)</span> with <span class="arithmatex">\(\xi\)</span> being a non-dimensional damping coefficient that requires calibrations for different applications. For the simulation of granular flows, such as the flow of granular column collapse experiments in <em>Nguyen2017</em>, a constant value of <span class="arithmatex">\(\xi=5\times10^{-5}\)</span> is recommended.</p>
+<h3 id="stressstrain-regularisation">Stress/strain regularisation</h3>
+<blockquote>
+<p>@bui2021 3.3, @nguyen2017</p>
+</blockquote>
+<p>While the kinematics of SPH simulation is generally realistic, the stress-pressure fields of SPH particles undergoing large deformation can exhibit large oscillations. This problem is known as the sort-length-scale-noise and is identified as one of the key challenges of the standard SPH method tha needs to be addressed in order to improve the accuracy of SPH simulations.</p>
+<p>The problem becomes worse when the artificial viscosity is not adopted in SPH simulations, although the viscous damping force could slow down the numerical instability process.</p>
+<p><em>Nguyen2017</em> suggests regularising the stresses and strains of each SPH particle over its kernel integral domain after a certain number of computational cycles and uses MLS method:</p>
+<div class="arithmatex">\[\langle\boldsymbol{\sigma}_{i}\rangle=\sum_jV_j\boldsymbol{\sigma}_{j}W^{MLS}_{ij}\]</div>
+<div class="arithmatex">\[\langle\boldsymbol{\epsilon}_{i}\rangle=\sum_jV_j\boldsymbol{\epsilon}_{j}W^{MLS}_{ij}\]</div>
+<p>And <em>Nguyen2017</em> suggestes applying the above MLS correction every 5 steps.</p>
+<h2 id="tensile-instability">Tensile instability</h2>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../basic/" class="btn btn-neutral float-left" title="Basic knowledge"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../fluid/" class="btn btn-neutral float-right" title="SPH for fluid">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../basic/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../fluid/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../javascripts/mathjax.js" defer></script>
+      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

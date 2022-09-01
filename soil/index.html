@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>SPH for soil - tiSPHi</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SPH for soil";
+        var mkdocs_page_input_path = "soil.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> tiSPHi
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../basic/">Basic knowledge</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../foundation/">SPH foundations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../fluid/">SPH for fluid</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">SPH for soil</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#constitutive-model-of-soil">Constitutive model of soil</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#a-simple-elastic-perfectly-plastic-model-for-soil">A simple elastic-perfectly plastic model for soil</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#mui-rheological-constitutive-model">\(\mu(I)\)-rheological constitutive model</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#elastoplastic-model">Elastoplastic model</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#yield-criteria">Yield criteria</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#the-elastoplastic-constitutive-equation">The elastoplastic constitutive equation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#stress-adaptation">Stress adaptation</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#viscoplastic-perzyna-model">Viscoplastic Perzyna model</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#a-generalised-system-of-equations">A generalised system of equations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#governing-equations">Governing equations</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#conservation-of-mass">Conservation of mass</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#conservation-of-momentum">Conservation of momentum</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#standard-soil-sph">Standard soil SPH</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#discretization">Discretization</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#symp-euler-for-standard-drucker-prager-soil-sph">Symp-Euler for standard Drucker-Prager soil SPH</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#rk4-for-standard-drucker-prager-soil-sph">RK4 for standard Drucker-Prager soil SPH</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../taichi/">Taichi Lang</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../codeframe/">Code frame</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../about/">About</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">tiSPHi</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>SPH for soil</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="sph-for-soil">SPH for soil</h1>
+<h2 id="constitutive-model-of-soil">Constitutive model of soil</h2>
+<p>Constitutive model is a core component of a computational framework used to describe how a material behaves under external loads. A constitutive equation is required to relate the soil stresses to the strain rates.</p>
+<p>In the application of CFD approach to model geomaterials using SPH, the materials are considered to either be fluid-like materials (i.e. liquefied materials) or have reached its critical state. However, the key drawback of this type of constitutive model is that it cannot describe complex responses of geomaterials, including the hardening or/and softening processes before reaching the critical state of soils.</p>
+<p>Advanced constitutive models were built on the basis of continuum plasticity theory.</p>
+<h3 id="a-simple-elastic-perfectly-plastic-model-for-soil">A simple elastic-perfectly plastic model for soil</h3>
+<blockquote>
+<p>@bui2021 3.2.1.1.</p>
+</blockquote>
+<p>Standard CFD approach for <span class="arithmatex">\(c-\varphi\)</span> soils. The shear stresses increase linearly with the incresing shear strain and thus cannot capture the plastic response. A simple approach is to restrict the development of shear stresses when the materials enter the plastic flow regime without actually solving the plastic deformation. (即不计算塑性变形，当材料进入塑性流动状态时，直接按照M-C强度准则约束剪应力)</p>
+<p>The stress tensor is decomposed into the isotropic pressure <span class="arithmatex">\(p\)</span> and deviatoric stress <span class="arithmatex">\(\boldsymbol{s}\)</span>:</p>
+<div class="arithmatex">\[\boldsymbol{\sigma}=p\boldsymbol{I}+\boldsymbol{s}\]</div>
+<p><span class="arithmatex">\(p\)</span> is computed using an equation of state (EOS) which is often formulated as a function of density change and sound speed. For geomechanics applications, following the general Hooke's law:</p>
+<div class="arithmatex">\[p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)\]</div>
+<p>On the other hand, the deviatoric shear stress can be estimated using the general Hooke's law for <strong>elastic materials</strong>:</p>
+<div class="arithmatex">\[\dot{\boldsymbol{s}}=2G(\dot{\boldsymbol{\epsilon}}-\frac{1}{3}\boldsymbol{I}\dot{\epsilon}_v)\]</div>
+<p>The plastic regime for general soils can be determinded by the Mohr-Coulomb failure criterion:</p>
+<div class="arithmatex">\[\tau_f=c+p\tan{\varphi}\]</div>
+<p>where <span class="arithmatex">\(\tau_f=\sqrt{\frac{3}{2}\boldsymbol{s}:\boldsymbol{s}}\)</span> is the maximum shear stress at failure. When the soil enters its plastic flow regime, the shear stress components are scaled back to the yield surface.</p>
+<h3 id="mui-rheological-constitutive-model"><span class="arithmatex">\(\mu(I)\)</span>-rheological constitutive model</h3>
+<blockquote>
+<p>@bui2021 3.2.1.2. and yang2021 2.2</p>
+</blockquote>
+<p>The <span class="arithmatex">\(\mu(I)\)</span>-rheological model is one of the most commonly used and widely validated rheological models, developed to capture the rate-dependent and inertial effect of granular materials in the dense flow regime.</p>
+<p>It was derived based on the Bingham constitutive relation for non-Newtonian fluids. It assumes the materials behave as a rigid body or stiff elastic response before yielding and then quickly reaching their plastic flow behaviour. (假设材料在屈服前表现为刚体或刚性弹性响应？然后迅速达到其塑性流动状态即屈服后的临界状态)</p>
+<p>It separates the stress tensor into an isotropic pressure and viscous shear stress tensor, and the viscous shear stress is then defined as a function of total strain-rate:</p>
+<div class="arithmatex">\[\boldsymbol{\sigma}=-p\boldsymbol{I}+\boldsymbol{\tau}\]</div>
+<div class="arithmatex">\[\boldsymbol{\tau}=2\eta\dot{\boldsymbol{\epsilon}},\ \eta=\frac{\mu(I)p}{\sqrt{2(\dot{\boldsymbol{\epsilon}}:\dot{\boldsymbol{\epsilon}})}},\ \mu(I)=\mu_s+\frac{\mu_2-\mu_s}{I_0/I+1}\]</div>
+<p>where <span class="arithmatex">\(\eta\)</span> is an effective viscosity, when <span class="arithmatex">\(\dot{\boldsymbol{\epsilon}}\rightarrow0\)</span>, it diverges to infinity and this ensures the material behaviour is rigid or very stiff when the strain rate is very small or at the static condition and thus guaranteeing the existence of a field criterion;</p>
+<p><span class="arithmatex">\(\dot{\boldsymbol{\epsilon}}\)</span> is the total strain-rate tensor;</p>
+<p><span class="arithmatex">\(\mu\)</span> is a frictional function dependent on the inertial number <span class="arithmatex">\(I=d_s\sqrt{2(\dot{\boldsymbol{\epsilon}}:\dot{\boldsymbol{\epsilon}})}/\sqrt{p/\rho_s}\)</span> with <span class="arithmatex">\(d_s\)</span> being the grain diameter, <span class="arithmatex">\(\rho_s\)</span> being the solid density;</p>
+<p><span class="arithmatex">\(\mu_2\)</span> and <span class="arithmatex">\(I_0\)</span> are both materials constants with <span class="arithmatex">\(\mu_2\)</span> being the critical friction angle at very high <span class="arithmatex">\(I\)</span>;</p>
+<p>and <span class="arithmatex">\(\mu_s\)</span> is the sratic friction coefficient, corresponding to the state of no plastic flow.</p>
+<p>Under the condition of the strain rate tensor in the limit of 0 (<span class="arithmatex">\(I\rightarrow0\)</span>), the second component of <span class="arithmatex">\(\mu(I)\)</span> will approach 0. This suggests that, under static condition, <span class="arithmatex">\(\mu(I)=\mu_s\)</span>, which defines a yielding threshold above which yielding occurs. Accordingly, the following yield criterion, which takes the form of the Drucker-Prager-like criterion, can be defined:</p>
+<div class="arithmatex">\[|\boldsymbol{\tau}|\leq\mu_sp,\ |\boldsymbol{\tau}|=\sqrt{0.5(\boldsymbol{\tau}:\boldsymbol{\tau})}\]</div>
+<p>The isotropic pressure can be defined alternltively, where the second one is commonly used in the SPH context to model quasi-compressible fluid:</p>
+<div class="arithmatex">\[p=K\frac{\Delta V}{V_0}=K(\frac{\rho}{\rho_0}-1)\ or\ p=c^2(\rho-\rho_0)\]</div>
+<p>where <span class="arithmatex">\(c\)</span> is the speed of sound, which is assumed to be <span class="arithmatex">\(10 v_{max}\)</span> (for Yang2021, it is <span class="arithmatex">\(35m/s\)</span> and for Bui2021, it is <span class="arithmatex">\(600m/s\)</span>).</p>
+<p>Finally, it is noted that when incorporating this model, to avoid unphysical behaviour, the <strong>shear component of the stress tensor</strong> should be set to 0 for negative pressure value.</p>
+<p>In addition, the <strong>initial strain rate tensor</strong> should be set close to 0 (e.g. <span class="arithmatex">\(10^{-7}\)</span>) as 0 strain rates can result in mathematically undefined behaviour.</p>
+<p>To incorporate the shear strength of granular materials, here incorporates the Mohr-Coulomb yield criteria, which allows the yielding shear stress to be described as a function of pressure, as well as easily obtained material properties:</p>
+<div class="arithmatex">\[\tau_y=c+p\tan\varphi\]</div>
+<p>where <span class="arithmatex">\(c\)</span> is cohesion and <span class="arithmatex">\(\varphi\)</span> is the internal angle of friction. The 1D modified Bingham shear stress:</p>
+<div class="arithmatex">\[\tau=\eta_0\dot{\boldsymbol{\epsilon}}+c+p\tan\varphi\]</div>
+<p>using an equivalent fluid viscosity, <span class="arithmatex">\(\eta\)</span>, for use in Navier-Stokes solvers:</p>
+<div class="arithmatex">\[\eta=\eta_0+\frac{c+p\tan\varphi}{\dot{\boldsymbol{\epsilon}}}\]</div>
+<p>As for 3D simulation, the generalised form of the modified Bingham shear stress:</p>
+<div class="arithmatex">\[\boldsymbol{\tau}_i=\eta_0\dot{\boldsymbol{\epsilon}}_i+(c+p\tan\varphi)\frac{\dot{\boldsymbol{\epsilon}}_i}{\sqrt{\frac{1}{2}\dot{\boldsymbol{\epsilon}}_i:\dot{\boldsymbol{\epsilon}}_i}}\]</div>
+<p>The above modified Bingham model can be thought of as a precursor to the <span class="arithmatex">\(\mu(I)\)</span> model, where the <span class="arithmatex">\(\mu(I)\)</span> model takes the dynamic viscosity <span class="arithmatex">\(\eta_0\)</span> and the cohesion <span class="arithmatex">\(c\)</span> as 0, and also exchanges <span class="arithmatex">\(\tan\varphi\)</span> for a scalar friction value.</p>
+<p><strong>NOTE</strong>: the <span class="arithmatex">\(\mu(I)\)</span> model need the difference of density to generate pressure, so it is wrong to keep a constant density.</p>
+<h3 id="elastoplastic-model">Elastoplastic model</h3>
+<blockquote>
+<p>@bui2021 3.2.2.</p>
+</blockquote>
+<p>This model was built on basis of continuum plasticity theory, in which a single mathematical relationship that relates the stress-increment to the strain-increment was established for a homogenous representative volume element which is assumed to remain homogenous. A yield surface and a plastic potential function <span class="arithmatex">\(g\)</span> (or dilatancy rule) are then used to control the hardening or/and softening processes commonly observed in the materials. Elastic and plastic material behaviour are distinguished according to a specified yield function <span class="arithmatex">\(f\)</span>.</p>
+<p>The fundamental assumption of plasticity is that the total soil strain rate <span class="arithmatex">\(\boldsymbol{\dot\epsilon}\)</span> can be divided into an elastic and a plastic component:</p>
+<div class="arithmatex">\[\boldsymbol{\dot\epsilon} = \boldsymbol{\dot\epsilon}^e+\boldsymbol{\dot\epsilon}^p\]</div>
+<p>The stress increment is then calculated from the generalised Hooke's Law:</p>
+<div class="arithmatex">\[\dot{\boldsymbol{\sigma}}=\boldsymbol{D}^e:\dot{\boldsymbol{\epsilon}}^e=\boldsymbol{D}^{ep}:\dot{\boldsymbol{\epsilon}}\]</div>
+<p>We define the elastic strains according to the generalised Hooke's Law:</p>
+<div class="arithmatex">\[\dot{\boldsymbol{\epsilon}}^e = \frac{\dot{\boldsymbol{s}}}{2G}+\frac{1-2\nu}{3E}\dot{\sigma}_{mm}\boldsymbol{I},\ \dot{\sigma}_{mm}=\dot{\sigma}_{xx}+\dot{\sigma}_{yy}+\dot{\sigma}_{zz}\]</div>
+<p>And in plasticity-based models, the plastic srtain rate is defined via the plastic flow rule:</p>
+<div class="arithmatex">\[\dot{\boldsymbol{\epsilon}}^p=\dot{\lambda}\frac{\partial g}{\partial \boldsymbol{\sigma}}\]</div>
+<p>where <span class="arithmatex">\(\dot{\lambda}\)</span> is the so-called <em>consistency parameter</em>, a positive plastic-multiplier, and <span class="arithmatex">\(g\)</span> is the <em>plastic potential function</em>. The plastic potential function describes the direction of plastic flow as a function of the stress tensor. For <span class="arithmatex">\(g=f\)</span>, the flow rule is said to be associated. otherwise, it is non-associated.</p>
+<p>And in soil mechanics, the soil pressure <span class="arithmatex">\(p\)</span> is obtained directly from the equation for <strong>hydrostatic pressure</strong>:</p>
+<div class="arithmatex">\[p = -\frac{1}{3}(\sigma_{xx}+\sigma_{yy}+\sigma_{zz})\]</div>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>the hydrostatic pressure <span class="arithmatex">\(p\)</span>, is positive or negtive? <span class="arithmatex">\(\boldsymbol{s}\)</span> is only correct when <span class="arithmatex">\(p\)</span> is positive as Chalk2020's Appendix A, but in the main text of Chalk2020, <span class="arithmatex">\(p\)</span> is negtive. <em>STRETCH</em> for positive and <em>COMPRESS</em> for negative? <strong>Answer</strong>: Generally it's negtive. When it is positive, the meaning is the average normal stress <span class="arithmatex">\(\sigma_m = -p\)</span>.</li>
+</ol>
+</blockquote>
+<h4 id="yield-criteria">Yield criteria</h4>
+<p>For <strong>Drucker-Prager</strong> yield criteria:</p>
+<div class="arithmatex">\[f=\sqrt{J_2}+\alpha_{\varphi}I_1-k_c=0\]</div>
+<p>where the functions of the Coulomb material constants - the soil internal friction <span class="arithmatex">\(\varphi\)</span> and cohesion <span class="arithmatex">\(c\)</span>:</p>
+<div class="arithmatex">\[\alpha_{\varphi}=\frac{\tan\varphi}{\sqrt{9+12\tan^2\varphi}}, k_c=\frac{3c}{\sqrt{9+12\tan^2\varphi}}\]</div>
+<p>And for the elastoplastic constitutive equation of Drucker-Prager and <em>non-associated flow rule</em></p>
+<div class="arithmatex">\[g=\sqrt{J_2}+3I_1\sin\psi\]</div>
+<p>where <span class="arithmatex">\(\psi\)</span> is dilatancy angle and in Chalk's thesis <span class="arithmatex">\(\psi=0\)</span>.</p>
+<p>And the <strong>Von Mises</strong> criterion is:</p>
+<div class="arithmatex">\[f = \sqrt{3J_2}-f_c\]</div>
+<p>The Von Mises and D-P yield criteria are illustrated in two dimensions:</p>
+<div align="center">
+  <img width="400px" src="/img/Yield_criterias.png">
+</div>
+
+<p>The increment of the yield function after plastic loading or unloading:</p>
+<div class="arithmatex">\[{\rm d}f=\frac{\partial f}{\partial \boldsymbol{\sigma}} {\rm d}\boldsymbol{\sigma}\]</div>
+<p>The stress state is not allowed to exceed the yield surface, and the yield function increment cannot be greater than 0. <span class="arithmatex">\({\rm d}f=0\)</span> ensures that the stress state remains on the yield surface during plastic loading.</p>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>How to calculate <span class="arithmatex">\({\rm d}f\)</span>? <strong>ANSWER</strong>: <span class="arithmatex">\({\rm d}f = f^*-f\)</span> in advection.</li>
+</ol>
+</blockquote>
+<h4 id="the-elastoplastic-constitutive-equation">The elastoplastic constitutive equation</h4>
+<p>After rearranging:</p>
+<div class="arithmatex">\[\frac{\partial \sigma_{ij}}{\partial t}=2G\dot{e}_{ij}+K\dot{\epsilon}_{mm}\delta_{ij}-\dot{\lambda}((K-\frac{2}{3}G)\frac{\partial g}{\partial \sigma_{kl}}\delta_{kl}\delta_{ij}+2G\frac{\partial g}{\partial \sigma_{ij}})\]</div>
+<p>The first two terms on the right hand side describe the elastic strain, while the latter term describes the plastic deformations (which is non-zero when plastic flow occurs).</p>
+<p>Upon substitution of plastic potential function and the Drucker-Prager yield function into the equation above:</p>
+<div class="arithmatex">\[\frac{\partial \sigma_{ij}}{\partial t}=2G\dot{e}_{ij}+K\dot{\epsilon}_{mm}\delta_{ij}-\dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}}s_{ij}) \]</div>
+<p>where</p>
+<div class="arithmatex">\[\dot{\lambda}=\frac{3\alpha_{\varphi}K\dot{\epsilon}_{mm}+(G/\sqrt{J_2})s_{ij}\dot{\epsilon}_{ij}}{27\alpha_{\varphi}K\sin\psi+G} \]</div>
+<h4 id="stress-adaptation">Stress adaptation</h4>
+<blockquote>
+<p>@Bui2008 Section 3.3.1 and Chalk2019 Section 4.3.1</p>
+</blockquote>
+<p>Consider both a <strong>Von Mises</strong> and a <strong>Drucker-Prager</strong> yield criterion to distinguish between elastic and plastic material behaviour.</p>
+<p>In the elastoplastic model, the stress state is not allowed to exceed the yield surface and we should apply a stress adaptation to particles, after every calculation step. The stress must be checked at every step and adapted if it does not lie within a valid range.</p>
+<div align="center">
+  <img width="800px" src="/img/Adaptation_stress_states.png">
+</div>
+
+<p>First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as <strong>tension cracking</strong>, in the movement of the stress state at point E to point F. Tension cracking occurss when: <span class="arithmatex">\(-\alpha_{\varphi}I_1+k_c&lt;0\)</span> or <span class="arithmatex">\(f\ge\sqrt{J_2}\)</span>. And in such circumstances, the hydrostatic stress <span class="arithmatex">\(I_1\)</span> must be shifted back to the apex of the yield surface by adapting the normal stress components:</p>
+<div class="arithmatex">\[\hat{\boldsymbol{\sigma}} = \boldsymbol{\sigma}-\frac{1}{3}(I_1-\frac{k_c}{\alpha_{\varphi}})\]</div>
+<p>The second corrective stress treatment must be performed when the stress state exceeds the yield surface during plastic loading, as shown by the path A to B. For the D-P yield criterion, this occurs when: <span class="arithmatex">\(-\alpha_{\varphi}I_1+k_c&lt;\sqrt{J_2}\)</span> or <span class="arithmatex">\(0&lt;f&lt;\sqrt{J_2}\)</span>. And the stress state must be scaleld back appropriately. For this, a scaling factor <span class="arithmatex">\(r_{\sigma}\)</span> is introduced: <span class="arithmatex">\(r_{\sigma} = (-\alpha_{\varphi}I_1+k_c) / \sqrt{J_2}\)</span>. The deviatoric shear stress is then reduced via this scaling factor for all components of the stress tensor:</p>
+<div class="arithmatex">\[\hat{\sigma}_{ii} = r_{\sigma}s_{ii}+\frac{1}{3}I_1\]</div>
+<div class="arithmatex">\[\hat{\sigma}_{ij} = r_{\sigma}s_{ij}\]</div>
+<p>The procedure of applying these two equations is referred to as the stress-scaling back procedure, or stress modification.</p>
+<p>In the SPH implementation of the elastoplastic model, the two corrective treatments described above are applied to the particles that have a stress state outside of the valid range.</p>
+<h3 id="viscoplastic-perzyna-model">Viscoplastic Perzyna model</h3>
+<p>The consistency parameter <span class="arithmatex">\(\dot{\lambda}\)</span> is defined as:</p>
+<div class="arithmatex">\[\dot{\lambda}=\gamma\langle\phi(F)\rangle\]</div>
+<p>where <span class="arithmatex">\(\gamma\)</span> is a fluidity parameter (acts as the reciprocal of viscosity) and <span class="arithmatex">\(\phi(F)\)</span> is a yield-type function. The <span class="arithmatex">\(\langle...\rangle\)</span> symbol represents the Macaulay brackets:</p>
+<div class="arithmatex">\[\langle\phi\rangle=\begin{cases} \phi,&amp;\phi\ge0\\ 0,&amp;\phi&lt;0\\ \end{cases}\]</div>
+<p>The function <span class="arithmatex">\(\phi(F)\)</span> is therefore defined as:</p>
+<div class="arithmatex">\[\phi(F)=(\frac{F-F_0}{F_0})^N\]</div>
+<p>where <span class="arithmatex">\(N\)</span> is a model parameter, <span class="arithmatex">\(F\)</span> is a function of the stress state (related to the yield function), and <span class="arithmatex">\(F_0\)</span> defines a critical stress value for plastic strains. Plastic flow occurs then <span class="arithmatex">\(F&gt;F_0\)</span> (the function <span class="arithmatex">\(F\)</span> exceeds the critical value <span class="arithmatex">\(F_0\)</span>) and plastic strains are non-zero.</p>
+<p>... ...</p>
+<p>In summary, the Perzyna constitutive model is defined as:</p>
+<div class="arithmatex">\[\frac{\partial \sigma_{ij}}{\partial t}=D^e_{ijkl}(\dot{\epsilon}_{kl}-\gamma\frac{\partial g}{\partial\sigma_{kl}}(\frac{F-F_0}{F_0})^N)\]</div>
+<p>The implementation of the Von Mises yield criterion, with an associated flow rule (<span class="arithmatex">\(f=g\)</span>):</p>
+<div class="arithmatex">\[F=\sqrt{3J_2},\ F_0=f_c\]</div>
+<h3 id="a-generalised-system-of-equations">A generalised system of equations</h3>
+<p>The general elastoplastic and viscoplastic Perzyna constitutive equations can be written in the following compact form:</p>
+<div class="arithmatex">\[\frac{\partial\sigma_{ij}}{\partial t}=D^e_{ijkl}\dot{\epsilon}_{kl}-g_{ij}^{\epsilon^p}\]</div>
+<p>where <span class="arithmatex">\(g_{ij}^{\epsilon^p}\)</span> is a function of the plastic strain, depending on the choice of constitutive model:</p>
+<div class="arithmatex">\[g_{ij}^{\epsilon^p}=\dot{\lambda}((K-\frac{2}{3}G)\frac{\partial g}{\partial \sigma_{kl}}\delta_{kl}\delta_{ij}+2G\frac{\partial g}{\partial \sigma_{ij}})\]</div>
+<p>or</p>
+<div class="arithmatex">\[g_{ij}^{\epsilon^p}=D^e_{ijkl}\gamma\frac{\partial g}{\partial\sigma_{kl}}(\frac{F-F_0}{F_0})^N\]</div>
+<p>And for large deformation problems, the rate of stress must be adapted so that it is invariant with respect to large body rotations. The standard stress rate is replaced with the Jaumann stress rate:</p>
+<div class="arithmatex">\[\dot{\tilde{\sigma}}_{ij}=\dot{\sigma}_{ij}-\sigma_{im}\dot{\omega}_{jm}-\sigma_{mj}\dot{\omega}_{im}\]</div>
+<p>or</p>
+<div class="arithmatex">\[\dot{\tilde{\boldsymbol{\sigma}}}=\dot{\boldsymbol{\sigma}}-\boldsymbol{\omega}\boldsymbol{\sigma}-\boldsymbol{\sigma}\boldsymbol{\omega}^T \]</div>
+<p>Then the equation becomes:</p>
+<div class="arithmatex">\[\frac{\partial\sigma_{ij}}{\partial t}=\sigma_{im}\dot{\omega}_{jm}-\sigma_{mj}\dot{\omega}_{im}+D^e_{ijkl}\dot{\epsilon}_{kl}-g_{ij}^{\epsilon^p}\]</div>
+<h2 id="governing-equations">Governing equations</h2>
+<p>Conservation of mass:</p>
+<div class="arithmatex">\[\frac{{\rm D} \rho}{{\rm D} t}=-\rho \nabla\cdot\boldsymbol{v}\]</div>
+<p>Conservation of momentum:</p>
+<div class="arithmatex">\[\frac{{\rm D} \boldsymbol{v}}{{\rm D} t}=\frac{1}{\rho} \nabla\cdot\boldsymbol{\sigma}+\boldsymbol{f}^{ext}\]</div>
+<p>Constitutive equation (in compact form):</p>
+<div class="arithmatex">\[\frac{{\rm D} \boldsymbol{f}^{\sigma}}{{\rm D} t}=\boldsymbol{\tilde{\sigma}} +\nabla\cdot\boldsymbol{f}^v-\boldsymbol{g}^{\epsilon^p}\]</div>
+<p>where:</p>
+<div class="arithmatex">\[\begin{aligned} \boldsymbol{x} = \left (\begin{array}{c}
+    x\\ y
+\end{array}\right) \end{aligned}
+,
+\begin{aligned} \boldsymbol{v} = \left (\begin{array}{c}
+    v_x\\ v_y
+\end{array}\right) \end{aligned}
+,
+\begin{aligned} \boldsymbol{\sigma} = \left (\begin{array}{cc}
+    \sigma_{xx}    &amp;\sigma_{xy}\\    \sigma_{xy}    &amp;\sigma_{yy}
+\end{array}\right) \end{aligned}
+,
+\begin{aligned} \boldsymbol{f}^{ext} = \left (\begin{array}{c}
+    f^{ext}_x\\ f^{ext}_y
+\end{array}\right) \end{aligned}\]</div>
+<div class="arithmatex">\[\begin{aligned} \boldsymbol{f}^{\sigma} = \left (\begin{array}{c}
+    \sigma_{xx}\\ \sigma_{yy}\\ \sigma_{xy}\\ \sigma_{zz}
+\end{array} \right) \end{aligned}
+,
+\begin{aligned} \boldsymbol{\tilde{\sigma}} = \left(\begin{array}{c}
+      2\sigma_{xy}\dot\omega_{xy}\\ 2\sigma_{xy}\dot\omega_{yx}\\
+      \sigma_{xx}\dot\omega_{yx}+\sigma_{yy}\dot\omega_{xy}\\ 0
+    \end{array} \right)
+    = \left(\begin{array}{c}
+      2\sigma_{xy}\dot\omega_{xy}\\ -2\sigma_{xy}\dot\omega_{xy}\\
+      (\sigma_{yy}-\sigma_{xx})\dot\omega_{xy}\\ 0
+\end{array} \right) \end{aligned}\]</div>
+<div class="arithmatex">\[\begin{aligned} \boldsymbol{f}^v = \left (\begin{array}{cc}
+    D^e_{11}v_x    &amp;D^e_{12}v_y\\ D^e_{21}v_x    &amp;D^e_{22}v_y\\
+    D^e_{33}v_y    &amp;D^e_{33}v_x\\ D^e_{41}v_x    &amp;D^e_{42}v_y
+\end{array}\right)\end{aligned}
+,
+\begin{aligned} \boldsymbol{g}^{\epsilon^p} = \left(\begin{array}{c}
+      g^{\epsilon^p}_{xx}(\boldsymbol{\dot \epsilon}^p)\\
+      g^{\epsilon^p}_{yy}(\boldsymbol{\dot \epsilon}^p)\\
+      g^{\epsilon^p}_{xy}(\boldsymbol{\dot \epsilon}^p)\\
+      g^{\epsilon^p}_{zz}(\boldsymbol{\dot \epsilon}^p)
+\end{array} \right) \end{aligned}
+,
+\begin{aligned} \dot{\boldsymbol{\epsilon}}^p = \left(\begin{array}{c}
+      \dot \epsilon^p_{xx}\\ \dot \epsilon^p_{yy}\\
+      \dot \epsilon^p_{xy}\\ 0
+\end{array} \right) \end{aligned}\]</div>
+<div class="arithmatex">\[{\boldsymbol{f}^{\dot \epsilon}} = \begin{aligned} \left(\begin{array}{c}
+      \dot \epsilon_{xx}\\ \dot \epsilon_{yy}\\
+      \dot \epsilon_{xy}\\ 0
+\end{array} \right) \end{aligned} = \begin{aligned} \left(\begin{array}{c}
+      \frac{\partial v_x}{\partial x}\\ \frac{\partial v_y}{\partial y}\\
+      \frac{1}{2}(\frac{\partial v_x}{\partial y}+\frac{\partial v_y}{\partial x})\\ 0
+\end{array} \right) \end{aligned}\]</div>
+<div class="arithmatex">\[\begin{aligned} \boldsymbol{D}^e = D^e_{pq} = \frac{E}{(1+\nu)(1-2\nu)} \left (\begin{array}{cccc}
+    1-\nu  &amp;\nu  &amp;0  &amp;\nu\\ \nu  &amp;1-\nu  &amp;0  &amp;\nu\\
+    0  &amp;0  &amp;(1-2\nu)/2  &amp;0\\ \nu  &amp;\nu  &amp;0  &amp;1-\nu\\
+\end{array}\right) \end{aligned}\]</div>
+<p><span class="arithmatex">\(D^e_{pq}\)</span> is the <strong>elastic constitutive tensor</strong>, also the ealstic constitutive matrix reduces in plane strain condition.</p>
+<p><span class="arithmatex">\(\boldsymbol{\tilde{\sigma}}\)</span> is the <strong>Jaumann stress-rate</strong>, which is adopted to achieve an invariant stress rate with respect to rigid-body rotation for large deformation analysis.</p>
+<p><span class="arithmatex">\(\dot{\omega}_{\alpha\beta}\)</span> is the <strong>spin rate tensor</strong>.</p>
+<p>And <span class="arithmatex">\(\boldsymbol{g}^{\epsilon^p}\)</span> is a vector containing the plastic terms which is the only difference responsible for plastic deformations between the <strong>elastoplastic</strong> and <strong>Perzyna</strong> constitutive models. In both models, the plastic terms are functions of the plastic strain rate, which is dependent on the state of stress and material parameters.</p>
+<p>For the elastoplastic model,</p>
+<div class="arithmatex">\[\boldsymbol{g}^{\epsilon^p} = \dot{\lambda}(9K\sin\psi\delta_{ij}+\frac{G}{\sqrt{J_2}}\boldsymbol{s})\]</div>
+<p>which is non-zero only when <span class="arithmatex">\(f = \sqrt{J_2}+\alpha_{\varphi}I_1-k_c = 0\)</span> (and <span class="arithmatex">\({\rm d}f=0\)</span>), according to the Drucker-Prager yield criterion.</p>
+<p>And for the Perzyna model,</p>
+<div class="arithmatex">\[\boldsymbol{g}^{\epsilon^p} = \boldsymbol{D}^e\frac{\partial \sqrt{3J_2}}{\partial \boldsymbol{\sigma}}(\frac{\sqrt{3J_2}-f_c}{f_c})^N\]</div>
+<p>which is non-zero only when <span class="arithmatex">\(\sqrt{3J_2}&gt;f_c\)</span> (according to the Von mises yield criterion).</p>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>How does <span class="arithmatex">\(\frac{\partial\sqrt{3J_2}}{\partial\boldsymbol{\sigma}}\)</span> calculated?</li>
+<li>What number should <span class="arithmatex">\(N\)</span> choose?</li>
+</ol>
+</blockquote>
+<h3 id="conservation-of-mass">Conservation of mass</h3>
+<blockquote>
+<p>@mit fluids lectures <a href="https://web.mit.edu/16.unified/www/FALL/fluids/Lectures/f10.pdf">f10</a></p>
+</blockquote>
+<p>All the governing equations of fluid motion which were derived using control volume concepts can be recast in terms of the substantial derivative. We will employ the following general vector identity:</p>
+<div class="arithmatex">\[\nabla\cdot(a\boldsymbol{u}) = \boldsymbol{u}\cdot\nabla a + a\nabla\cdot\boldsymbol{u}\]</div>
+<p>which is valid for any scalar <span class="arithmatex">\(a\)</span> and any vector <span class="arithmatex">\(\boldsymbol{u}\)</span>.</p>
+<p>Beginning with the conservation of mass and the constraint that the density within a moving volume of fluid remains constant, an equivalent condition required for <a href="https://en.wikipedia.org/wiki/Incompressible_flow">incompressible flow</a> is that the divergence of the flow velocity vanishes. As the loss of mass equals to the net outflow: (控制体内质量的减少=净流出量). So:</p>
+<div class="arithmatex">\[\frac{\partial \rho}{\partial t}+\nabla\cdot(\rho\boldsymbol{v})=0,\ from\ \frac{\partial\rho}{\partial t}=-\nabla\cdot\boldsymbol{J}=0\ and\ \boldsymbol{J}=\rho\boldsymbol{v}\]</div>
+<div class="arithmatex">\[-\frac{\partial m}{\partial t} = -\frac{\partial \rho}{\partial t}{\rm d}x{\rm d}y{\rm d}z=[\frac{\partial (\rho v_x)}{\partial x}+\frac{\partial (\rho v_y)}{\partial y}+\frac{\partial (\rho v_z)}{\partial z}]{\rm d}x{\rm d}y{\rm d}z\]</div>
+<div class="arithmatex">\[\frac{\partial \rho}{\partial t}+\boldsymbol{v}\cdot\nabla\rho+\rho\nabla\cdot\boldsymbol{v}=0\]</div>
+<p>The final form in Lagrangian method of density: (left is the change of density, right is the change of volume)</p>
+<div class="arithmatex">\[\frac{{\rm D}\rho}{{\rm D}t}=-\rho\nabla\cdot\boldsymbol{v}\]</div>
+<blockquote>
+<p>@bui2021</p>
+</blockquote>
+<p>The original form (<span class="arithmatex">\(\rho=\sum_j m_jW_{ij}\)</span>) of SPH mass equation operator is not suitable because the density will drop in the boundary of calculating domain, not like astrophysics in which there is an infinite domain.</p>
+<p>On the other hand, we use</p>
+<div class="arithmatex">\[\frac{{\rm D}\rho_i}{{\rm D}t}=\sum_jm_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}\]</div>
+<p>to solve homogenous problem and use</p>
+<div class="arithmatex">\[\frac{{\rm D}\rho_i}{{\rm D}t}=\rho_i\sum_jV_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla_iW_{ij}\]</div>
+<p>to solve non-homogenous problem.</p>
+<h3 id="conservation-of-momentum">Conservation of momentum</h3>
+<p><a href="https://en.wikipedia.org/wiki/Cauchy_momentum_equation">Cauchy momentum equation</a> is a vector partial differential equation that describes the non-relativistic momentum transport in any continuum. And in convective (or Lagrangian) form is written as:</p>
+<div class="arithmatex">\[\frac{{\rm D}\boldsymbol{v}}{{\rm D}t}=\frac{1}{\rho}\nabla\cdot\boldsymbol{\sigma}+\boldsymbol{f}\]</div>
+<blockquote>
+<p>@bui2021</p>
+</blockquote>
+<p>To exactly conserve momentum, we should use the symmetric form:</p>
+<div class="arithmatex">\[\frac{{\rm D}\boldsymbol{v}_i}{{\rm D}t}=\sum_jm_j(\frac{\boldsymbol{\sigma}_j}{\rho_j^2}+\frac{\boldsymbol{\sigma}_i}{\rho_i^2})\cdot\nabla_iW_{ij}+\boldsymbol{f}^{ext}_i\]</div>
+<h2 id="standard-soil-sph">Standard soil SPH</h2>
+<h3 id="discretization">Discretization</h3>
+<blockquote>
+<p>@chalk2020 Section 3.1</p>
+</blockquote>
+<p>The discrete governing equations of soil motion in the framework of standard SPH are therefore:</p>
+<div class="arithmatex">\[\frac{{\rm D} \rho_i}{{\rm D} t} = \rho_i\sum_j V_j(\boldsymbol{v}_i-\boldsymbol{v}_j)\cdot\nabla W_{ij}\]</div>
+<div class="arithmatex">\[\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j m_j(\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\frac{\boldsymbol{\sigma}_j}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i\]</div>
+<div class="arithmatex">\[\frac{{\rm D} \boldsymbol{f}^{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j V_j(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p}\]</div>
+<p>In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.</p>
+<p>The relationship of variables in Drucker-Prager model:</p>
+<div align="center">
+  <img width="800px" src="/img/DP_variables.png">
+</div>
+
+<h3 id="symp-euler-for-standard-drucker-prager-soil-sph">Symp-Euler for standard Drucker-Prager soil SPH</h3>
+<ul>
+<li>Known <span class="arithmatex">\(\Delta x\)</span>, <span class="arithmatex">\(\nu\)</span>, <span class="arithmatex">\(E\)</span>, <span class="arithmatex">\(D_{pq}^e\)</span>, <span class="arithmatex">\(\rho_0\)</span>, <span class="arithmatex">\(\boldsymbol{f}^{ext} = \vec{g}\)</span>, <span class="arithmatex">\(\psi=0\)</span>, and paras for D-P yield criteria <span class="arithmatex">\(c\)</span>, <span class="arithmatex">\(\varphi\)</span>, <span class="arithmatex">\(\alpha_{\varphi}\)</span> and <span class="arithmatex">\(k_c\)</span></li>
+<li>Given <span class="arithmatex">\(\boldsymbol{x}_t\)</span>, <span class="arithmatex">\(\boldsymbol{v}_t\)</span>, <span class="arithmatex">\(\boldsymbol{\sigma}_t\)</span> at each particle</li>
+<li>Update boundary</li>
+<li>Cal compact form <span class="arithmatex">\(\boldsymbol{f}^{\sigma}\)</span> and <span class="arithmatex">\(\boldsymbol{f}^{v}\)</span></li>
+<li>Cal stress terms <span class="arithmatex">\(\sigma^H_t\)</span>, <span class="arithmatex">\(s^{ij}_t\)</span></li>
+<li>Cal gradient of velocity tensor <span class="arithmatex">\(\nabla\cdot\boldsymbol{v}\)</span> or <span class="arithmatex">\(v_{i,j}\)</span></li>
+<li>Cal strain rate tensor <span class="arithmatex">\(\dot{\epsilon}_{ij}\)</span>, spin rate tensor <span class="arithmatex">\(\dot{\omega}_{ij}\)</span> and Jaumann stress rate vector <span class="arithmatex">\(\tilde{\sigma}_{ij}\)</span></li>
+<li>Cal the invariant terms <span class="arithmatex">\(I_1\)</span> and <span class="arithmatex">\(J_2\)</span></li>
+<li>Cal the consistency para <span class="arithmatex">\(\dot{\lambda}\)</span></li>
+<li>Cal the plastic potential vector <span class="arithmatex">\(\boldsymbol{g}^{\epsilon^p}\)</span></li>
+<li>Cal <span class="arithmatex">\(\dot{\rho}\)</span>, <span class="arithmatex">\(\dot{\boldsymbol{v}}\)</span>, <span class="arithmatex">\(\dot{\boldsymbol{f}^{\sigma}}\)</span></li>
+<li>Update <span class="arithmatex">\(\boldsymbol{\sigma}\)</span> and do adaptation</li>
+<li>Update <span class="arithmatex">\(\rho\)</span>, <span class="arithmatex">\(\boldsymbol{v}\)</span> and <span class="arithmatex">\(\boldsymbol{x}\)</span></li>
+</ul>
+<h3 id="rk4-for-standard-drucker-prager-soil-sph">RK4 for standard Drucker-Prager soil SPH</h3>
+<blockquote>
+<p>@Chalk2020, Appendix B.</p>
+</blockquote>
+<p>The considered governing SPH equations are summarised as:</p>
+<div class="arithmatex">\[\frac{{\rm D} \boldsymbol{v}_i}{{\rm D} t} = \sum_j V_j(\frac{\boldsymbol{\sigma}_i}{\rho_i^2}+\frac{\boldsymbol{\sigma}_j}{\rho_j^2})\cdot\nabla W_{ij}+\boldsymbol{f}^{ext}_i = F_1(\boldsymbol{\sigma}_i)\]</div>
+<div class="arithmatex">\[\frac{{\rm D} \boldsymbol{f}^{\sigma}_i}{{\rm D} t} = \boldsymbol{\tilde{\sigma}}_i+\sum_j V_j(\boldsymbol{f}_j^v-\boldsymbol{f}_i^v)\cdot\nabla W_{ij}-\boldsymbol{g}_i^{\epsilon^p} = F_2(\boldsymbol{v}_i,\boldsymbol{\sigma}_i)\]</div>
+<p>Using the fourth order Runge-Kutta (RK4) method:</p>
+<div class="arithmatex">\[\boldsymbol{v}_i^{t+\Delta t} = \boldsymbol{v}_i^t + \frac{\Delta t}{6}(F_1(\boldsymbol{\sigma}^1_i)+2F_1(\boldsymbol{\sigma}^2_i)+2F_1(\boldsymbol{\sigma}^3_i)+F_1(\boldsymbol{\sigma}^4_i))\]</div>
+<div class="arithmatex">\[\boldsymbol{f}^{\sigma, t+\Delta t}_i = \boldsymbol{f}^{\sigma, t}_i + \frac{\Delta t}{6}(F_2(\boldsymbol{v}^1_i,\boldsymbol{\sigma}^1_i)+2F_2(\boldsymbol{v}^2_i,\boldsymbol{\sigma}^2_i)+2F_2(\boldsymbol{v}^3_i,\boldsymbol{\sigma}^3_i)+F_2(\boldsymbol{v}^4_i,\boldsymbol{\sigma}^4_i))\]</div>
+<p>where:</p>
+<div class="arithmatex">\[\begin{aligned}
+    \begin{array}{ll}
+      \boldsymbol{v}^1_i = \boldsymbol{v}^t_i &amp;\boldsymbol{f}^{\sigma, 1}_i = \boldsymbol{f}^{\sigma, t}_i\\
+      \boldsymbol{v}^2_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &amp;\boldsymbol{f}^{\sigma, 2}_i = \boldsymbol{f}^{\sigma, t}_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^1_i, \boldsymbol{\sigma}^1_i))\\
+      \boldsymbol{v}^3_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &amp;\boldsymbol{f}^{\sigma, 3}_i = \boldsymbol{f}^{\sigma, t}_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^2_i, \boldsymbol{\sigma}^2_i))\\
+      \boldsymbol{v}^4_i = \boldsymbol{v}^t_i+\Delta t(F_1(\boldsymbol{\sigma}^3_i)) &amp;\boldsymbol{f}^{\sigma, 4}_i = \boldsymbol{f}^{\sigma, t}_i+\Delta t(F_2(\boldsymbol{v}^3_i, \boldsymbol{\sigma}^3_i))
+    \end{array}
+\end{aligned}\]</div>
+<p>In standard SPH, these eight eqs are spatially resolved at each calculation step by calculating <span class="arithmatex">\(\boldsymbol{v}_i^{t+\Delta t}\)</span> and <span class="arithmatex">\(\boldsymbol{\sigma}_i^{t+\Delta t}\)</span> at each particle.</p>
+<ul>
+<li>Key point and aim: update the position, velocity and stress.</li>
+<li>Known <span class="arithmatex">\(\Delta x\)</span>, <span class="arithmatex">\(\nu\)</span>, <span class="arithmatex">\(E\)</span>, <span class="arithmatex">\(D_{pq}^e\)</span>, <span class="arithmatex">\(\rho_0\)</span>, <span class="arithmatex">\(\boldsymbol{f}^{ext} = \vec{g}\)</span>, and paras for D-P yield criteria <span class="arithmatex">\(c\)</span>, <span class="arithmatex">\(\varphi\)</span>, <span class="arithmatex">\(\alpha_{\varphi}\)</span> and <span class="arithmatex">\(k_c\)</span>.</li>
+<li>Given <span class="arithmatex">\(\boldsymbol{x}_i^1\)</span>, <span class="arithmatex">\(\boldsymbol{v}_i^1\)</span>, <span class="arithmatex">\(\boldsymbol{\sigma}_i^1\)</span>.</li>
+<li>Step 1: calculate terms <span class="arithmatex">\(\boldsymbol{f}^{\sigma}\)</span> and <span class="arithmatex">\(\boldsymbol{f}^v\)</span>.</li>
+<li>Step 2: update boundary conditions and adapt the stress.</li>
+<li>Step 3: calculate the gradient terms <span class="arithmatex">\((\nabla\cdot\boldsymbol{f}^{\sigma})_i\)</span> and <span class="arithmatex">\((\nabla\cdot\boldsymbol{f}^v)_i\)</span>.</li>
+<li>Step 4: calculate the additional terms for the momentum equation, mainly the body force <span class="arithmatex">\(\boldsymbol{f}^{ext}_i\)</span> in which gravity is the only one considered. Also if included, the artificial viscosity is calculated here.</li>
+<li>Step 5: calculate the additional terms for the constitutive equation, mainly the plastic strain function <span class="arithmatex">\(\boldsymbol{g}^{\epsilon^p}_i\)</span>.<ul>
+<li>When calculating each particle, the stress state is checked to see if the yield criterion has been met. If the stress state lies within the elastic range (<span class="arithmatex">\(f&lt;0\)</span> or <span class="arithmatex">\(f=0,\ {\rm d}f&gt;0\)</span>), then <span class="arithmatex">\(\boldsymbol{g}^{\epsilon^p}_i = 0\)</span>. Otherwise (<span class="arithmatex">\(f=0,\ {\rm d}f=0\)</span>), the plastic term is calculated and <span class="arithmatex">\(\boldsymbol{g}^{\epsilon^p}_i\)</span> is non-zero.</li>
+<li>The plastic term is a function of stress <span class="arithmatex">\(\boldsymbol{\sigma}\)</span> and velocity gradients <span class="arithmatex">\(\nabla \boldsymbol{v}\)</span>.</li>
+<li>For large deformation problems, the Jaumann stress rate <span class="arithmatex">\(\tilde{\boldsymbol{\sigma}}_i\)</span> is also updated. This involves gradients of the velocity <span class="arithmatex">\(\nabla \boldsymbol{v}\)</span>.</li>
+</ul>
+</li>
+<li>Step 6: compute <span class="arithmatex">\(F_1\)</span> and <span class="arithmatex">\(F_2\)</span> on particles.</li>
+<li>Step 7: calculate <span class="arithmatex">\(\boldsymbol{v}_i^2\)</span> and <span class="arithmatex">\(\boldsymbol{\sigma}_i^2\)</span>.</li>
+<li>Step 8: if necessary, the boundary conditions and stress state are again updated.</li>
+<li>Step 9: repeat Steps 1-8 to obtain<span class="arithmatex">\(\boldsymbol{u}_i^3\)</span>, <span class="arithmatex">\(\boldsymbol{\sigma}_i^3\)</span>, <span class="arithmatex">\(\boldsymbol{v}_i^4\)</span> and <span class="arithmatex">\(\boldsymbol{\sigma}_i^4\)</span>. Then update the velocity <span class="arithmatex">\(\boldsymbol{v}_i^{t+\Delta t}\)</span> and the stress <span class="arithmatex">\(\boldsymbol{\sigma}_i^{t+\Delta t}\)</span> at the subsequent time step, also the positions <span class="arithmatex">\(\boldsymbol{x}_i^{t+\Delta t}\)</span> of the particles.</li>
+</ul>
+<p>As for the calculation of plastic potential function item:</p>
+<div align="center">
+  <img width="800px" src="/img/flowchart_item_strain_DP.svg">
+</div>
+
+<p>As for the implementation of RK4:</p>
+<div align="center">
+  <img width="300px" src="/img/flowchart_RK4_soil.svg">
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../fluid/" class="btn btn-neutral float-left" title="SPH for fluid"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../taichi/" class="btn btn-neutral float-right" title="Taichi Lang">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../fluid/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../taichi/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../javascripts/mathjax.js" defer></script>
+      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

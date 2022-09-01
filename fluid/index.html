@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>SPH for fluid - tiSPHi</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SPH for fluid";
+        var mkdocs_page_input_path = "fluid.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> tiSPHi
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../basic/">Basic knowledge</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../foundation/">SPH foundations</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">SPH for fluid</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#navier-stokes-equation">Navier-Stokes equation</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#forces-for-incompressible-fluids">Forces for incompressible fluids</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#n-s-equations">N-S Equations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#temporal-discretization">Temporal discretization</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#full-time-integration">Full time integration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#the-weakly-compressible-assumption">The weakly compressible assumption</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#fluid-dynamics-with-particles">Fluid dynamics with particles</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#rk4-for-wcsph">RK4 for WCSPH</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../soil/">SPH for soil</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../taichi/">Taichi Lang</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../codeframe/">Code frame</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../about/">About</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">tiSPHi</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>SPH for fluid</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="sph-for-fluid">SPH for fluid</h1>
+<h2 id="navier-stokes-equation">Navier-Stokes equation</h2>
+<h3 id="forces-for-incompressible-fluids">Forces for incompressible fluids</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p8-13</p>
+</blockquote>
+<div class="arithmatex">\[f = ma = {\color{Green} f_{ext}} + {\color{RoyalBlue} f_{pres}} + {\color{Orange} f_{visc}}\]</div>
+<h3 id="n-s-equations">N-S Equations</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p16-28</p>
+</blockquote>
+<p>The momentum equation</p>
+<div class="arithmatex">\[\rho\frac{{\rm D}v}{{\rm D}t}={\color{Green} \rho g} {\color{RoyalBlue} -\nabla p} + {\color{Orange} \mu\nabla^2v}\]</div>
+<p>The mass conserving condition</p>
+<div class="arithmatex">\[{\color{RoyalBlue} \nabla\cdot v=0} \]</div>
+<p><span class="arithmatex">\(\rho\frac{{\rm D}v}{{\rm D}t}\)</span>: This is simply "mass" times "acceleration" divided by "volume".</p>
+<p><span class="arithmatex">\({\color{Green} \rho g}\)</span>: External force term, gravitational force divided by "volume".</p>
+<p><span class="arithmatex">\({\color{Orange} \mu\nabla^2v}\)</span>: Viscosity term, how fluids want to move together. 表示扩散有多快，液体尽可能地往相同的方向运动。<span class="arithmatex">\(\mu\)</span>: some fluids are more viscous than others.</p>
+<p><span class="arithmatex">\({\color{RoyalBlue} -\nabla p}\)</span>: Pressure term, fluids do not want to change volume. <span class="arithmatex">\(p=k(\rho-\rho_0)\)</span> but <span class="arithmatex">\(\rho\)</span> is unknown.</p>
+<p><span class="arithmatex">\({\color{RoyalBlue} \nabla\cdot v=0 \Leftrightarrow \frac{{\rm D} \rho}{{\rm D} t} = \rho(\nabla\cdot v) = 0}\)</span>: Divergence free condition. Outbound flow equals to inbound flow. The mass conserving condition. 散度归零条件、不可压缩特性，也是质量守恒条件。</p>
+<h3 id="temporal-discretization">Temporal discretization</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p32</p>
+</blockquote>
+<p>Integrate the incompressible N-S equation in steps (also reffered as "Operator splitting" or "Advection-Projection" in different contexts):</p>
+<ul>
+<li>Step 1: input <span class="arithmatex">\(v^t\)</span>, output <span class="arithmatex">\(v^{t+0.5\Delta t}\)</span>: <span class="arithmatex">\(\rho\frac{{\rm D} v}{{\rm D} t}={\color{Green} \rho g} + {\color{Orange} \mu\nabla^2v}\)</span></li>
+<li>Step 2: input <span class="arithmatex">\(v^{t+0.5\Delta t}\)</span>, output <span class="arithmatex">\(v^{t+\Delta t}\)</span>: <span class="arithmatex">\(\rho\frac{{\rm D} v}{{\rm D} t}={\color{RoyalBlue} -\nabla p}\ and\ {\color{RoyalBlue} \nabla\cdot v=0}\)</span> (构成了<span class="arithmatex">\(\rho\)</span>和<span class="arithmatex">\(v\)</span>的二元非线性方程组)</li>
+</ul>
+<h2 id="full-time-integration">Full time integration</h2>
+<blockquote>
+<p>@taichiCourse01-10 PPT p33</p>
+</blockquote>
+<div class="arithmatex">\[\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2v},\ \nu=\frac{\mu}{\rho_0}\]</div>
+<ul>
+<li>Given <span class="arithmatex">\(x^t\)</span>, <span class="arithmatex">\(u^t\)</span>:</li>
+<li>Step 1: Advection / external and viscosity force integration<ul>
+<li>Solve: <span class="arithmatex">\({\color{Purple} {\rm d}v} = {\color{Green} g} + {\color{Orange} \nu\nabla^2v_n}\)</span></li>
+<li>Update: <span class="arithmatex">\(v^{t+0.5\Delta t} = v^t+0.5 \Delta t{\color{Purple} {\rm d}v}\)</span></li>
+</ul>
+</li>
+<li>Step 2: Projection / pressure solver<ul>
+<li>Solve: <span class="arithmatex">\({\color{red} {\rm d}v} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}\)</span> and <span class="arithmatex">\({\color{RoyalBlue} \frac{{\rm D} \rho}{{\rm D} t} = \nabla\cdot(v_{n+0.5}+{\color{red} {\rm d}v})=0}\)</span></li>
+<li>Update: <span class="arithmatex">\(v^{t+\Delta t} = v^{t+0.5\Delta t} + 0.5 \Delta t {\color{red} {\rm d}v}\)</span></li>
+</ul>
+</li>
+<li>Step 3: Update position<ul>
+<li>Update: <span class="arithmatex">\(x^{t+\Delta t} = x^t+\Delta tv^{t+\Delta t}\)</span></li>
+</ul>
+</li>
+<li>Return <span class="arithmatex">\(x^{t+\Delta t}\)</span>, <span class="arithmatex">\(v^{t+\Delta t}\)</span></li>
+</ul>
+<blockquote>
+<p><strong>QUESTIONS</strong></p>
+<ol>
+<li>In step 1 and 2, maybe the <span class="arithmatex">\(\Delta t\)</span> should also multiple 0.5? <strong>ANSWER</strong>: I think yes!</li>
+</ol>
+</blockquote>
+<h2 id="the-weakly-compressible-assumption">The weakly compressible assumption</h2>
+<blockquote>
+<p>@taichiCourse01-10 PPT p34-35</p>
+</blockquote>
+<p>Storing the density <span class="arithmatex">\(\rho\)</span> as an individual variable that advect with the velocity field. Then the <span class="arithmatex">\(p\)</span> can be assumed as a variable related by time and the mass conserving equation is killed.</p>
+<ul>
+<li>Change in Step 2:<ul>
+<li>Solve: <span class="arithmatex">\({\color{red} {\rm d}v} = {\color{RoyalBlue} -\frac{1}{\rho}\nabla(k(\rho-\rho_0))}\)</span></li>
+<li>Update: <span class="arithmatex">\(v^{t+\Delta t} = v^{t+0.5\Delta t} + \Delta t {\color{red} {\rm d}v}\)</span></li>
+</ul>
+</li>
+</ul>
+<p>And step 2 and 1 can be merged. This is nothing but Symplectic Euler integration.</p>
+<h3 id="fluid-dynamics-with-particles">Fluid dynamics with particles</h3>
+<blockquote>
+<p>@taichiCourse01-10 PPT p43 and 75-78</p>
+</blockquote>
+<p>Continuous view:</p>
+<div class="arithmatex">\[\frac{{\rm D}v}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p} + {\color{Orange} \nu\nabla^2v}\]</div>
+<p>Discrete view (using particle):</p>
+<div class="arithmatex">\[\frac{{\rm d}v_i}{{\rm d}t}=a_i={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho}\nabla p(x_i)} + {\color{Orange} \nu\nabla^2v(x_i)}\]</div>
+<p>Then the problem comes to: how to evaluate a funcion of <span class="arithmatex">\({\color{RoyalBlue} \rho(x_i)}\)</span>, <span class="arithmatex">\({\color{RoyalBlue} \nabla p(x_i)}\)</span>, <span class="arithmatex">\({\color{Orange} \nabla^2v(x_i)}\)</span></p>
+<p>In WCSPH:</p>
+<ul>
+<li>Find a particle of interest (<span class="arithmatex">\(i\)</span>) and its nerghbours (<span class="arithmatex">\(j\)</span>) with its support radius <span class="arithmatex">\(h\)</span>.</li>
+<li>
+<p>Compute the acceleration for particle <span class="arithmatex">\(i\)</span>:</p>
+<ul>
+<li>
+<p>for i in particles:</p>
+<ul>
+<li>Step 1: Evaluate density</li>
+</ul>
+<div class="arithmatex">\[\rho_i = \sum_j \frac{m_j}{\rho_j}\rho_jW(r_i-r_j, h) = \sum_j m_jW_{ij}\]</div>
+<ul>
+<li>Step 2: Evaluate viscosity (<strong>anti-sym</strong>)</li>
+</ul>
+<div class="arithmatex">\[\nu\nabla^2v_i = \nu\sum_j m_j \frac{v_j-v_i}{\rho_j}\nabla^2W_{ij}\]</div>
+<p>in taichiWCSPH code it's an approximation from @monaghan2005 :</p>
+<div class="arithmatex">\[\nu\nabla^2v_i = 2\nu(dim+2)\sum_j \frac{m_j}{\rho_j}(\frac{v_{ij}\cdot r_{ij}}{\|r_{ij}\|^2+0.01h^2})\nabla W_{ij}\]</div>
+</li>
+<li>
+<p>Evaluate pressure gradient (<strong>sym</strong>), where <span class="arithmatex">\(p = k(\rho-\rho_0)\)</span></p>
+<div class="arithmatex">\[-\frac{1}{\rho_i}\nabla p_i = -\frac{\rho_i}{\rho_i}\sum_j m_j(\frac{p_j}{\rho_j^2}+\frac{p_i}{\rho_i^2})\nabla W_{ij} = -\sum_j m_j(\frac{p_j}{\rho_j^2}+\frac{p_i}{\rho_i^2})\nabla W_{ij}\]</div>
+<p>in taichiWCSPH code, <span class="arithmatex">\(p = k_1((\rho/\rho_0)^{k_2}-1)\)</span>, where <span class="arithmatex">\(k_1\)</span> is a para about stiffness and <span class="arithmatex">\(k_2\)</span> is just an exponent.</p>
+</li>
+<li>
+<p>Calculate the acceleration</p>
+</li>
+<li>
+<p>Then do time integration using Symplectic Euler method:</p>
+<div class="arithmatex">\[v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*\]</div>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="rk4-for-wcsph">RK4 for WCSPH</h3>
+<blockquote>
+<p>@By myself</p>
+</blockquote>
+<p>The momentum equation of WCSPH is as:</p>
+<div class="arithmatex">\[\frac{{\rm D}v_i}{{\rm D}t}={\color{Green} g} {\color{RoyalBlue} -\frac{1}{\rho_i}\nabla p_i} + {\color{Orange} \nu\nabla^2v_i} = F(v_i)\]</div>
+<p>and:</p>
+<div class="arithmatex">\[v_i^{t+\Delta t} = v_i^t+\frac{\Delta t}{6}(F(v_i^1)+2F(v_i^2)+2F(v_i^3)+F(v_i^4))\]</div>
+<p>where:</p>
+<div class="arithmatex">\[\begin{aligned}
+    \begin{array}{ll}
+      v^1_i = v^t_i\\
+      v^2_i = v^t_i+\frac{\Delta t}{2}(F(v^1_i))\\
+      v^3_i = v^t_i+\frac{\Delta t}{2}(F(v^2_i))\\
+      v^4_i = v^t_i+\Delta t(F(v^3_i))
+    \end{array}
+\end{aligned}\]</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../foundation/" class="btn btn-neutral float-left" title="SPH foundations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../soil/" class="btn btn-neutral float-right" title="SPH for soil">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../foundation/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../soil/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../javascripts/mathjax.js" defer></script>
+      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
