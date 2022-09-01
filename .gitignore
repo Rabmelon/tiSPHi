@@ -4,6 +4,17 @@
 # Frames folders
 sim_*/*
 
+# for changing the icon?
+desktop.ini
+
+# video
+*.mp4
+*.mkv
+*.avi
+
+# gitbak
+*.gitbak
+
 # AutoCAD temp file
 *.dwl
 *.dwl2
@@ -13,6 +24,7 @@ sim_*/*
 temp/
 screenshots/
 results/
+site/
 
 # matlab backup file
 *.asv
@@ -159,14 +171,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-# for changing the icon?
-desktop.ini
-
-# video
-*.mp4
-*.mkv
-*.avi
-
-# gitbak
-*.gitbak

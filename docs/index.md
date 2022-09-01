@@ -12,6 +12,15 @@ For full introduction please visit [tiSPHi github](https://github.com/Rabmelon/t
 
 3.6 / 3.7 / 3.8 / 3.9 / 3.10 (64-bit)
 
+### Python requirements
+
+```
+# FOR TAICHI PROGRAMS
+taichi
+numpy
+vulkan
+```
+
 ## Project layout
 
     mkdocs.yml    # The configuration file.
