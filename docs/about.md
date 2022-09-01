@@ -1,7 +1,7 @@
 # About
 
 <div align="center">
-  <img width="200px" src="/img/tiSPHi_logo_squre.png">
+  <img width="200px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/tiSPHi_logo_squre.png">
 </div>
 
 @Zhibin Lei, M. Sc.
@@ -22,5 +22,5 @@ Website:   [https://www.gut.rwth-aachen.de](https://www.gut.rwth-aachen.de)
 
 
 <div align="center">
-  <img width="300px" src="/img/rwth_gut_bild_blau_rgb.png">
+  <img width="300px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/rwth_gut_bild_rgb.png">
 </div>
