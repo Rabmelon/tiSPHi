@@ -287,7 +287,7 @@ Like any other numerical methods, the treatment of boundary condditions in SPH i
 3. **Free-surface** condition.
 
 <div align="center">
-  <img width="500px" src="/img/Boundary_conditions_basic.png">
+  <img width="500px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Boundary_conditions_basic.png">
 </div>
 
 
@@ -329,7 +329,7 @@ The particles that comprise the free surface should satisfy a stress-free condit
 The dummy particle (or ghost particle) method is used to represent the wall boundary. For dummy particles outside the wall boundary, they are spaced apart by $\Delta x$. For repulsive particles at the wall boundary, are $\Delta x/2$.
 
 <div align="center">
-  <img width="300px" src="/img/Dummy_particles.png">
+  <img width="300px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Dummy_particles.png">
 </div>
 
 For an interior particle A (circle) that contains a dummy particle B (square) within its neighbourhood, the normal distances $d_A$ and $d_B$ to the wall are calculated. An artificial velocity $\boldsymbol{v}_B$ is then assigned to the dummy particle:
@@ -359,7 +359,7 @@ $$\sigma_i^{a, \alpha\beta}=\begin{cases}
 where $\boldsymbol{v}^{a,n}$ and $\boldsymbol{v}^{a,t}$ are the normal and shear velocity components of particle $a$ with respect to the solid boundary surface. To calculate the normal vector for each particle on the open boundary, refer to *@Zhao2019 Sec 4.1*.
 
 <div align="center">
-  <img width="160px" src="/img/Boundary_normal.png">
+  <img width="160px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Boundary_normal.png">
 </div>
 
 ### A "soft" repulsive force

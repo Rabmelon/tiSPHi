@@ -1,7 +1,7 @@
 # Welcome to tiSPHi
 
 <div align="center">
-  <img width="200px" src="/img/tiSPHi_logo_squre.png">
+  <img width="200px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/tiSPHi_logo_squre.png">
 </div>
 
 For full introduction please visit [tiSPHi github](https://github.com/Rabmelon/tiSPHi).
@@ -10,7 +10,7 @@ For full introduction please visit [tiSPHi github](https://github.com/Rabmelon/t
 
 ### Python
 
-3.6 / 3.7 / 3.8 / 3.9 / 3.10 (64-bit)
+3.7 / 3.8 / 3.9 / 3.10 (64-bit)
 
 ### Python requirements
 

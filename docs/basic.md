@@ -99,7 +99,7 @@ $$\tau=G\theta$$
 $$\tau=\mu\dot\theta$$
 
 <div align="center">
-  <img width="400px" src="/img/Solid_Fluid.png">
+  <img width="400px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Solid_Fluid.png">
 </div>
 
 ## Strain and strain-rate tensor

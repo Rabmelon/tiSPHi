@@ -145,7 +145,7 @@ $$f = \sqrt{3J_2}-f_c$$
 The Von Mises and D-P yield criteria are illustrated in two dimensions:
 
 <div align="center">
-  <img width="400px" src="/img/Yield_criterias.png">
+  <img width="400px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Yield_criterias.png">
 </div>
 
 The increment of the yield function after plastic loading or unloading:
@@ -183,7 +183,7 @@ Consider both a **Von Mises** and a **Drucker-Prager** yield criterion to distin
 In the elastoplastic model, the stress state is not allowed to exceed the yield surface and we should apply a stress adaptation to particles, after every calculation step. The stress must be checked at every step and adapted if it does not lie within a valid range.
 
 <div align="center">
-  <img width="800px" src="/img/Adaptation_stress_states.png">
+  <img width="800px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Adaptation_stress_states.png">
 </div>
 
 First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as **tension cracking**, in the movement of the stress state at point E to point F. Tension cracking occurss when: $-\alpha_{\varphi}I_1+k_c<0$ or $f\ge\sqrt{J_2}$. And in such circumstances, the hydrostatic stress $I_1$ must be shifted back to the apex of the yield surface by adapting the normal stress components:
@@ -419,7 +419,7 @@ In the current work, each SPH particle is assigned the same, constant density fo
 The relationship of variables in Drucker-Prager model:
 
 <div align="center">
-  <img width="800px" src="/img/DP_variables.png">
+  <img width="800px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/DP_variables.png">
 </div>
 
 ### Symp-Euler for standard Drucker-Prager soil SPH
@@ -485,11 +485,11 @@ In standard SPH, these eight eqs are spatially resolved at each calculation step
 
 As for the calculation of plastic potential function item:
 <div align="center">
-  <img width="800px" src="/img/flowchart_item_strain_DP.svg">
+  <img width="800px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/flowchart_item_strain_DP.svg">
 </div>
 
 As for the implementation of RK4:
 <div align="center">
-  <img width="300px" src="/img/flowchart_RK4_soil.svg">
+  <img width="300px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/flowchart_RK4_soil.svg">
 </div>
 
