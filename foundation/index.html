@@ -398,7 +398,7 @@
 <li><strong>Free-surface</strong> condition.</li>
 </ol>
 <div align="center">
-  <img width="500px" src="/img/Boundary_conditions_basic.png">
+  <img width="500px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Boundary_conditions_basic.png">
 </div>
 
 <h3 id="simplest-treatments-for-water">Simplest treatments for water</h3>
@@ -446,7 +446,7 @@
 <p>虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。</p>
 <p>The dummy particle (or ghost particle) method is used to represent the wall boundary. For dummy particles outside the wall boundary, they are spaced apart by <span class="arithmatex">\(\Delta x\)</span>. For repulsive particles at the wall boundary, are <span class="arithmatex">\(\Delta x/2\)</span>.</p>
 <div align="center">
-  <img width="300px" src="/img/Dummy_particles.png">
+  <img width="300px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Dummy_particles.png">
 </div>
 
 <p>For an interior particle A (circle) that contains a dummy particle B (square) within its neighbourhood, the normal distances <span class="arithmatex">\(d_A\)</span> and <span class="arithmatex">\(d_B\)</span> to the wall are calculated. An artificial velocity <span class="arithmatex">\(\boldsymbol{v}_B\)</span> is then assigned to the dummy particle:</p>
@@ -464,7 +464,7 @@
 \end{cases}\]</div>
 <p>where <span class="arithmatex">\(\boldsymbol{v}^{a,n}\)</span> and <span class="arithmatex">\(\boldsymbol{v}^{a,t}\)</span> are the normal and shear velocity components of particle <span class="arithmatex">\(a\)</span> with respect to the solid boundary surface. To calculate the normal vector for each particle on the open boundary, refer to <em>@Zhao2019 Sec 4.1</em>.</p>
 <div align="center">
-  <img width="160px" src="/img/Boundary_normal.png">
+  <img width="160px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Boundary_normal.png">
 </div>
 
 <h3 id="a-soft-repulsive-force">A "soft" repulsive force</h3>

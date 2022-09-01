@@ -221,7 +221,7 @@
 <div class="arithmatex">\[f = \sqrt{3J_2}-f_c\]</div>
 <p>The Von Mises and D-P yield criteria are illustrated in two dimensions:</p>
 <div align="center">
-  <img width="400px" src="/img/Yield_criterias.png">
+  <img width="400px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Yield_criterias.png">
 </div>
 
 <p>The increment of the yield function after plastic loading or unloading:</p>
@@ -248,7 +248,7 @@
 <p>Consider both a <strong>Von Mises</strong> and a <strong>Drucker-Prager</strong> yield criterion to distinguish between elastic and plastic material behaviour.</p>
 <p>In the elastoplastic model, the stress state is not allowed to exceed the yield surface and we should apply a stress adaptation to particles, after every calculation step. The stress must be checked at every step and adapted if it does not lie within a valid range.</p>
 <div align="center">
-  <img width="800px" src="/img/Adaptation_stress_states.png">
+  <img width="800px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Adaptation_stress_states.png">
 </div>
 
 <p>First, the stress state must be adapted if it moves outside the apex of the yield surface, which is konwn as <strong>tension cracking</strong>, in the movement of the stress state at point E to point F. Tension cracking occurss when: <span class="arithmatex">\(-\alpha_{\varphi}I_1+k_c&lt;0\)</span> or <span class="arithmatex">\(f\ge\sqrt{J_2}\)</span>. And in such circumstances, the hydrostatic stress <span class="arithmatex">\(I_1\)</span> must be shifted back to the apex of the yield surface by adapting the normal stress components:</p>
@@ -405,7 +405,7 @@
 <p>In the current work, each SPH particle is assigned the same, constant density for the duration of the simulation. We treat the soil as incompressible and consequently do not update density through this way.</p>
 <p>The relationship of variables in Drucker-Prager model:</p>
 <div align="center">
-  <img width="800px" src="/img/DP_variables.png">
+  <img width="800px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/DP_variables.png">
 </div>
 
 <h3 id="symp-euler-for-standard-drucker-prager-soil-sph">Symp-Euler for standard Drucker-Prager soil SPH</h3>
@@ -465,12 +465,12 @@
 </ul>
 <p>As for the calculation of plastic potential function item:</p>
 <div align="center">
-  <img width="800px" src="/img/flowchart_item_strain_DP.svg">
+  <img width="800px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/flowchart_item_strain_DP.svg">
 </div>
 
 <p>As for the implementation of RK4:</p>
 <div align="center">
-  <img width="300px" src="/img/flowchart_RK4_soil.svg">
+  <img width="300px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/flowchart_RK4_soil.svg">
 </div>
               
             </div>
