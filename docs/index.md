@@ -1,7 +1,7 @@
 # Welcome to tiSPHi
 
 <div align="center">
-  <img width="200px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/tiSPHi_logo_squre.png">
+  <img width="200px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/tiSPHi_logo.png">
 </div>
 
 For full introduction please visit [tiSPHi github](https://github.com/Rabmelon/tiSPHi).
