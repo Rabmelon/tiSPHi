@@ -71,7 +71,7 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#the-wendland-c2-kernel">The Wendland C2 kernel</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#cspm-gradient-normalisation">CSPM gradient normalisation</a>
+    <li class="toctree-l3"><a class="reference internal" href="#cspm-normalisation">CSPM normalisation</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#shepard-correction">Shepard correction</a>
     </li>
@@ -329,7 +329,7 @@
 <div class="arithmatex">\[\nabla_i W_{ij}^{\alpha}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i^{\alpha}-x_j^{\alpha}}{\Vert\boldsymbol{r}\Vert}\]</div>
 <p>The second-order derivation:</p>
 <p>???</p>
-<h3 id="cspm-gradient-normalisation">CSPM gradient normalisation</h3>
+<h3 id="cspm-normalisation">CSPM normalisation</h3>
 <blockquote>
 <p>@Bui2021, @Chalk2020, @Chen1999</p>
 </blockquote>
@@ -393,7 +393,7 @@
 </blockquote>
 <p>Like any other numerical methods, the treatment of boundary condditions in SPH is required to facilitate its applications to a wide range of engineering problems.</p>
 <ol>
-<li>Solid boundary conditions such as <strong>fully-fixed</strong>, <strong>free-slip</strong> (or <strong>free-roller</strong>) or <strong>symmetric</strong>.</li>
+<li>Solid boundary conditions such as <strong>fully-fixed</strong>, <strong>free-roller</strong> (or <strong>no-slip</strong> and <strong>free-slip</strong>) or <strong>symmetric</strong>.</li>
 <li>Flexible <strong>confining stress</strong> boundary conditions such as prescribed pressure of confining stress in triaxial tests.</li>
 <li><strong>Free-surface</strong> condition.</li>
 </ol>
