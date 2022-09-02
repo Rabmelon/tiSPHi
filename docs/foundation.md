@@ -190,7 +190,7 @@ The second-order derivation:
 
 ???
 
-### CSPM gradient normalisation
+### CSPM normalisation
 
 > @Bui2021, @Chalk2020, @Chen1999
 
@@ -282,7 +282,7 @@ And this is the first order correction that reproduces exactly the linear variat
 
 Like any other numerical methods, the treatment of boundary condditions in SPH is required to facilitate its applications to a wide range of engineering problems.
 
-1. Solid boundary conditions such as **fully-fixed**, **free-slip** (or **free-roller**) or **symmetric**.
+1. Solid boundary conditions such as **fully-fixed**, **free-roller** (or **no-slip** and **free-slip**) or **symmetric**.
 2. Flexible **confining stress** boundary conditions such as prescribed pressure of confining stress in triaxial tests.
 3. **Free-surface** condition.
 

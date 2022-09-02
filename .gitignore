@@ -4,8 +4,9 @@
 # Frames folders
 sim_*/*
 
-# for changing the icon?
+# ini?
 desktop.ini
+imgui.ini
 
 # video
 *.mp4
