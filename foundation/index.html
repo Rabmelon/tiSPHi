@@ -524,7 +524,7 @@ Consider a general ordinary differential equation for a variable <span class="ar
 <p>where <span class="arithmatex">\(f\)</span> is a function of <span class="arithmatex">\(\phi\)</span> and time <span class="arithmatex">\(t\)</span>. The RK4 method is employed to increment <span class="arithmatex">\(\phi\)</span> by a time step <span class="arithmatex">\(\Delta t\)</span> to obtain the solution at time <span class="arithmatex">\(t = t+\Delta t\)</span>:</p>
 <div class="arithmatex">\[\phi^{t+\Delta t}=\phi^t+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4)\]</div>
 <div class="arithmatex">\[k_1=f(\phi_1),\ k_2=f(\phi_2),\ k_3=f(\phi_3),\ k_4=f(\phi_4)\]</div>
-<div class="arithmatex">\[\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\Delta tk_3\]</div>
+<div class="arithmatex">\[\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\frac{\Delta t}{2}k_3\]</div>
 <h3 id="xsph">XSPH</h3>
 <p>In addition to the velocity and stress, the position vectors of each particle <span class="arithmatex">\(\boldsymbol{x}_i\)</span> are updated via the XSPH method at the end of each time step as:</p>
 <div class="arithmatex">\[\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij}\]</div>
