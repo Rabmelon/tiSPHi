@@ -1,8 +1,12 @@
 # tiSPHi: from 0.1 to 1
 
 <div align="center">
-  <img width="200px" src="./docs/img/tiSPHi_logo.jpg">
+  <img width="200px" src="./docs/img/tiSPHi_logo_squre.png">
 </div>
+
+## News
+
+**NEW**! Please check my new [docs](https://rabmelon.github.io/tiSPHi/) about the basics of SPH. (Updating...)
 
 ## Background
 
@@ -33,11 +37,10 @@ Reseach topic: SPH based simulation of ground behaviour in geotechnics.
 
 ### Run
 
-With changing paras in `draft0.py`, you can simulate the sand dambreak.
+With changing paras in `draft0.py`, you can simulate a simple sand column collapse.
 * `world`: physical world boundary, m.
 * `particle_radius`: radius of discretisation.
 * `cube_size`: Width and height of sand column.
-* `flag_pause`: The pause or run status while the simulation begins.
 
 ### Hot key
 
@@ -51,6 +54,10 @@ With changing paras in `draft0.py`, you can simulate the sand dambreak.
 ### Water
 
 ### Sand
+
+Result of a simple sand column collapse (colored by equivalent plastic strain):
+
+![20220825_cc0_DP_LF_WL_epe_av_α=β=1](./docs/img/20220825_cc0_DP_LF_WL_epe_av_α=β=1.png)
 
 ## Project structure
 

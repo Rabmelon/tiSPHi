@@ -134,6 +134,6 @@ $$\begin{aligned}
       v^1_i = v^t_i\\
       v^2_i = v^t_i+\frac{\Delta t}{2}(F(v^1_i))\\
       v^3_i = v^t_i+\frac{\Delta t}{2}(F(v^2_i))\\
-      v^4_i = v^t_i+\Delta t(F(v^3_i))
+      v^4_i = v^t_i+\frac{\Delta t}{2}(F(v^3_i))
     \end{array}
 \end{aligned}$$

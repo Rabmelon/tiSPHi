@@ -461,7 +461,7 @@ $$\begin{aligned}
       \boldsymbol{v}^1_i = \boldsymbol{v}^t_i &\boldsymbol{f}^{\sigma, 1}_i = \boldsymbol{f}^{\sigma, t}_i\\
       \boldsymbol{v}^2_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^1_i)) &\boldsymbol{f}^{\sigma, 2}_i = \boldsymbol{f}^{\sigma, t}_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^1_i, \boldsymbol{\sigma}^1_i))\\
       \boldsymbol{v}^3_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^2_i)) &\boldsymbol{f}^{\sigma, 3}_i = \boldsymbol{f}^{\sigma, t}_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^2_i, \boldsymbol{\sigma}^2_i))\\
-      \boldsymbol{v}^4_i = \boldsymbol{v}^t_i+\Delta t(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{f}^{\sigma, 4}_i = \boldsymbol{f}^{\sigma, t}_i+\Delta t(F_2(\boldsymbol{v}^3_i, \boldsymbol{\sigma}^3_i))
+      \boldsymbol{v}^4_i = \boldsymbol{v}^t_i+\frac{\Delta t}{2}(F_1(\boldsymbol{\sigma}^3_i)) &\boldsymbol{f}^{\sigma, 4}_i = \boldsymbol{f}^{\sigma, t}_i+\frac{\Delta t}{2}(F_2(\boldsymbol{v}^3_i, \boldsymbol{\sigma}^3_i))
     \end{array}
 \end{aligned}$$
 

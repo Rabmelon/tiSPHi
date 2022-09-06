@@ -9,7 +9,7 @@ ti.init(arch=ti.cuda, packed=True, device_memory_fraction=0.3, default_fp=ti.f64
 if __name__ == "__main__":
     print("hallo tiSPHi! This is for sand column collapse test!")
 
-    rec_world = [0.56, 0.2]        # a rectangle world start from (0, 0) to this pos
+    rec_world = [0.2, 0.2]        # a rectangle world start from (0, 0) to this pos
     screen_to_world_ratio = 800 / max(rec_world)   # exp: world = (150m, 100m), ratio = 4, screen res = (600, 400)
     particle_radius = 0.001
     cube_size = [0.2, 0.1]
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # rho, coh, fric, E = 2040.0, 0.0, 21.9, 5.84e6     # aluminium rods
     rho, coh, fric, E = 2650.0, 0.0, 22.0, 15.0e6     # granular column
-    av_alpha_Pi, av_beta_Pi = 0.5, 0.0
+    av_alpha_Pi, av_beta_Pi = 1.0, 0.0
 
     case1 = ParticleSystem(rec_world, particle_radius)
     case1.gen_boundary_dummy()

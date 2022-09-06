@@ -432,7 +432,7 @@ $$\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{u}_{n+1}$$
 
 ### RK4 - 4th order Runge-Kutta (RK4)
 
-> @Chalk2020 Appendix B.
+> @Chalk2020 Appendix B, Blanc2012 Chap 3
 
 The RK4 scheme has fourth order accuracy and relatively simple implementation.
 Consider a general ordinary differential equation for a variable $\phi$ with an initial condition $\phi^0$ at an initial time $t^0$:
@@ -445,9 +445,11 @@ $$\phi^{t+\Delta t}=\phi^t+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4)$$
 
 $$k_1=f(\phi_1),\ k_2=f(\phi_2),\ k_3=f(\phi_3),\ k_4=f(\phi_4)$$
 
-$$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\Delta tk_3$$
+$$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\frac{\Delta t}{2}k_3$$
 
 ### XSPH
+
+> @Monaghan1992, Chalk2020 Appendix F
 
 In addition to the velocity and stress, the position vectors of each particle $\boldsymbol{x}_i$ are updated via the XSPH method at the end of each time step as:
 
