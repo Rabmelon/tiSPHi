@@ -382,14 +382,6 @@ class DPSESPHSolver(SPHSolver):
                 self.ps.density[p_i] += self.d_density[p_i] * self.dt[None]
 
     @ti.kernel
-    def chk_density(self):
-        for p_i in range(self.ps.particle_num[None]):
-            self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
-            if self.ps.density[p_i] > self.density_0 * self.alertratio:
-                print("stop because particle", p_i, "has a large density", self.ps.density[p_i], "with neighbour num", self.ps.particle_neighbors_num[p_i])
-            assert self.ps.density[p_i] < self.density_0 * self.alertratio
-
-    @ti.kernel
     def cal_stress(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:

@@ -62,7 +62,6 @@ class DPLFSPHSolver(SPHSolver):
         particle_node = ti.root.dense(ti.i, self.ps.particle_max_num)
         particle_node.place(self.density2, self.v2, self.v_grad, self.f_stress, self.f_v, self.stress, self.stress_s, self.I1, self.sJ2, self.fDP_old, self.flag_adapt, self.d_density, self.d_v, self.d_f_stress, self.strain_p_equ, self.d_strain_p_equ)
 
-        self.assign_x0()
         self.cal_max_hight()
         self.init_stress()
 
@@ -76,11 +75,11 @@ class DPLFSPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
-                # self.ps.val[p_i] = self.ps.density[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = -(self.stress[p_i][0,0] + self.stress[p_i][1,1] + self.stress[p_i][2,2]) / 3
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
@@ -335,8 +334,8 @@ class DPLFSPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                 if self.ps.material[p_j] > 10:
                     continue
-                # tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ (self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
+                tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                # tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ (self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
                 dd += tmp[0] / self.density2[p_j]
             self.d_density[p_i] =  dd * self.mass * self.density2[p_i]
 
@@ -429,21 +428,12 @@ class DPLFSPHSolver(SPHSolver):
     # advection
     ###########################################################################
     @ti.kernel
-    def chk_density(self):
-        for p_i in range(self.ps.particle_num[None]):
-            self.ps.density[p_i] = ti.max(self.density_0, self.ps.density[p_i])
-            if self.ps.density[p_i] > self.density_0 * self.alertratio:
-                print("stop because particle", p_i, "has a large density", self.ps.density[p_i], "with neighbour num", self.ps.particle_neighbors_num[p_i])
-            assert self.ps.density[p_i] < self.density_0 * self.alertratio
-
-    @ti.kernel
     def advect_LF_half(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] == self.ps.material_soil:
                 # self.density2[p_i] = self.density_0
                 self.density2[p_i] += self.d_density[p_i] * self.dt[None] * 0.5
                 self.v2[p_i] += self.d_v[p_i] * self.dt[None] * 0.5
-                self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None] * 0.5
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None] * 0.5
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
                 # self.regu_stress_i(p_i)
@@ -476,4 +466,4 @@ class DPLFSPHSolver(SPHSolver):
         self.advect_LF_half()
         self.LF_one_step()
         self.advect_LF()
-        self.chk_density()
+        self.chk_density(self.density_0, self.ps.material_soil)

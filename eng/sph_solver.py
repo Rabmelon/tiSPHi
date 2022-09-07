@@ -18,7 +18,7 @@ class SPHSolver:
         self.dt_min = 1e-6
         self.vsound = 35.0
         self.epsilon = 1e-16
-        self.alertratio = 1.05
+        self.alertratio = 0.05
 
         self.CSPM_L = ti.Matrix.field(self.ps.dim, self.ps.dim, dtype=float)     # the normalised matrix
         self.CSPM_f = ti.field(dtype=float)
@@ -43,6 +43,22 @@ class SPHSolver:
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 self.ps.x0[p_i] = self.ps.x[p_i]
+
+    @ti.kernel
+    def chk_density(self, density_0: float, material: int):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != material:
+                continue
+            density_min = density_0
+            # density_min = density_0 * (1.0 - self.alertratio)
+            density_max = density_0 * (1.0 + self.alertratio)
+            # if self.ps.density[p_i] > density_max:
+                # print("Particle", p_i, "has a large density", self.ps.density[p_i], "with neighbour num", self.ps.particle_neighbors_num[p_i])
+            # if self.ps.density[p_i] < density_min:
+                # print("Particle", p_i, "has a small density", self.ps.density[p_i], "with neighbour num", self.ps.particle_neighbors_num[p_i])
+            self.ps.density[p_i] = ti.max(density_min, self.ps.density[p_i])
+            self.ps.density[p_i] = ti.min(density_max, self.ps.density[p_i])
+            # assert self.ps.density[p_i] < density_max
 
     ###########################################################################
     # Kernel correction
@@ -273,6 +289,7 @@ class SPHSolver:
         self.calc_CSPM_L()
         self.calc_CSPM_f()
         self.calc_MLS_beta()
+        self.assign_x0()
         self.substep()
         # if self.TDmethod == 1:
         #     self.substep_SympEuler()
