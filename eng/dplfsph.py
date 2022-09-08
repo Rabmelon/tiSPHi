@@ -349,10 +349,10 @@ class DPLFSPHSolver(SPHSolver):
             stress_i_2d = self.stress_stress2(self.stress[p_i])
 
             # viscous damping
-            # xi = 5.0e-5
-            # cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
-            # Fd = -cd * self.ps.v[p_i]
-            Fd = 0.0
+            # Fd = 0.0
+            xi = 5.0e-5
+            cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
+            Fd = -cd * self.ps.v[p_i]
 
             # artificial viscosity
             tmp_av = 0.0
@@ -450,7 +450,7 @@ class DPLFSPHSolver(SPHSolver):
                 self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None]
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
-                # self.regu_stress_i(p_i)
+                self.regu_stress_i(p_i)
                 self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 
     def LF_one_step(self):

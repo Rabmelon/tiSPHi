@@ -258,6 +258,24 @@ class DPRKSPHSolver(SPHSolver):
             res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
         return res
 
+    @ti.func
+    def regu_stress_i(self, p_i):
+        tmp = ti.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+        for j in range(self.ps.particle_neighbors_num[p_i]):
+            p_j = self.ps.particle_neighbors[p_i, j]
+            stress_j = self.stress[p_j]
+            xij = self.ps.x[p_i] - self.ps.x[p_j]
+            if self.ps.material[p_j] == self.ps.material_dummy:
+                self.update_boundary_particles(p_i, p_j)
+                stress_j = self.stress[p_i]
+                # self.calc_stress_roller(p_j)
+            if self.ps.material[p_j] > 10:
+                continue
+            tmp += self.mass / self.density[p_j] * stress_j * self.kernel(xij)
+            # tmp *= self.MLS_beta[p_i][0] + self.MLS_beta[p_i][1] * xij[0] + self.MLS_beta[p_i][2] * xij[1]
+        tmp *= self.CSPM_f[p_i]
+        self.stress[p_i] = tmp
+
     ###########################################################################
     # stress adaptation
     ###########################################################################
@@ -434,6 +452,7 @@ class DPRKSPHSolver(SPHSolver):
             self.f_stress[p_i] += self.dt[None] / 6 * (
                 self.F_f_stress[p_i, 0] + 2 * self.F_f_stress[p_i, 1] + 2 * self.F_f_stress[p_i, 2] + self.F_f_stress[p_i, 3])
             self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
+            self.regu_stress_i(p_i)
             self.stress[p_i] = self.adapt_stress(self.stress[p_i])
             self.ps.x[p_i] += self.dt[None] * self.ps.v[p_i]
             self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None]

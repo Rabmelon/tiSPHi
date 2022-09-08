@@ -118,6 +118,7 @@ if __name__ == "__main__":
 
     solver = ChkKernel(case1, 2)
     gguishow(case1, solver, rec_world, screen_to_world_ratio,
-             step_ggui=1, pause_flag=0, stop_step=2, iparticle=-1, kradius=1.05, color_title="f=x+y, f, WLC2")
-    # f=x2+y2, f=x+y, f, |f'|, f'[0,0], CS, WLC2, Gaus
+             step_ggui=1, pause_flag=0, stop_step=2, iparticle=-1, kradius=1.05, color_title="MLS, f=x+y, f, WLC2")
+    # Std, CSPM, MLS, ; f=x2+y2, f=x+y, f, |f'|, f'[0,0], ; CS, WLC2, Gaus
+
 

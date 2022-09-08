@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     mat = 2         # 1 water; 2 soil
     cmodel = 2      # for water, 1 WC; for soil, 1 muI, 2 DP
-    TDmethod = 4    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 2    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     # rho, coh, fric, E = 2040.0, 0.0, 21.9, 5.84e6     # aluminium rods
@@ -31,12 +31,12 @@ if __name__ == "__main__":
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio,
              pause_flag=1, stop_step=100001, step_ggui=10, exit_flag=0,
-             save_png=10,  save_msg=0,
+            #  save_png=10,  save_msg=0,
             #  save_png=0,  save_msg=1, iparticle=[7217, 7220, 7266, 7269], # for cc test
             #  save_png=0,  save_msg=1, iparticle=[2316, 2365, 4840, 7266, 7315], # for cc test
             #  save_png=0,  save_msg=1, iparticle=[1236, 1260, 1285, 2486, 2510, 2535, 3736, 3760, 3785], # for is test
              kradius=1.25, grid_line=0.05, color_title=52,
-             given_max=2600, given_min=0, fix_max=1, fix_min=1)
+             given_max=-1, given_min=-1, fix_max=1, fix_min=1)
 
     '''
     color title:
