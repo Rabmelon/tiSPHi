@@ -75,11 +75,11 @@ class DPLFSPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
-                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = -(self.stress[p_i][0,0] + self.stress[p_i][1,1] + self.stress[p_i][2,2]) / 3
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())

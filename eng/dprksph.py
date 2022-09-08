@@ -81,11 +81,11 @@ class DPRKSPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
-                self.ps.val[p_i] = self.ps.density[p_i]
+                # self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                # self.ps.val[p_i] = -self.stress[p_i][1,1]
+                self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = -(self.stress[p_i][0,0] + self.stress[p_i][1,1] + self.stress[p_i][2,2]) / 3
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
@@ -241,6 +241,24 @@ class DPRKSPHSolver(SPHSolver):
             self.v_grad[p_i] = v_g * self.mass
 
     ###########################################################################
+    # Artificial terms
+    ###########################################################################
+    @ti.func
+    def cal_artificial_viscosity(self, alpha_Pi, beta_Pi, p_i, p_j):
+        res = 0.0
+        vare = 0.01
+        xij = self.ps.x[p_i] - self.ps.x[p_j]
+        vij = self.v[p_i] - self.v[p_j]
+        vijxij = (vij * xij).sum()
+        if vijxij < 0.0:
+            rhoij = 0.5 * (self.density[p_i] + self.density[p_j])
+            hij = self.ps.smoothing_len
+            cij = self.vsound
+            phiij = hij * vijxij / ((xij.norm())**2 + vare * hij**2)
+            res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
+        return res
+
+    ###########################################################################
     # stress adaptation
     ###########################################################################
     @ti.func
@@ -305,6 +323,15 @@ class DPRKSPHSolver(SPHSolver):
                 continue
             dv = ti.Vector([0.0 for _ in range(self.ps.dim)])
             stress_i_2d = self.stress_stress2(self.stress_RK[p_i])
+
+            # viscous damping
+            # xi = 5.0e-5
+            # cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
+            # Fd = -cd * self.ps.v[p_i]
+            Fd = 0.0
+
+            # artificial viscosity
+            tmp_av = 0.0
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 stress_j_2d = self.stress_stress2(self.stress_RK[p_j])
@@ -313,12 +340,14 @@ class DPRKSPHSolver(SPHSolver):
                     stress_j_2d = self.stress_stress2(self.stress_RK[p_i])
                 if self.ps.material[p_j] == self.ps.material_repulsive:
                     continue
-                dv += self.density[p_j] * self.ps.m_V * (stress_j_2d / self.density[p_j]**2 + stress_i_2d / self.density[p_i]**2) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                if self.ps.material[p_j] == self.ps.material_soil and self.alpha_Pi > 0.0:
+                    tmp_av = self.cal_artificial_viscosity(self.alpha_Pi, self.beta_Pi, p_i, p_j)
+                dv += self.density[p_j] * self.ps.m_V * (stress_j_2d / self.density[p_j]**2 + stress_i_2d / self.density[p_i]**2 - tmp_av * self.I) @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
             if self.ps.dim == 2:
                 dv += ti.Vector([0.0, self.g])
             else:
                 print("!!!!!My Error: cannot used in 3D now!")
-            self.d_v[p_i] = dv
+            self.d_v[p_i] = dv + Fd
 
     @ti.kernel
     def cal_d_f_stress_Bui2008(self):
@@ -407,6 +436,7 @@ class DPRKSPHSolver(SPHSolver):
             self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
             self.stress[p_i] = self.adapt_stress(self.stress[p_i])
             self.ps.x[p_i] += self.dt[None] * self.ps.v[p_i]
+            self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None]
 
     def advect_RK(self):
         for m in ti.static(range(4)):
