@@ -176,11 +176,13 @@ where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factor
 
 > @bui2021 2.3
 
+For 2d and 3d problems:
+
 $$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
   (1-0.5q)^4(1+2q), &0\leq q \leq 2 \\ 0, &otherwise
 \end{cases}$$
 
-where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=2,3$ and $k_2=\frac{7}{4\pi h^2}$, $k_3=\frac{21}{2\pi h^3}$. For 1d, the formulation is changed. The kernel is $C^2$ continuous.
+where $q = \Vert\boldsymbol{r}\Vert/h$, $k_d$ is the kernel normalization factors for respective dimensions $d=1,2,3$ and $k_1=\frac{5}{8h}$, $k_2=\frac{7}{4\pi h^2}$, $k_3=\frac{21}{2\pi h^3}$. The kernel is $C^2$ continuous.
 
 The first-order derivation:
 
@@ -188,7 +190,13 @@ $$\nabla_i W_{ij}^{\alpha}=k_d(-5q)(1-0.5q)^3\cdot\frac{1}{h}\cdot\frac{x_i^{\al
 
 The second-order derivation:
 
-???
+$$???$$
+
+For 1d, the formulation is changed:
+
+$$W_{ij}=W(\boldsymbol{r}, h)=k_d\begin{cases}
+  (1-0.5q)^3(1+1.5q), &0\leq q \leq 2 \\ 0, &otherwise
+\end{cases}$$
 
 ### CSPM normalisation
 
