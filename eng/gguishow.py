@@ -94,8 +94,8 @@ def gguishow(case, solver, world, s2w_ratio=1,
                         iparticle = [iparticle]
                     str_i = [count_step]
                     for ip in iparticle:
-                        istr_data = [ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.stress[ip][0,0], solver.stress[ip][1,1], solver.stress[ip][0,1], solver.stress[ip][2,2]]
-                        # istr_data = "\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f\t%.6f" % (ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.stress[ip][0,0], solver.stress[ip][1,1], solver.stress[ip][0,1], solver.stress[ip][2,2])
+                        istr_data = [ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.v_grad[ip][0,0], solver.v_grad[ip][0,1], solver.v_grad[ip][1,0], solver.v_grad[ip][1,1]]
+                        # istr_data = [ip, solver.ps.x[ip][0], solver.ps.x[ip][1], solver.ps.v[ip][0], solver.ps.v[ip][1], solver.ps.density[ip], solver.stress[ip][0,0], solver.stress[ip][1,1], solver.stress[ip][0,1], solver.stress[ip][2,2]]
                         str_i += istr_data
                     fid_writer.writerow(str_i)
 

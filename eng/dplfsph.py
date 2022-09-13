@@ -75,11 +75,11 @@ class DPLFSPHSolver(SPHSolver):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
-                # self.ps.val[p_i] = self.ps.density[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = -(self.stress[p_i][0,0] + self.stress[p_i][1,1] + self.stress[p_i][2,2]) / 3
                 # self.ps.val[p_i] = self.strain_p_equ[p_i]
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
@@ -188,23 +188,6 @@ class DPLFSPHSolver(SPHSolver):
             self.sJ2[p_i] = self.cal_sJ2(self.stress_s[p_i])
             self.fDP_old[p_i] = self.cal_fDP(self.I1[p_i], self.sJ2[p_i])
 
-    @ti.kernel
-    def cal_v_grad(self):
-        for p_i in range(self.ps.particle_num[None]):
-            if self.ps.material[p_i] != self.ps.material_soil:
-                continue
-            v_g = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
-            for j in range(self.ps.particle_neighbors_num[p_i]):
-                p_j = self.ps.particle_neighbors[p_i, j]
-                if self.ps.material[p_j] == self.ps.material_dummy:
-                    self.update_boundary_particles(p_i, p_j)
-                if self.ps.material[p_j] > 10:
-                    continue
-                tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                # tmp = self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                v_g += (self.v2[p_j] - self.v2[p_i]) @ tmp.transpose() / self.density2[p_j]
-            self.v_grad[p_i] = v_g * self.mass
-
     ###########################################################################
     # Artificial terms
     ###########################################################################
@@ -277,7 +260,33 @@ class DPLFSPHSolver(SPHSolver):
         tmp *= self.CSPM_f[p_j]
         self.stress[p_j] = tmp * ti.Matrix([[1.0, -1.0, -1.0], [-1.0, 1.0, -1.0], [-1.0, -1.0, 1.0]])
 
+    @ti.func
+    def calc_fixed_stress(self, p_j):
+        tmp_stress = ti.math.mat3(0.0)
+        for k in range(self.ps.particle_neighbors_num[p_j]):
+            p_k = self.ps.particle_neighbors[p_j, k]
+            if self.ps.material[p_k] != self.ps.material_soil:
+                continue
+            stress_k = self.stress[p_k]
+            xjk = self.ps.x[p_j] - self.ps.x[p_k]
+            tmp_stress += self.mass / self.density2[p_k] * stress_k * self.kernel(xjk)
+            # tmp *= self.ps.MLS_beta[p_i][0] + self.ps.MLS_beta[p_i][1] * xij[0] + self.ps.MLS_beta[p_i][2] * xij[1]
+        tmp_stress *= self.CSPM_f[p_j]
+        self.stress[p_j] = tmp_stress
 
+    @ti.func
+    def calc_fixed_v(self, p_j):
+        tmp_v = ti.math.vec2(0.0)
+        for k in range(self.ps.particle_neighbors_num[p_j]):
+            p_k = self.ps.particle_neighbors[p_j, k]
+            if self.ps.material[p_k] != self.ps.material_soil:
+                continue
+            v_k = self.v2[p_k]
+            xjk = self.ps.x[p_j] - self.ps.x[p_k]
+            tmp_v += self.mass / self.density2[p_k] * v_k * self.kernel(xjk)
+            # tmp *= self.ps.MLS_beta[p_i][0] + self.ps.MLS_beta[p_i][1] * xij[0] + self.ps.MLS_beta[p_i][2] * xij[1]
+        tmp_v *= self.CSPM_f[p_j]
+        self.v2[p_j] = tmp_v
 
 
     ###########################################################################
@@ -323,6 +332,31 @@ class DPLFSPHSolver(SPHSolver):
     # approximation
     ###########################################################################
     @ti.kernel
+    def cal_v_grad(self):
+        for p_i in range(self.ps.particle_num[None]):
+            if self.ps.material[p_i] != self.ps.material_soil:
+                continue
+            v_g = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
+            # for j in range(self.ps.particle_neighbors_num[p_i]):
+                # p_j = self.ps.particle_neighbors[p_i, j]
+                # if self.ps.material[p_j] == self.ps.material_dummy:
+                    # self.density2[p_j] = self.density_0
+                    # self.calc_fixed_v(p_j)
+            for j in range(self.ps.particle_neighbors_num[p_i]):
+                p_j = self.ps.particle_neighbors[p_i, j]
+                if self.ps.material[p_j] == self.ps.material_dummy:
+                    # self.density2[p_j] = self.density_0
+                    # self.calc_fixed_v(p_j)
+                    # self.update_boundary_particles(p_i, p_j)
+                    continue
+                if self.ps.material[p_j] > 10:
+                    continue
+                # tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                tmp = self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                v_g += (self.v2[p_j] - self.v2[p_i]) @ tmp.transpose() / self.density2[p_j]
+            self.v_grad[p_i] = v_g * self.mass
+
+    @ti.kernel
     def cal_d_density(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] != self.ps.material_soil:
@@ -334,8 +368,8 @@ class DPLFSPHSolver(SPHSolver):
                     self.update_boundary_particles(p_i, p_j)
                 if self.ps.material[p_j] > 10:
                     continue
-                tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                # tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ (self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
+                # tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                tmp = (self.v2[p_i] - self.v2[p_j]).transpose() @ (self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j]))
                 dd += tmp[0] / self.density2[p_j]
             self.d_density[p_i] =  dd * self.mass * self.density2[p_i]
 
@@ -349,10 +383,10 @@ class DPLFSPHSolver(SPHSolver):
             stress_i_2d = self.stress_stress2(self.stress[p_i])
 
             # viscous damping
-            # Fd = 0.0
-            xi = 5.0e-5
-            cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
-            Fd = -cd * self.ps.v[p_i]
+            Fd = 0.0
+            # xi = 5.0e-5
+            # cd = xi * ti.sqrt(self.EYoungMod / (self.density_0 * self.ps.smoothing_len**2))
+            # Fd = -cd * self.ps.v[p_i]
 
             # artificial viscosity
             tmp_av = 0.0
@@ -361,6 +395,8 @@ class DPLFSPHSolver(SPHSolver):
                 stress_j_2d = self.stress_stress2(self.stress[p_j])
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
+                    self.calc_fixed_stress(p_j)
+                    self.calc_fixed_v(p_j)
                     stress_j_2d = self.stress_stress2(self.stress[p_i])
                 if self.ps.material[p_j] == self.ps.material_repulsive:
                     rep += self.calc_repulsive_force(self.ps.x[p_i] - self.ps.x[p_j], self.vsound)
