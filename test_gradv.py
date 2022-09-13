@@ -3,7 +3,7 @@ from eng.particle_system import *
 from eng.sph_solver import *
 from eng.gguishow import *
 
-ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, kernel_profiler=True)
+ti.init(arch=ti.cpu, debug=True, default_fp=ti.f64, kernel_profiler=True, cpu_max_num_threads=1)
 
 class ChkGradV(SPHSolver):
     def __init__(self, particle_system, kernel):
@@ -37,15 +37,15 @@ class ChkGradV(SPHSolver):
     @ti.func
     def calc_v(self, x):
         # res = ti.math.vec2(1.0/(5.0-x.x), -x.y/10.0)
-        # res = ti.math.vec2(2*x.x+3*x.y, -3*x.x-x.y)
-        res = ti.math.vec2(3*x.x*x.y, 2*x.x-x.y)
+        res = ti.math.vec2(2*x.x+3*x.y, -3*x.x-x.y)
+        # res = ti.math.vec2(3*x.x*x.y, 2*x.x-x.y)
         return res
 
     @ti.func
     def calc_grad_v(self, x):
         # res = ti.math.mat2([[1.0/(5.0-x.x)**2, 0.0], [0.0, -1.0/10.0]])
-        # res = ti.math.mat2([[2, 3], [-3, -1]])
-        res = ti.math.mat2([[3*x.y, 3*x.x], [2, -1]])
+        res = ti.math.mat2([[2, 3], [-3, -1]])
+        # res = ti.math.mat2([[3*x.y, 3*x.x], [2, -1]])
         return res
 
     @ti.func
@@ -78,34 +78,20 @@ class ChkGradV(SPHSolver):
     @ti.kernel
     def cal_v_grad(self):
         for p_i in range(self.ps.particle_num[None]):
-            if self.ps.material[p_i] != self.ps.material_fluid:
+            if self.ps.material[p_i] >= 10:
                 continue
-            tmp = ti.math.vec2(0.0)
-            v_g = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
-            # for j in range(self.ps.particle_neighbors_num[p_i]):
-            #     p_j = self.ps.particle_neighbors[p_i, j]
-            #     if self.ps.material[p_j] == self.ps.material_dummy:
-            #         self.ps.density[p_j] = 1000.0
-            #         self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA_rec(p_i, p_j))) * self.ps.v[p_i]
-            #         self.calc_fixed_v(p_j)
+            tmp = ti.math.vec2(0)
+            v_g = ti.math.mat2(0)
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
-
-                # if self.ps.material[p_j] == self.ps.material_dummy:
-                #     # self.ps.v[p_j] = (1.0 - min(1.5, 1.0 + self.calc_d_BA_rec(p_i, p_j))) * self.ps.v[p_i]
-                #     # self.calc_fixed_v(p_j)
-                #     self.ps.v[p_j] = ti.math.vec2(0)
-
-                if self.ps.material[p_j] == self.ps.material_dummy:
-                #     # tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                if self.ps.material[p_j] >= 10:
                     continue
-                # if self.ps.material[p_j] < 10:
-                    # tmp = self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-
                 # tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 tmp = self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-
                 v_g += (self.ps.v[p_j] - self.ps.v[p_i]) @ tmp.transpose()
+                if p_i == 385:
+                # if p_i == 19:
+                    print(p_j, self.ps.x[p_j], tmp)
             self.v_grad[p_i] = v_g * self.ps.m_V
             self.dv[p_i] = self.fgv[p_i] - self.v_grad[p_i]
 
@@ -132,7 +118,7 @@ if __name__ == "__main__":
 
     solver = ChkGradV(case1, 2)
     gguishow(case1, solver, rec_world, screen_to_world_ratio,
-             step_ggui=1, pause_flag=0, stop_step=2,
+             step_ggui=1, pause_flag=0, stop_step=1,
             #  save_msg=1,
             #  iparticle=[366, 576, 746, 765], # with boundary
             #  iparticle=[0, 210, 380, 399], # without boundary

@@ -69,6 +69,8 @@ class SPHSolver:
             tmp_CSPM_f = 0.0
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
+                if self.ps.material[p_j] >= 10:
+                    continue
                 tmp_CSPM_f += self.ps.m_V * self.kernel(self.ps.x[p_i] - self.ps.x[p_j])
             self.CSPM_f[p_i] = 1.0 / tmp_CSPM_f
 
@@ -78,6 +80,8 @@ class SPHSolver:
             tmp_CSPM_L = ti.Matrix([[0.0 for _ in range(self.ps.dim)] for _ in range(self.ps.dim)])
             for j in range(self.ps.particle_neighbors_num[p_i]):
                 p_j = self.ps.particle_neighbors[p_i, j]
+                if self.ps.material[p_j] >= 10:
+                    continue
                 tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 tmp_CSPM_L += self.ps.m_V * (self.ps.x[p_j] - self.ps.x[p_i]) @ tmp.transpose()
             self.CSPM_L[p_i] = tmp_CSPM_L.inverse()
