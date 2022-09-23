@@ -285,7 +285,7 @@ class SPHSolver:
             self.RK4_one_step(m)
         # self.update_vel_pos()
 
-    def substep():
+    def substep(self):
         pass
 
     def step(self):
