@@ -6,7 +6,7 @@
 
 ## News
 
-**NEW**! Please check my new [docs](https://rabmelon.github.io/tiSPHi/) about the basics of SPH. (Updating...)
+**NEW**! SORRY BUT IT CANNOT RUN NOW!
 
 ## Background
 

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     solver = choose_solver(case1, mat, cmodel, TDmethod, flag_kernel=2, para1=rho, para2=coh, para3=fric, para4=E, para5=av_alpha_Pi, para6=av_beta_Pi)
 
     gguishow(case1, solver, rec_world, screen_to_world_ratio,
-             pause_flag=1, stop_step=100001, step_ggui=1, exit_flag=0,
+             pause_flag=1, stop_step=100001, step_ggui=10, exit_flag=0,
             #  save_png=10,  save_msg=0,
             #  save_png=0,  save_msg=1, iparticle=[7217, 7220, 7266, 7269], # for cc test
             #  save_png=0,  save_msg=1, iparticle=[2316, 2365, 4840, 7266, 7315], # for cc test

@@ -341,8 +341,8 @@ class DPLFSPHSolver(SPHSolver):
                 p_j = self.ps.particle_neighbors[p_i, j]
                 if self.ps.material[p_j] >= 10:
                     continue
-                # tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
-                tmp = self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                tmp = self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
+                # tmp = self.CSPM_L[p_i] @ self.kernel_derivative(self.ps.x[p_i] - self.ps.x[p_j])
                 v_g += (self.v2[p_j] - self.v2[p_i]) @ tmp.transpose() / self.density2[p_j]
             self.v_grad[p_i] = v_g * self.mass
 
@@ -476,7 +476,7 @@ class DPLFSPHSolver(SPHSolver):
                 self.strain_p_equ[p_i] += self.d_strain_p_equ[p_i] * self.dt[None]
                 self.f_stress[p_i] += self.d_f_stress[p_i] * self.dt[None]
                 self.stress[p_i] = self.fs_stress3(self.f_stress[p_i])
-                self.regu_stress_i(p_i)
+                # self.regu_stress_i(p_i)
                 self.stress[p_i] = self.adapt_stress(self.stress[p_i])
 
     def LF_one_step(self):
