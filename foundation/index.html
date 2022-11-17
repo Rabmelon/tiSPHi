@@ -83,6 +83,8 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#grid-method">Grid method</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#prefix-sum-and-counting-sort">Prefix-sum and counting sort</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#hash-grid-method">Hash grid method</a>
     </li>
         </ul>
@@ -163,13 +165,13 @@
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>SPH foundations</li>
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>SPH foundations</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
   <hr/>
 </div>
-
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
@@ -390,6 +392,7 @@
 </blockquote>
 <h2 id="neighbour-search">Neighbour search</h2>
 <h3 id="grid-method">Grid method</h3>
+<h3 id="prefix-sum-and-counting-sort">Prefix-sum and counting sort</h3>
 <h3 id="hash-grid-method">Hash grid method</h3>
 <h2 id="boundary-treatment">Boundary treatment</h2>
 <h3 id="types-of-boundary-conditions">Types of boundary conditions</h3>
@@ -509,16 +512,19 @@
 <p>@taichiCourse01-10 PPT p77</p>
 </blockquote>
 <p>Also referred to as semi-implicit Euler or Euler-Cromer scheme.</p>
-<div class="arithmatex">\[v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*\]</div>
+<div class="arithmatex">\[v_i^{n+1} = v_i^n+\frac{{\rm d}v_i}{{\rm d}t}\Delta t,\ x_i^{n+1} = x_i^n+v_i^{n+1}\Delta t\]</div>
+<p>or</p>
+<div class="arithmatex">\[v_i^{n+1} = v_i^n+g(t^n, x_i^n)\Delta t,\ x_i^{n+1} = x_i^n+f(t^n, v_i^{n+1})\Delta t\]</div>
 <h3 id="leap-frog-lf">Leap-Frog (LF)</h3>
 <blockquote>
 <p>@yang2021</p>
 </blockquote>
 <p>Leap-Frog(LF) time-integration scheme is sufficiently stable, accurate, and fast due to only requiring one calculation of forces for each timestep. For a given time-step, the density and velocity are brought forward to the mid-increment using material derivatives from the previous timestep(if available), and the position is updated at full-increments:</p>
 <div class="arithmatex">\[f_{n+\frac{1}{2}}=f_n+\frac{\Delta t}{2}(\frac{{\rm D}f}{{\rm D}t})_{n-1}\]</div>
-<p><span class="arithmatex">\(f\)</span> is density or velocity or stress. Then calculate <span class="arithmatex">\((\frac{{\rm D}f}{{\rm D}t})_{n}\)</span></p>
+<p><span class="arithmatex">\(f\)</span> is <em>density</em> or <em>velocity</em> or <em>stress</em>. Then calculate <span class="arithmatex">\((\frac{{\rm D}f}{{\rm D}t})_{n}\)</span></p>
 <div class="arithmatex">\[f_{n+1}=f_n+\Delta t(\frac{{\rm D}f}{{\rm D}t})_{n}\]</div>
-<div class="arithmatex">\[\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{u}_{n+1}\]</div>
+<!-- $$\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{v}_{n+1}$$ -->
+
 <h3 id="rk4-4th-order-runge-kutta-rk4">RK4 - 4th order Runge-Kutta (RK4)</h3>
 <blockquote>
 <p>@Chalk2020 Appendix B, Blanc2012 Chap 3</p>
@@ -535,7 +541,7 @@ Consider a general ordinary differential equation for a variable <span class="ar
 <p>@Monaghan1992, Chalk2020 Appendix F</p>
 </blockquote>
 <p>In addition to the velocity and stress, the position vectors of each particle <span class="arithmatex">\(\boldsymbol{x}_i\)</span> are updated via the XSPH method at the end of each time step as:</p>
-<div class="arithmatex">\[\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij}\]</div>
+<div class="arithmatex">\[\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)W_{ij}\]</div>
 <p>Alternatively, the discretised XSPH equation is:</p>
 <div class="arithmatex">\[\boldsymbol{x}_i^{t+\Delta t} = \boldsymbol{x}_i^t + \Delta t\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{x}_i^t + \Delta t(\boldsymbol{v}_i^{t+\Delta t} + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij})\]</div>
 <p>where <span class="arithmatex">\(\epsilon_x\)</span> is a tuning para, <span class="arithmatex">\(0\leq\epsilon_x\leq1\)</span>.</p>
