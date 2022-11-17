@@ -54,12 +54,12 @@ class MCmuILFSPHSolver(SPHSolver):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
                 # self.ps.val[p_i] = self.ps.v[p_i].norm()
-                # self.ps.val[p_i] = self.ps.density[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.d_density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = self.ps.v[p_i][0]
                 # self.ps.val[p_i] = self.ps.x[p_i][1]
-                self.ps.val[p_i] = -self.stress[p_i][1,1]
+                # self.ps.val[p_i] = -self.stress[p_i][1,1]
                 # self.ps.val[p_i] = p_i
                 # self.ps.val[p_i] = ti.sqrt(((self.ps.x[p_i] - self.ps.x0[p_i])**2).sum())
 

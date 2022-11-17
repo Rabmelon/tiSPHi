@@ -25,9 +25,9 @@ class WCSESPHSolver(SPHSolver):
     def init_value(self):
         for p_i in range(self.ps.particle_num[None]):
             if self.ps.material[p_i] < 10:
-                self.ps.val[p_i] = self.ps.v[p_i].norm()
+                # self.ps.val[p_i] = self.ps.v[p_i].norm()
                 # self.ps.val[p_i] = -self.ps.x[p_i][1]
-                # self.ps.val[p_i] = self.ps.density[p_i]
+                self.ps.val[p_i] = self.ps.density[p_i]
                 # self.ps.val[p_i] = self.pressure[p_i]
                 # self.ps.val[p_i] = p_i
 
@@ -67,7 +67,7 @@ class WCSESPHSolver(SPHSolver):
                 x_j = self.ps.x[p_j]
                 if self.ps.material[p_j] == self.ps.material_dummy:
                     self.update_boundary_particles(p_i, p_j)
-                self.ps.density[p_i] += self.ps.m_V * self.kernel(x_i - x_j)
+                self.ps.density[p_i] += self.ps.m_V * self.kernel(x_i - x_j) * self.CSPM_f[p_i]
             self.ps.density[p_i] *= self.density_0
 
     # Compute the viscosity force contribution, Anti-symmetric formula

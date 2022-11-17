@@ -421,7 +421,7 @@ class DPLFSPHSolver(SPHSolver):
 
             strain_r_equ = strain_r - strain_r.trace() / 3.0 * self.I
             tmp_v = 2.0 * self.GShearMod * strain_r_equ + self.KBulkMod * strain_r.trace() * self.I
-            self.d_f_stress[p_i] = self.stress2_fs(tmp_J + tmp_g + tmp_v)
+            self.d_f_stress[p_i] = self.stress2_fs(tmp_J - tmp_g + tmp_v)
 
             # calculate the equivalent plastic strain
             self.d_strain_p_equ[p_i] = ti.sqrt((strain_r_equ*strain_r_equ).sum() * 2 / 3)

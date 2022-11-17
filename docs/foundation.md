@@ -279,6 +279,8 @@ And this is the first order correction that reproduces exactly the linear variat
 
 ### Grid method
 
+### Prefix-sum and counting sort
+
 ### Hash grid method
 
 
@@ -420,7 +422,11 @@ $h$ is the smoothing length and $\boldsymbol{v}^{max}$ is the velocity at which 
 
 Also referred to as semi-implicit Euler or Euler-Cromer scheme.
 
-$$v_i^* = v_i+\Delta t\frac{{\rm d}v_i}{{\rm d}t},\ \ x_i^* = x_i+\Delta tv_i^*$$
+$$v_i^{n+1} = v_i^n+\frac{{\rm d}v_i}{{\rm d}t}\Delta t,\ x_i^{n+1} = x_i^n+v_i^{n+1}\Delta t$$
+
+or
+
+$$v_i^{n+1} = v_i^n+g(t^n, x_i^n)\Delta t,\ x_i^{n+1} = x_i^n+f(t^n, v_i^{n+1})\Delta t$$
 
 ### Leap-Frog (LF)
 
@@ -430,11 +436,11 @@ Leap-Frog(LF) time-integration scheme is sufficiently stable, accurate, and fast
 
 $$f_{n+\frac{1}{2}}=f_n+\frac{\Delta t}{2}(\frac{{\rm D}f}{{\rm D}t})_{n-1}$$
 
-$f$ is density or velocity or stress. Then calculate $(\frac{{\rm D}f}{{\rm D}t})_{n}$
+$f$ is *density* or *velocity* or *stress*. Then calculate $(\frac{{\rm D}f}{{\rm D}t})_{n}$
 
 $$f_{n+1}=f_n+\Delta t(\frac{{\rm D}f}{{\rm D}t})_{n}$$
 
-$$\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{u}_{n+1}$$
+<!-- $$\boldsymbol{x}_{n+1}=\boldsymbol{x}_n+\Delta t\times\boldsymbol{v}_{n+1}$$ -->
 
 
 
@@ -461,7 +467,7 @@ $$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Del
 
 In addition to the velocity and stress, the position vectors of each particle $\boldsymbol{x}_i$ are updated via the XSPH method at the end of each time step as:
 
-$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)\nabla W_{ij}$$
+$$\frac{{\rm d} \boldsymbol{x}_i}{{\rm d} t} = \boldsymbol{v}_i + \epsilon_x\sum_j\frac{m_j}{\rho_j}(\boldsymbol{v}_j - \boldsymbol{v}_i)W_{ij}$$
 
 Alternatively, the discretised XSPH equation is:
 

@@ -1,8 +1,14 @@
 # Code frame
-## Structure
+
+## Architecture
+
+<div align="center">
+  <img width="160px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/code_architecture.png">
+</div>
 
 
 ## Aim
+
 ### Ensure the correctness
 1. Generate particles of main domain
 2. Initiate particle paras

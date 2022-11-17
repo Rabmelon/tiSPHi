@@ -10,18 +10,18 @@ if __name__ == "__main__":
     print("hallo tiSPHi! This is for water dambreak test!")
 
     # init particle system paras, world unit is cm (BUT not cm actually! maybe still m)
-    screen_to_world_ratio = 400   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
-    rec_world = [2.0, 1.0]   # a rectangle world start from (0, 0) to this pos
+    screen_to_world_ratio = 200   # exp: world = (150, 100), ratio = 4, screen res = (600, 400)
+    rec_world = [5.0, 2.0]   # a rectangle world start from (0, 0) to this pos
     particle_radius = 0.01
-    cube_size = [2.0, 0.9]
+    cube_size = [1.0, 0.9]
 
     mat = 1         # 1 water; 2 soil
     cmodel = 1      # for water, 1 WC; for soil, 1 muI, 2 DP
-    TDmethod = 4    # 1 Symp Euler; 2 Leap Frog; 4 RK4
+    TDmethod = 1    # 1 Symp Euler; 2 Leap Frog; 4 RK4
     flag_kernel = 2 # 1 cubic-spline; 2 Wendland C2
 
     rho = 1000.0
-    viscosity = 0.00005
+    viscosity = 0.01
     stiffness = 50000.0
     powcomp = 7.0
 
