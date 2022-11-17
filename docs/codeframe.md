@@ -3,7 +3,7 @@
 ## Architecture
 
 <div align="center">
-  <img width="160px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/code_architecture.png">
+  <img width="800px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/code_architecture.png">
 </div>
 
 
