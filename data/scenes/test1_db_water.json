@@ -1,0 +1,70 @@
+{
+	"Configuration":
+	{
+		"GPUmemoryPercent": 0.8,
+		"is2D": true,
+        "domainStart": [0.0, 0.0, 0.0],
+        "domainEnd": [3.22, 1.6, 0.5],
+		"gravitation": [0.0, -9.81, 0.0],
+		"particleRadius": 0.005,
+		"kappa": 2.0,
+		"kh": 1.2,
+
+		"simulationMethod": 1,
+		"timeStepSizeMin": 1e-4,
+		"boundary": 1,
+		"kernel": 1,
+		"kernelCorrection": 1,
+		"timeIntegration": 2,
+		"xsph": false,
+
+		"colorTitle": 7,
+		"stepsPerRenderUpdate": 10,
+		"pauseAtStart": true,
+		"stopEveryStep": 0,
+		"stopAtStep": 0,
+		"exitAtStep": 0,
+		"stopAtTime": 0,
+		"exitAtTime": 2.4,
+		"showBdyPts": true,
+		"kradius": 1.1,
+		"givenMax": 5887,
+		"givenMin": -1,
+		"fixMax": 1,
+		"fixMin": 0,
+
+		"showParticleInfo": [],
+		"exportFrame": 0,
+		"exportCSV": false,
+		"exportPly": false,
+		"exportObj": false
+	},
+	"Materials": [
+		{
+			"matId": 0,
+			"matType": 1,
+			"color": [50, 100, 200],
+			"density0": 1000,
+			"viscosity": 0.005,
+			"stiffness": 50000,
+			"exponent": 7
+		},
+		{
+			"matId": 1,
+			"matType": 11,
+			"color": [155, 55, 55],
+			"density0": 2000
+		}
+	],
+	"FluidBlocks": [
+		{
+            "objectId": 0,
+			"size": [1.2, 0.6, 0.2],
+			"translation": [0, 0, 0],
+			"rotationAxis": [0, 1, 0],
+			"rotationAngle": 0,
+			"velocity": [0.0, 0.0, 0.0],
+			"materialId": 0
+		}
+	]
+}

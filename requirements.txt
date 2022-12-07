@@ -1,8 +1,5 @@
-# FOR TAICHI PROGRAMS
 taichi
-numpy
 vulkan
-
-# FOR DOCS
-mkdocs
-mkdocs-material
+numpy
+json
+trimesh

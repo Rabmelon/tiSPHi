@@ -14,7 +14,7 @@ class ColorMap:
 
     @ti.func
     def clamp(self, x):
-        return max(0.0, min(1.0, x))
+        return ti.max(0.0, ti.min(1.0, x))
 
     @ti.func
     def map(self, x):
@@ -23,7 +23,7 @@ class ColorMap:
             w = self.wl
         else:
             w = self.wr
-        return self.clamp((w - abs(self.clamp(x) - self.c)) / w * self.h)
+        return self.clamp((w - ti.abs(self.clamp(x) - self.c)) / w * self.h)
 
 
 # @ti.struct_class
