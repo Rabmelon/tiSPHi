@@ -93,9 +93,7 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#types-of-boundary-conditions">Types of boundary conditions</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#simplest-treatments-for-water">Simplest treatments for water</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#free-surface-problems">Free surface problems</a>
+    <li class="toctree-l3"><a class="reference internal" href="#enforced-collision-in-solid-boundary">Enforced collision in solid boundary</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#dummy-particles-or-fixed-boundary-particles">Dummy particles (or fixed-boundary particles)</a>
     </li>
@@ -103,7 +101,7 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#time-integration-and-advection">Time integration and advection</a>
+    <li class="toctree-l2"><a class="reference internal" href="#time-integration">Time integration</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#courant-friedrichs-lewy-cfl">Courant-Friedrichs-Lewy (CFL)</a>
     </li>
@@ -113,6 +111,10 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#rk4-4th-order-runge-kutta-rk4">RK4 - 4th order Runge-Kutta (RK4)</a>
     </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#advection">Advection</a>
+        <ul>
     <li class="toctree-l3"><a class="reference internal" href="#xsph">XSPH</a>
     </li>
         </ul>
@@ -165,13 +167,13 @@
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>SPH foundations</li>
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>SPH foundations</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
   <hr/>
 </div>
+
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
@@ -392,8 +394,11 @@
 </blockquote>
 <h2 id="neighbour-search">Neighbour search</h2>
 <h3 id="grid-method">Grid method</h3>
+<p>...</p>
 <h3 id="prefix-sum-and-counting-sort">Prefix-sum and counting sort</h3>
+<p>...</p>
 <h3 id="hash-grid-method">Hash grid method</h3>
+<p>...</p>
 <h2 id="boundary-treatment">Boundary treatment</h2>
 <h3 id="types-of-boundary-conditions">Types of boundary conditions</h3>
 <blockquote>
@@ -409,7 +414,7 @@
   <img width="500px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/Boundary_conditions_basic.png">
 </div>
 
-<h3 id="simplest-treatments-for-water">Simplest treatments for water</h3>
+<h3 id="enforced-collision-in-solid-boundary">Enforced collision in solid boundary</h3>
 <blockquote>
 <p>@taichiCourse01-10 PPT p43 and 79-85</p>
 </blockquote>
@@ -438,10 +443,8 @@
 <ol>
 <li>多介质的流体混合时，多介质的界面？？？</li>
 </ol>
-</blockquote>
-<h3 id="free-surface-problems">Free surface problems</h3>
+<p><strong>Free surface problems</strong></p>
 <p>The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.</p>
-<blockquote>
 <p><strong>QUESTIONS</strong></p>
 <ol>
 <li>BUT how does the free surface condition implement?</li>
@@ -451,6 +454,7 @@
 <blockquote>
 <p>@Chalk2020, @Bui2021, @Zhao2019</p>
 </blockquote>
+<p><strong>TODO</strong>: add the interpolated scheme and artificial scheme in density, velocity and pressure / stress.</p>
 <p>虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。</p>
 <p>The dummy particle (or ghost particle) method is used to represent the wall boundary. For dummy particles outside the wall boundary, they are spaced apart by <span class="arithmatex">\(\Delta x\)</span>. For repulsive particles at the wall boundary, are <span class="arithmatex">\(\Delta x/2\)</span>.</p>
 <div align="center">
@@ -497,16 +501,16 @@
   \end{array}
 \right.\]</div>
 <p>And this soft repulsive force was combined with dummy particles and applied to simulations of water flow and the propagation of a Bingham material.</p>
-<h2 id="time-integration-and-advection">Time integration and advection</h2>
+<h2 id="time-integration">Time integration</h2>
 <h3 id="courant-friedrichs-lewy-cfl">Courant-Friedrichs-Lewy (CFL)</h3>
 <blockquote>
 <p>@Bui2021 3.6, Yang2021 2.5 and Koschier2019 2.9</p>
 </blockquote>
 <p>The CFL condition is a necessary condition for the convergence of numerical solvers for differential equations and, as a result, provides an upper bound for the time step width.</p>
 <p>The size of <span class="arithmatex">\(\Delta t\)</span> is determined using the Courant-Friedrichs-Lewy (CFL) stability condition, which, for SPH states that:</p>
-<div class="arithmatex">\[\Delta t=C_{CFL}\frac{h}{\Vert \boldsymbol{v}^{max}\Vert}\]</div>
+<div class="arithmatex">\[\Delta t=C_{CFL}\frac{h}{c}\]</div>
 <p>where a suitable constant value for <span class="arithmatex">\(C_{CFL}\)</span> was found to be 0.2 from Yang2021, 0.1 from Bui2021, 0.4 from Koschier2019.
-<span class="arithmatex">\(h\)</span> is the smoothing length and <span class="arithmatex">\(\boldsymbol{v}^{max}\)</span> is the velocity at which the fastest particle travels, which can be the speed of sound <span class="arithmatex">\(c\)</span> of the material with <span class="arithmatex">\(c=\sqrt{E/\rho}\)</span>.</p>
+<span class="arithmatex">\(h\)</span> is the smoothing length and c is the speed of sound of the material, which can be <span class="arithmatex">\(c=\sqrt{E/\rho}\)</span> or <span class="arithmatex">\(c=10\boldsymbol{v}^{max}\)</span>. <span class="arithmatex">\(\boldsymbol{v}^{max}\)</span> is the maximum speed of the material in the simulation.</p>
 <h3 id="symp-euler-symplectic-euler-se">Symp Euler - Symplectic Euler (SE)</h3>
 <blockquote>
 <p>@taichiCourse01-10 PPT p77</p>
@@ -536,6 +540,7 @@ Consider a general ordinary differential equation for a variable <span class="ar
 <div class="arithmatex">\[\phi^{t+\Delta t}=\phi^t+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4)\]</div>
 <div class="arithmatex">\[k_1=f(\phi_1),\ k_2=f(\phi_2),\ k_3=f(\phi_3),\ k_4=f(\phi_4)\]</div>
 <div class="arithmatex">\[\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\frac{\Delta t}{2}k_3\]</div>
+<h2 id="advection">Advection</h2>
 <h3 id="xsph">XSPH</h3>
 <blockquote>
 <p>@Monaghan1992, Chalk2020 Appendix F</p>
