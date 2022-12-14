@@ -279,9 +279,15 @@ And this is the first order correction that reproduces exactly the linear variat
 
 ### Grid method
 
+...
+
 ### Prefix-sum and counting sort
 
+...
+
 ### Hash grid method
+
+...
 
 
 ## Boundary treatment
@@ -301,7 +307,7 @@ Like any other numerical methods, the treatment of boundary condditions in SPH i
 </div>
 
 
-### Simplest treatments for water
+### Enforced collision in solid boundary
 
 > @taichiCourse01-10 PPT p43 and 79-85
 
@@ -322,9 +328,9 @@ Like any other numerical methods, the treatment of boundary condditions in SPH i
 >
 > 1. 多介质的流体混合时，多介质的界面？？？
 
-### Free surface problems
-
-The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.
+> **Free surface problems**
+>
+> The particles that comprise the free surface should satisfy a stress-free condition. When considering large deformations this first requires the detection of free surface particles, followed by a transformation of the stress tensor so that the normal and tangential components are 0.
 
 > **QUESTIONS**
 >
@@ -333,6 +339,8 @@ The particles that comprise the free surface should satisfy a stress-free condit
 ### Dummy particles (or fixed-boundary particles)
 
 > @Chalk2020, @Bui2021, @Zhao2019
+
+**TODO**: add the interpolated scheme and artificial scheme in density, velocity and pressure / stress.
 
 虚拟的边界粒子，本身不具有具体的属性数值。在每一个Step中，在每一个粒子的计算中，先加入一个对Dummy particle对应属性的赋值。
 
@@ -401,7 +409,7 @@ $$\hat{f}(\gamma) = \left\{
 
 And this soft repulsive force was combined with dummy particles and applied to simulations of water flow and the propagation of a Bingham material.
 
-## Time integration and advection
+## Time integration
 
 ### Courant-Friedrichs-Lewy (CFL)
 
@@ -411,10 +419,10 @@ The CFL condition is a necessary condition for the convergence of numerical solv
 
 The size of $\Delta t$ is determined using the Courant-Friedrichs-Lewy (CFL) stability condition, which, for SPH states that:
 
-$$\Delta t=C_{CFL}\frac{h}{\Vert \boldsymbol{v}^{max}\Vert}$$
+$$\Delta t=C_{CFL}\frac{h}{c}$$
 
 where a suitable constant value for $C_{CFL}$ was found to be 0.2 from Yang2021, 0.1 from Bui2021, 0.4 from Koschier2019.
-$h$ is the smoothing length and $\boldsymbol{v}^{max}$ is the velocity at which the fastest particle travels, which can be the speed of sound $c$ of the material with $c=\sqrt{E/\rho}$.
+$h$ is the smoothing length and c is the speed of sound of the material, which can be $c=\sqrt{E/\rho}$ or $c=10\boldsymbol{v}^{max}$. $\boldsymbol{v}^{max}$ is the maximum speed of the material in the simulation.
 
 ### Symp Euler - Symplectic Euler (SE)
 
@@ -460,6 +468,8 @@ $$\phi^{t+\Delta t}=\phi^t+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4)$$
 $$k_1=f(\phi_1),\ k_2=f(\phi_2),\ k_3=f(\phi_3),\ k_4=f(\phi_4)$$
 
 $$\phi_1=\phi^t,\ \phi_2=\phi^t+\frac{\Delta t}{2}k_1,\ \phi_3=\phi^t+\frac{\Delta t}{2}k_2,\ \phi_4=\phi^t+\frac{\Delta t}{2}k_3$$
+
+## Advection
 
 ### XSPH
 

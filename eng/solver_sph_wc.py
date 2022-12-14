@@ -15,7 +15,7 @@ class WCSPHSolver(SPHBase):
         self.exponent = self.ps.mat_fluid[0]["exponent"]
         self.vsound = 40.0      # @Liu2012
 
-        self.init_pressure(self.density0)
+        # self.init_pressure(self.density0)
 
 
     ##############################################
@@ -28,29 +28,27 @@ class WCSPHSolver(SPHBase):
     @ti.func
     def viscosity_force(self, i, j):
         r = self.ps.pt[i].x - self.ps.pt[j].x
+
+        # if self.ps.is_bdy_particle(j) or self.ps.is_rigid(j):
+        #     self.calc_dummy_v_tmp(i, j)
+        #     self.ps.pt[j].pressure = self.ps.pt[i].pressure
+
         res = 2 * (self.ps.dim + 2) * self.viscosity * self.ps.pt[j].m_V * (self.ps.pt[i].v_tmp - self.ps.pt[j].v_tmp).dot(r) / (r.norm()**2 + 0.01 * self.ps.smoothing_len**2) * self.kernel_deriv_corr(i, j)
-
-        if self.ps.is_rigid_dynamic(j):
-            self.ps.pt[j].d_vel += -res
-
         return res
-
-    @ti.func
-    def calc_non_pressure_force_task(self, i, j, ret: ti.template()):
-        ret += self.viscosity_force(i, j)
 
     @ti.func
     def pressure_force(self, i, j):
         res = -self.ps.pt[j].density_tmp * self.ps.pt[j].m_V * (self.ps.pt[i].pressure / self.ps.pt[i].density_tmp**2 + self.ps.pt[j].pressure / self.ps.pt[j].density_tmp**2) * self.kernel_deriv_corr(i, j)
-
-        if self.ps.is_rigid_dynamic(j):
-            self.ps.pt[j].d_vel += -res
-
         return res
 
     @ti.func
-    def calc_pressure_force_task(self, i, j, ret: ti.template()):
-        ret += self.pressure_force(i, j)
+    def calc_d_vel_task(self, i, j, ret: ti.template()):
+        arti_visco = self.calc_arti_viscosity_task(0.0, 0.0, i, j, self.vsound) if self.ps.is_soil_particle(j) else 0.0
+        tmp = arti_visco + self.viscosity_force(i, j) + self.pressure_force(i, j)
+        ret += tmp
+
+        if self.ps.is_rigid_dynamic(j):
+            self.ps.pt[j].d_vel -= tmp
 
     @ti.func
     def calc_rep_force_task(self, i, j, ret: ti.template()):
@@ -74,16 +72,19 @@ class WCSPHSolver(SPHBase):
         #         self.ps.pt[i].density_tmp = tmp_density * self.ps.pt[i].CSPM_f
 
         for i in range(self.ps.particle_num[None]):
+            if self.ps.is_fluid_particle(i):
+                self.ps.pt[i].pressure = ti.max(self.stiffness * (ti.pow(self.ps.pt[i].density_tmp / self.density0, self.exponent) - 1.0), 0.0)
+
             if self.ps.is_bdy_particle(i) or self.ps.is_rigid_dynamic(i):
                 # @adami2012
                 bdy_v_tmp = type_vec3f(0)
                 self.ps.for_all_neighbors(i, self.calc_bdy_vel_task, bdy_v_tmp)
                 self.ps.pt[i].v_tmp = 2 * self.ps.pt[i].v - bdy_v_tmp * self.ps.pt[i].CSPM_f
 
+                # self.ps.pt[i].density_tmp = self.density0
                 bdy_density_tmp = 0.0
                 self.ps.for_all_neighbors(i, self.calc_bdy_density_task, bdy_density_tmp)
                 self.ps.pt[i].density_tmp = ti.max(bdy_density_tmp * self.ps.pt[i].CSPM_f, self.density0)
-                # self.ps.pt[i].density_tmp = self.density0
 
                 bdy_pressure_tmp = 0.0
                 self.ps.for_all_neighbors(i, self.calc_bdy_pressure_task, bdy_pressure_tmp)
@@ -101,13 +102,7 @@ class WCSPHSolver(SPHBase):
 
                 # d vel
                 tmp_d_vel = type_vec3f(0)
-                self.ps.pt[i].pressure = ti.max(self.stiffness * (ti.pow(self.ps.pt[i].density_tmp / self.density0, self.exponent) - 1.0), 0.0)
-
-                # non-pressure force
-                self.ps.for_all_neighbors(i, self.calc_non_pressure_force_task, tmp_d_vel)
-
-                # pressure force
-                self.ps.for_all_neighbors(i, self.calc_pressure_force_task, tmp_d_vel)
+                self.ps.for_all_neighbors(i, self.calc_d_vel_task, tmp_d_vel)
 
                 # repulsive force
                 if self.ps.flag_boundary == self.ps.bdy_dummy_rep or self.ps.flag_boundary == self.ps.bdy_rep:
@@ -117,14 +112,6 @@ class WCSPHSolver(SPHBase):
 
             if self.ps.is_rigid_static(i):
                 self.ps.pt[i].d_vel = type_vec3f(0)
-
-            # if self.ps.pt[i].id0 == 0:
-            #     pti = self.ps.pt[i]
-            #     print("==", pti.id0, i, pti.x[0:2], pti.density_tmp, pti.d_density, pti.v_tmp[0:2], pti.d_vel[0:2])
-            # if self.ps.pt[i].id0 == 15:
-            #     pti = self.ps.pt[i]
-            #     print("==", pti.id0, i, pti.x[0:2], pti.density_tmp, pti.d_density, pti.v_tmp[0:2], pti.d_vel[0:2])
-
 
 
     @ti.func

@@ -99,7 +99,7 @@ def ui_sim(config: SimConfiger, case: Simulation):
         # run sim
         if not pause_flag:
             # step
-            for i in range(substeps):
+            for _ in range(substeps):
                 # print("========", count_step)
                 case.solver.step()
                 count_step += 1
@@ -183,6 +183,7 @@ def ui_sim(config: SimConfiger, case: Simulation):
             elif e.key == 'p':
                 captureScreen(window, cappath, get_time_stamp())
             elif e.key == 'r':
+				# ! wrong now
                 case.ps.clear_particles()
                 case.ps.initialize_particles()
                 assign_color(case, given_max, given_min, fix_max, fix_min)

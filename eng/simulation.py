@@ -1,6 +1,7 @@
 from eng.configer_builder import SimConfiger
 from eng.particle_system import ParticleSystem
 from eng.solver_sph_wc import WCSPHSolver
+from eng.solver_sph_muI import MUISPHSolver
 
 class Simulation:
     def __init__(self, config: SimConfiger) -> None:
@@ -12,5 +13,7 @@ class Simulation:
     def build_solver(self):
         if self.solver_type == 1:
             return WCSPHSolver(self.ps)
+        elif self.solver_type == 2:
+            return MUISPHSolver(self.ps)
         else:
             raise NotImplementedError(f"Solver type {self.solver_type} has not been implemented.")

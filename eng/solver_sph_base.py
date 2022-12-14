@@ -171,17 +171,33 @@ class SPHBase:
     ##############################################
     @ti.func
     def calc_v_grad_task(self, i, j, ret: ti.template()):
-        if self.ps.pt[j].mat_type == self.ps.pt[i].mat_type:
-            tmp = self.kernel_deriv_corr(i, j)
-            ret += self.ps.pt[j].m_V * (self.ps.pt[j].v_tmp - self.ps.pt[i].v_tmp) @ tmp.transpose()
-            # if self.ps.pt[i].id0 == 7:
-            #     print("====", self.ps.pt[j].id0, "j", self.ps.pt[j].mat_type, "x", self.ps.pt[j].x[0:2], "v_tmp", self.ps.pt[j].v_tmp[0:2], "ker", tmp[0:2], ret[0,0])
+        tmp = self.kernel_deriv_corr(i, j)
+
+        # if self.ps.is_bdy_particle(j) or self.ps.is_rigid(j):
+        #     self.calc_dummy_v_tmp(i, j)
+
+        ret += self.ps.pt[j].m_V * (self.ps.pt[j].v_tmp - self.ps.pt[i].v_tmp) @ tmp.transpose()
+        # if self.ps.pt[j].mat_type == self.ps.pt[i].mat_type:
+        #     tmp = self.kernel_deriv_corr(i, j)
+        #     ret += self.ps.pt[j].m_V * (self.ps.pt[j].v_tmp - self.ps.pt[i].v_tmp) @ tmp.transpose()
 
     @ti.func
     def calc_d_density_task(self, i, j, ret: ti.template()):
         # * need to multiply pti.density_tmp after summation
+
+        # if self.ps.is_bdy_particle(j) or self.ps.is_rigid(j):
+        #     self.calc_dummy_v_tmp(i, j)
+
         tmp = self.ps.pt[j].m_V * (self.ps.pt[i].v_tmp - self.ps.pt[j].v_tmp).transpose() @ self.kernel_deriv_corr(i, j)
         ret += tmp[0]
+
+    @ti.func
+    def calc_d_vel_from_stress_task(self, i, j, ret: ti.template()):
+        arti_visco = self.calc_arti_viscosity_task(0.0, 0.0, i, j, self.vsound) if self.ps.is_soil_particle(j) else 0.0
+        tmp = self.ps.pt[j].m_V * self.ps.pt[j].density_tmp * (self.ps.pt[j].stress_tmp / self.ps.pt[j].density_tmp**2 + self.ps.pt[i].stress_tmp / self.ps.pt[i].density_tmp**2 + arti_visco * self.I3) @ self.kernel_deriv_corr(i, j)
+        ret += tmp
+        if self.ps.is_rigid_dynamic(j):
+            self.ps.pt[j].d_vel -= tmp
 
 
 
@@ -194,9 +210,10 @@ class SPHBase:
 
     @ti.func
     def chk_density(self, i, density0):
-        density_min = density0 * (1 - self.alert_ratio)
-        # density_max = density0 * (1 + self.alert_ratio)
+        density_min = density0
+        # density_min = density0 * (1 - self.alert_ratio)
         self.ps.pt[i].density = ti.max(density_min, self.ps.pt[i].density)
+        # density_max = density0 * (1 + self.alert_ratio)
         # self.ps.pt[i].density = ti.min(density_max, self.ps.pt[i].density)
 
     @ti.func
@@ -547,9 +564,9 @@ class SPHBase:
                     collision_normal[0] += -1.0
                     self.ps.pt[i].x[0] = self.ps.domain_start[0] + dist_pt_r
 
-                if pos[1] > self.ps.domain_end[1] - dist_pt_r:
-                    collision_normal[1] += 1.0
-                    self.ps.pt[i].x[1] = self.ps.domain_end[1] - dist_pt_r
+                # if pos[1] > self.ps.domain_end[1] - dist_pt_r:
+                #     collision_normal[1] += 1.0
+                #     self.ps.pt[i].x[1] = self.ps.domain_end[1] - dist_pt_r
                 if pos[1] <= self.ps.domain_start[1] + dist_pt_r:
                     collision_normal[1] += -1.0
                     self.ps.pt[i].x[1] = self.ps.domain_start[1] + dist_pt_r
@@ -625,7 +642,8 @@ class SPHBase:
     @ti.func
     def calc_bdy_stress_task(self, i, j, ret: ti.template()):
         if self.ps.is_real_particle(j):
-            ret += self.ps.pt[j].m_V * self.ps.pt[j].stress * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
+            ret += self.ps.pt[j].m_V * self.ps.pt[j].stress_tmp * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
+
 
     ##############################################
     # Repulsive particles

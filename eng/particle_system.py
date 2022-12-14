@@ -134,12 +134,11 @@ class ParticleSystem:
         # Particle num of each grid
         self.grid_particle_num = ti.field(int, shape=self.grid_num_total)
         self.grid_particle_num_temp = ti.field(int, shape=self.grid_num_total)
-        # grid_node = ti.root.dense(ti.i, self.grid_num_total)
-        # grid_node.place(self.grid_particle_num, self.grid_particle_num_temp)
 
         # rigid body
         self.rigid_rest_cm = type_vec3f.field(shape=ti.max(len(self.rigid_blocks)+len(self.rigid_bodies), 1))
 
+		# prefix sum
         self.prefix_sum_executor = ti.algorithms.PrefixSumExecutor(self.grid_particle_num.shape[0])
 
         ##############################################
@@ -232,6 +231,7 @@ class ParticleSystem:
             add_boundary(self, self.rep_boundary, self.mat_rep_type, offset=self.particle_radius, color=[170, 17, 255])
 
 
+	# ! want to clear and reset the particles, wrong now
     @ti.kernel
     def clear_particles(self):
         for i in range(self.particle_num[None]):
@@ -251,12 +251,6 @@ class ParticleSystem:
 
     @ti.func
     def flatten_grid_index(self, grid_index):
-        # res = -1
-        # if self.dim == 3:
-        #     res = grid_index[0] * self.grid_num[1] * self.grid_num[2] + grid_index[1] * self.grid_num[2] + grid_index[2]
-        # elif self.dim == 2:
-        #     res = grid_index[0] * self.grid_num[1] + grid_index[1]
-        # return res
         return grid_index[0] * self.grid_num[1] * self.grid_num[2] + grid_index[1] * self.grid_num[2] + grid_index[2]
 
     @ti.func
@@ -292,8 +286,6 @@ class ParticleSystem:
     def initialize_particle_system(self):
         self.update_grid_id()
         self.prefix_sum_executor.run(self.grid_particle_num)
-        # FIXME: change to taichi built-in prefix_sum_inclusive_inplace after next Taichi release i.e., 1.1.4
-        # parallel_prefix_sum_inclusive_inplace(self.grid_particle_num, self.grid_particle_num.shape[0])
         self.counting_sort()
 
     @ti.func
@@ -303,7 +295,8 @@ class ParticleSystem:
             if self.dim == 2 and offset[2] != 0:
                 continue
             grid_index = self.flatten_grid_index(center_cell + offset)
-            for j in range(self.grid_particle_num[ti.max(0, grid_index-1)], self.grid_particle_num[grid_index]):
+            j_range_begin = self.grid_particle_num[grid_index-1] if grid_index > 0 else 0
+            for j in range(j_range_begin, self.grid_particle_num[grid_index]):
                 if i != j and (self.pt[i].x - self.pt[j].x).norm() < self.support_radius:
                     task(i, j, ret)
 

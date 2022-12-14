@@ -4,7 +4,9 @@
   <img width="200px" src="https://github.com/Rabmelon/tiSPHi/raw/master/docs/img/tiSPHi_logo_squre.png">
 </div>
 
-For full introduction please visit [tiSPHi github](https://github.com/Rabmelon/tiSPHi).
+**! UNDER CONSTRUCTION !**
+
+For details of code please visit [tiSPHi github](https://github.com/Rabmelon/tiSPHi).
 
 ## Prerequisites
 
@@ -15,15 +17,28 @@ For full introduction please visit [tiSPHi github](https://github.com/Rabmelon/t
 ### Python requirements
 
 ```
-# FOR TAICHI PROGRAMS
 taichi
 numpy
 vulkan
+json
+trimesh
 ```
 
 ## Project layout
 
-    mkdocs.yml    # The configuration file.
+	data/
+		models/			# Store stl or obj model files.
+		scenes/			# Store scene files.
+	eng/
+		...				# SPH solver `.py` files.
+	img/
+		...				# Images used in readme.
+	run_simulation.py	# Runner of a simulation.
+	requirements.txt
+	LICENSE
+
     docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+        index.md  		# The documentation homepage.
+        ...       		# Other markdown pages, images and other files.
+    mkdocs.yml    		# The configuration file.
+

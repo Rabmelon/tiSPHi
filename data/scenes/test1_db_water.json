@@ -48,12 +48,6 @@
 			"viscosity": 0.005,
 			"stiffness": 50000,
 			"exponent": 7
-		},
-		{
-			"matId": 1,
-			"matType": 11,
-			"color": [155, 55, 55],
-			"density0": 2000
 		}
 	],
 	"FluidBlocks": [
