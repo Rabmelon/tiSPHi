@@ -4,7 +4,9 @@
   <img width="200px" src="./img/tiSPHi_logo_squre.png">
 </div>
 
-An accurate, stable, fast, extendable fluid-solid coupling SPH solver
+An accurate, stable, fast, extendable fluid-solid coupling SPH solver.
+
+For old documents about SPH, please find the [doc](https://rabmelon.github.io/tiSPHi/).
 
 ## News
 
@@ -74,8 +76,8 @@ Fig. Granular column collapse at 0.61s (under μ(I) model), 2D colored by accumu
         "xsph": false,				// `true` means using XSPH method to update the position
 
         "colorTitle": 7,			// colored variable, see `eng/ui_sim.py`
-		"colorGroup": 0,		// colored particle group, 0: flow, 1: flow and rigid, 2: flow, rigid and bdy
-		"comment": "sd, Fd",		// comment shown in GUI
+	"colorGroup": 0,			// colored particle group, 0: flow, 1: flow and rigid, 2: flow, rigid and bdy
+	"comment": "sd, Fd",			// comment shown in GUI
         "stepsPerRenderUpdate": 10,		// number of simulation steps per rendered frame
         "pauseAtStart": true,			// `true` means pause simulation at beginning
         "stopEveryStep": 8000,			// pause simulation at every given step value
@@ -90,11 +92,11 @@ Fig. Granular column collapse at 0.61s (under μ(I) model), 2D colored by accumu
         "fixMax": 1,				// `1` (true) means set the maximum value as constant, otherwise it will change until the real value is bigger than `givenMax`
         "fixMin": 0,				// `1` (true) means set the minimum value as constant, otherwise it will change until the real value is smaller than `givenMin`
 
-		"exportEveryTime": 0.001,
-		"exportEveryRender": 0,		// save frame in specific steps. `5` means every `5 × stepsPerRenderUpdate` step will be saved in a new folder
-		"exportFrame": false,		// save png files
-		"exportVTK": false,		// save vtu files
-		"exportCSV": false		// save csv files
+	"exportEveryTime": 0.001,		// save frame in every specific time.
+	"exportEveryRender": 0,			// save frame in specific steps. `5` means every `5 × stepsPerRenderUpdate` step will be saved in a new folder
+	"exportFrame": false,			// save png files
+	"exportVTK": false,			// save vtu files
+	"exportCSV": false			// save csv files
     },
 ```
 
