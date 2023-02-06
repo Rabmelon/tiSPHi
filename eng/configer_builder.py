@@ -13,37 +13,27 @@ class SimConfiger:
             assert name in self.config["Configuration"]
         return self.config["Configuration"][name]
 
-    def get_ui(self, name, enforce_exist=False):
-        if enforce_exist:
-            assert name in self.config["UIcontrol"]
-        return self.config["UIcontrol"][name]
-
     def get_materials(self):
         if "Materials" in self.config:
             return self.config["Materials"]
         else:
             return []
 
-    def get_fluid_bodies(self):
-        if "FluidBodies" in self.config:
-            return self.config["FluidBodies"]
+    def get_blocks(self):
+        if "Blocks" in self.config:
+            return self.config["Blocks"]
         else:
             return []
 
-    def get_fluid_blocks(self):
-        if "FluidBlocks" in self.config:
-            return self.config["FluidBlocks"]
+    def get_bodies(self):
+        if "Bodies" in self.config:
+            return self.config["Bodies"]
         else:
             return []
 
-    def get_rigid_bodies(self):
-        if "RigidBodies" in self.config:
-            return self.config["RigidBodies"]
+    def get_motions(self):
+        if "Motions" in self.config:
+            return self.config["Motions"]
         else:
             return []
 
-    def get_rigid_blocks(self):
-        if "RigidBlocks" in self.config:
-            return self.config["RigidBlocks"]
-        else:
-            return []

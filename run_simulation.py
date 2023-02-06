@@ -20,10 +20,10 @@ if __name__ == "__main__":
     scene_name = scene_path.split("/")[-1].split(".")[0]
 
     # ti.init(arch=ti.cpu, debug=True, cpu_max_num_threads=1)
-    ti.init(arch=ti.gpu, device_memory_fraction=cfg.get_cfg("GPUmemoryPercent"), default_fp=ti.f64, kernel_profiler=True)
+    ti.init(arch=ti.gpu, device_memory_fraction=cfg.get_cfg("GPUmemoryPercent"), default_fp=ti.f64)
 
     print("\n========== SIMULATION ==========")
     case = Simulation(config=cfg)
-    ui_sim(config=cfg, case=case)
+    ui_sim(case=case)
 
     print("\n========== END ==========")

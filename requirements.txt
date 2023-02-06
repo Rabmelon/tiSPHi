@@ -1,5 +1,4 @@
-taichi
+taichi==1.2.2
 vulkan
 numpy
-json
 trimesh

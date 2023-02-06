@@ -1,0 +1,110 @@
+{
+	"Configuration":
+	{
+		"GPUmemoryPercent": 0.1,
+		"is2D": true,
+        "domainStart": [0.0, 0.0, 0.0],
+        "domainEnd": [0.16, 0.1, 0.05],
+		"gravitation": [0.0, -9.81, 0.0],
+		"particleRadius": 0.00025,
+		"kappa": 2.0,
+		"kh": 1.5,
+
+		"simulationMethod": 3,
+		"timeStepSizeMin": 1e-6,
+		"boundary": 2,
+		"kernel": 1,
+		"kernelCorrection": 0,
+		"timeIntegration": 2,
+		"xsph": true,
+
+		"colorTitle": 3,
+		"colorGroup": 0,
+		"comment": "sd, Fd, v=0.64",
+		"stepsPerRenderUpdate": 10,
+		"pauseAtStart": true,
+		"stopEveryStep": 0,
+		"stopAtStep": 0,
+		"exitAtStep": 0,
+		"stopAtTime": 0,
+		"exitAtTime": 0.1,
+		"showBdyPts": true,
+		"kradius": 1.15,
+		"givenMax": -1,
+		"givenMin": -1,
+		"fixMax": 0,
+		"fixMin": 1,
+
+		"exportEveryTime": 0.001,
+		"exportEveryRender": 0,
+		"exportFrame": false,
+		"exportVTK": false,
+		"exportCSV": false
+	},
+	"Materials": [
+		{
+			"matId": 0,
+			"matType": 2,
+			"color": [180, 100, 24],
+			"density0": 900,
+			"cohesion": 0,
+			"friction": 30,
+			"EYoungMod": 2e6,
+			"poison": 0.3,
+			"dilatancy": 0
+		},
+		{
+			"matId": 1,
+			"matType": 11,
+			"color": [155, 55, 55],
+			"density0": 7000
+		}
+	],
+	"Blocks": [
+		{
+            "objectId": 0,
+			"size": [0.16, 0.05, 0.05],
+			"translation": [0, 0, 0],
+			"velocity": [0.0, 0.0, 0.0],
+			"materialId": 0
+		},
+		{
+            "objectId": 1,
+			"size": [0.16, 0.014, 0.05],
+			"translation": [0, 0.066, 0],
+			"velocity": [0.0, 0.0, 0.0],
+			"materialId": 0
+		},
+		{
+            "objectId": 2,
+			"size": [0.04, 0.016, 0.05],
+			"translation": [0, 0.05, 0],
+			"velocity": [0.0, 0.0, 0.0],
+			"materialId": 0
+		},
+		{
+            "objectId": 3,
+			"size": [0.116, 0.016, 0.05],
+			"translation": [0.044, 0.05, 0],
+			"velocity": [0.0, 0.0, 0.0],
+			"materialId": 0
+		},
+		{
+            "objectId": 4,
+			"size": [0.004, 0.016, 0.05],
+			"translation": [0.04, 0.05, 0],
+			"velocity": [0.64, 0.0, 0.0],
+			"materialId": 1,
+			"isDynamic": 0
+		}
+	],
+	"Motions": [
+		{
+			"motionId": 1,
+			"startTime": 0.05,
+			"endTime": 0.1,
+			"velocityInit": [0.04, 0.0, 0.0],
+			"constant": true
+		}
+	]
+}

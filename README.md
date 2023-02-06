@@ -8,7 +8,7 @@ An accurate, stable, fast, extendable fluid-solid coupling SPH solver
 
 ## News
 
-**14 Dec. 2022** - 2D WCSPH and µ(I)SPH WORK NOW!
+**06 Feb. 2023** - Still problems in all simulations!
 
 ## Demos
 
@@ -30,7 +30,7 @@ Fig. Water dambreak at 1.6s, 2D colored by pressure and 3D colored by velocity (
   <img width="600px" src="./img/sim_2022_12_14_cc_muI_eequ.png">
 </div>
 
-Fig. Granular column collapse at 0.61s, 2D colored by accumulated equivalent plastic strain. You could find pairing instability problem in the left-bottom side.
+Fig. Granular column collapse at 0.61s (under μ(I) model), 2D colored by accumulated equivalent total strain. You could find pairing instability problem in the left-bottom side.
 
 
 ## Runtime
@@ -63,9 +63,9 @@ Fig. Granular column collapse at 0.61s, 2D colored by accumulated equivalent pla
         "gravitation": [0.0, -9.81, 0.0],	// vector to define the gravitational acceleration
         "particleRadius": 0.005,			// the radius of the particles in the simulation (all have the same radius)
         "kappa": 2.0,						// smoothing length multiplier
-        "kh": 1.2,							// supporting radius multiplier
+        "kh": 1.5,							// supporting radius multiplier
 
-        "simulationMethod": 1,				// 1: WCSPH, 2: µ(I)SPH
+        "simulationMethod": 1,				// 1: WCSPH, 2: µ(I)SPH, 3: DPSPH
         "timeStepSizeMin": 1e-4,			// the initial (and minimum) time step size used for the time integration
         "boundary": 2,						// 0: No boundary, 1: enforced collision bdy, 2: dummy particle bdy, 3: repulsive particle bdy, 4: repulsive+dummy particle bdy (CD-SBT)
         "kernel": 1,						// 0: cubic-spline kernel, 1: Wendland C2 kernel
@@ -74,6 +74,8 @@ Fig. Granular column collapse at 0.61s, 2D colored by accumulated equivalent pla
         "xsph": false,						// `true` means using XSPH method to update the position
 
         "colorTitle": 7,					// colored variable, see `eng/ui_sim.py`
+		"colorGroup": 0,					// colored particle group, 0: flow, 1: flow and rigid, 2: flow, rigid and bdy
+		"comment": "sd, Fd",				// comment shown in GUI
         "stepsPerRenderUpdate": 10,			// number of simulation steps per rendered frame
         "pauseAtStart": true,				// `true` means pause simulation at beginning
         "stopEveryStep": 8000,				// pause simulation at every given step value
@@ -88,11 +90,11 @@ Fig. Granular column collapse at 0.61s, 2D colored by accumulated equivalent pla
         "fixMax": 1,						// `1` (true) means set the maximum value as constant, otherwise it will change until the real value is bigger than `givenMax`
         "fixMin": 0,						// `1` (true) means set the minimum value as constant, otherwise it will change until the real value is smaller than `givenMin`
 
-        "showParticleInfo": [],				// `[0, 19]` means print the information of seleted particles (used only in debug)
-        "exportFrame": 0,					// save png in specific steps. `5` means every `5 × stepsPerRenderUpdate` step will be saved in a new folder
-        "exportCSV": false,					// not implemented well yeet
-        "exportPly": false,					// not implemented yet
-        "exportObj": false					// not implemented yet
+		"exportEveryTime": 0.001,
+		"exportEveryRender": 0,				// save frame in specific steps. `5` means every `5 × stepsPerRenderUpdate` step will be saved in a new folder
+		"exportFrame": false,				// save png files
+		"exportVTK": false,					// save vtu files
+		"exportCSV": false					// save csv files
     },
 ```
 
@@ -131,8 +133,6 @@ Fig. Granular column collapse at 0.61s, 2D colored by accumulated equivalent pla
             "objectId": 0,					// id of the current object
             "size": [1.2, 0.6, 0.2],		// cube size in x, y, z direction
             "translation": [0, 0, 0],		// cube left-down-backward coner position
-            "rotationAxis": [0, 1, 0],		// axis used to rotate the particle data after loading
-            "rotationAngle": 0,				// rotation angle for the initial rotation of the particle data
             "velocity": [0.0, 0.0, 0.0],	// the initial velocity is set for all particles in the fluid model
             "materialId": 0					// the material id of current object
         }

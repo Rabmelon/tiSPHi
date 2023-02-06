@@ -19,6 +19,7 @@ class SPHBase:
         self.dt_min = self.ps.cfg.get_cfg("timeStepSizeMin")
         self.dt = ti.field(float, shape=())
         self.dt[None] = self.dt_min
+
         self.I = ti.Matrix(np.eye(self.ps.dim))
         self.I3 = ti.Matrix(np.eye(3))
         self.epsilon = 1e-8
@@ -40,9 +41,9 @@ class SPHBase:
     def step(self):
         self.ps.initialize_particle_system()
         self.calc_kernel_corr()
-        if self.ps.flag_boundary == self.ps.bdy_dummy:
-            self.calc_boundary_dist()
-        self.init_real_particles_tmp()
+        # if self.ps.flag_boundary == self.ps.bdy_dummy:	# ! only dummy now, no rep
+        #     self.calc_boundary_dist()
+        self.init_real2tmp()
         self.substep()
         self.advect_pos()
         self.advect_something()
@@ -54,6 +55,8 @@ class SPHBase:
             self.substep_SE()
         elif self.flagTI == 2:
             self.substep_LF()
+        elif self.flagTI == 3:
+            self.substep_VV()
         elif self.flagTI == 4:
             self.substep_RK()
 
@@ -62,19 +65,14 @@ class SPHBase:
         pass
 
     @ti.kernel
-    def init_real_particles_tmp(self):
+    def init_real2tmp(self):
         for i in range(self.ps.particle_num[None]):
             if self.ps.is_real_particle(i):
                 self.ps.pt[i].density_tmp = self.ps.pt[i].density
                 self.ps.pt[i].v_tmp = self.ps.pt[i].v
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].stress_tmp = self.ps.pt[i].stress
 
-    @ti.func
-    def upd_from_tmp(self, i):
-        if self.ps.is_real_particle(i):
-            self.ps.pt[i].density = self.ps.pt[i].density_tmp
-            self.ps.pt[i].v = self.ps.pt[i].v_tmp
-            self.ps.pt[i].stress = self.ps.pt[i].stress_tmp
 
     ##############################################
     # SE
@@ -85,6 +83,7 @@ class SPHBase:
                 self.ps.pt[i].density += self.dt[None] * self.ps.pt[i].d_density
                 self.ps.pt[i].set_volume()
                 self.ps.pt[i].v += self.dt[None] * self.ps.pt[i].d_vel
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].stress += self.dt[None] * self.ps.pt[i].d_stress
 
     def substep_SE(self):
@@ -101,6 +100,7 @@ class SPHBase:
                 self.ps.pt[i].density_tmp += 0.5 * self.dt[None] * self.ps.pt[i].d_density
                 self.ps.pt[i].m_V = self.ps.pt[i].mass / self.ps.pt[i].density_tmp
                 self.ps.pt[i].v_tmp += 0.5 * self.dt[None] * self.ps.pt[i].d_vel
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].stress_tmp += 0.5 * self.dt[None] * self.ps.pt[i].d_stress
 
     @ti.kernel
@@ -110,6 +110,7 @@ class SPHBase:
                 self.ps.pt[i].density += self.dt[None] * self.ps.pt[i].d_density
                 self.ps.pt[i].set_volume()
                 self.ps.pt[i].v += self.dt[None] * self.ps.pt[i].d_vel
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].stress += self.dt[None] * self.ps.pt[i].d_stress
 
     def substep_LF(self):
@@ -120,7 +121,16 @@ class SPHBase:
 
 
     ##############################################
-    # RK # ! too large increase!!!
+    # Velocity-Verlet
+	# ! under construction
+    def substep_VV(self):
+        self.one_step()
+        self.advect_VV_half()
+        self.one_step()
+        self.advect_VV()
+
+    ##############################################
+    # RK
     @ti.kernel
     def advect_RK_4(self):
         for i in range(self.ps.particle_num[None]):
@@ -128,6 +138,7 @@ class SPHBase:
                 self.ps.pt[i].density_tmp = 0.5 * self.dt[None] * self.ps.pt[i].d_density + self.ps.pt[i].density
                 self.ps.pt[i].m_V = self.ps.pt[i].mass / self.ps.pt[i].density_tmp
                 self.ps.pt[i].v_tmp = 0.5 * self.dt[None] * self.ps.pt[i].d_vel + self.ps.pt[i].v
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].stress_tmp = 0.5 * self.dt[None] * self.ps.pt[i].d_stress + self.ps.pt[i].stress
 
     @ti.kernel
@@ -136,6 +147,7 @@ class SPHBase:
             if self.ps.is_real_particle(i):
                 self.ps.pt[i].d_density_RK = 0.0
                 self.ps.pt[i].d_vel_RK = type_vec3f(0)
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].d_stress_RK = type_mat3f(0)
 
     @ti.kernel
@@ -144,6 +156,7 @@ class SPHBase:
             if self.ps.is_real_particle(i):
                 self.ps.pt[i].d_density_RK += self.ps.pt[i].d_density * m
                 self.ps.pt[i].d_vel_RK += self.ps.pt[i].d_vel * m
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].d_stress_RK += self.ps.pt[i].d_stress * m
 
     @ti.kernel
@@ -153,6 +166,7 @@ class SPHBase:
                 self.ps.pt[i].density += self.dt[None] / 6.0 * self.ps.pt[i].d_density_RK
                 self.ps.pt[i].set_volume()
                 self.ps.pt[i].v += self.dt[None] / 6.0 * self.ps.pt[i].d_vel_RK
+            if self.ps.is_soil_particle(i):
                 self.ps.pt[i].stress += self.dt[None] / 6.0 * self.ps.pt[i].d_stress_RK
 
     def substep_RK(self):
@@ -177,9 +191,6 @@ class SPHBase:
         #     self.calc_dummy_v_tmp(i, j)
 
         ret += self.ps.pt[j].m_V * (self.ps.pt[j].v_tmp - self.ps.pt[i].v_tmp) @ tmp.transpose()
-        # if self.ps.pt[j].mat_type == self.ps.pt[i].mat_type:
-        #     tmp = self.kernel_deriv_corr(i, j)
-        #     ret += self.ps.pt[j].m_V * (self.ps.pt[j].v_tmp - self.ps.pt[i].v_tmp) @ tmp.transpose()
 
     @ti.func
     def calc_d_density_task(self, i, j, ret: ti.template()):
@@ -191,20 +202,12 @@ class SPHBase:
         tmp = self.ps.pt[j].m_V * (self.ps.pt[i].v_tmp - self.ps.pt[j].v_tmp).transpose() @ self.kernel_deriv_corr(i, j)
         ret += tmp[0]
 
-    @ti.func
-    def calc_d_vel_from_stress_task(self, i, j, ret: ti.template()):
-        arti_visco = self.calc_arti_viscosity_task(0.0, 0.0, i, j, self.vsound) if self.ps.is_soil_particle(j) else 0.0
-        tmp = self.ps.pt[j].m_V * self.ps.pt[j].density_tmp * (self.ps.pt[j].stress_tmp / self.ps.pt[j].density_tmp**2 + self.ps.pt[i].stress_tmp / self.ps.pt[i].density_tmp**2 + arti_visco * self.I3) @ self.kernel_deriv_corr(i, j)
-        ret += tmp
-        if self.ps.is_rigid_dynamic(j):
-            self.ps.pt[j].d_vel -= tmp
-
-
 
     ##############################################
     # Assist
     ##############################################
-    def calc_dt_CFL(self, CFL_component, vsound, dt_min):
+    @ti.kernel
+    def calc_dt_CFL(self, CFL_component: float, vsound: float, dt_min: float) -> float:
         dt = CFL_component * self.ps.smoothing_len / vsound
         return ti.max(dt_min, dt - dt % dt_min)
 
@@ -215,10 +218,11 @@ class SPHBase:
         self.ps.pt[i].density = ti.max(density_min, self.ps.pt[i].density)
         # density_max = density0 * (1 + self.alert_ratio)
         # self.ps.pt[i].density = ti.min(density_max, self.ps.pt[i].density)
+        self.ps.pt[i].set_volume()
 
     @ti.func
     def xsph_task(self, i, j, ret: ti.template()):
-        if self.ps.pt[j].mat_type < 10:
+        if self.ps.is_same_type(i, j):
             ret += self.ps.pt[j].m_V * (self.ps.pt[j].v - self.ps.pt[i].v) * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
 
     @ti.kernel
@@ -227,9 +231,11 @@ class SPHBase:
         for i in range(self.ps.particle_num[None]):
             if self.ps.is_real_particle(i):
                 xsph_sum = type_vec3f(0)
-                if self.flagXSPH:
+                if self.flagXSPH and self.ps.pt[i].is_dynamic:
                     self.ps.for_all_neighbors(i, self.xsph_task, xsph_sum)
-                self.ps.pt[i].x += self.dt[None] * (self.ps.pt[i].v + xsph_component * xsph_sum)
+                    self.ps.pt[i].x += self.dt[None] * (self.ps.pt[i].v + xsph_component * xsph_sum)
+                else:
+                    self.ps.pt[i].x += self.dt[None] * self.ps.pt[i].v
 
     @ti.func
     def advect_something_func(self, i):
@@ -238,8 +244,7 @@ class SPHBase:
     @ti.kernel
     def advect_something(self):
         for i in range(self.ps.particle_num[None]):
-            if self.ps.is_real_particle(i):
-                self.advect_something_func(i)
+            self.advect_something_func(i)
 
     @ti.kernel
     def init_stress(self, density0: float, fric: float):
@@ -380,8 +385,9 @@ class SPHBase:
     # CSPM
     @ti.func
     def calc_CSPM_f_task(self, i, j, ret: ti.template()):
-        # if self.ps.pt[j].mat_type == self.ps.pt[i].mat_type:
-        if self.ps.is_real_particle(j):
+        # ! mat j==i or all real, or all?
+        if self.ps.is_flow_particle(j):
+        # if self.ps.is_same_type(j, i):
             ret += self.ps.pt[j].m_V * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
 
     @ti.kernel
@@ -393,25 +399,28 @@ class SPHBase:
 
     @ti.func
     def calc_CSPM_L_task(self, i, j, ret: ti.template()):
-        if self.ps.pt[j].mat_type == self.ps.pt[i].mat_type:
+        # if self.ps.is_flow_particle(j):
+        if self.ps.is_same_type(j, i):
             tmp = self.kernel_derivative(self.ps.pt[i].x - self.ps.pt[j].x)
+
+            # 1.2.2
             ret += self.ps.pt[j].m_V * (self.ps.pt[j].x - self.ps.pt[i].x) @ tmp.transpose()
 
     @ti.kernel
     def calc_CSPM_L(self):
         for i in range(self.ps.particle_num[None]):
-            if self.ps.is_real_particle(i):
+            tmp_CSPM_L_inv = ti.math.eye(3)
+            if self.ps.is_flow_particle(i):
                 tmp_CSPM_L = type_mat3f(0)
-                tmp_CSPM_L_inv = ti.math.eye(3)
                 self.ps.for_all_neighbors(i, self.calc_CSPM_L_task, tmp_CSPM_L)
                 if self.ps.dim == 2:
                     tmp2 = trans_mat_3_2(tmp_CSPM_L)
-                    if ti.math.determinant(tmp2) > self.epsilon:
+                    if ti.abs(ti.math.determinant(tmp2)) > self.epsilon:
                         tmp_CSPM_L_inv = trans_mat_2_3_fill0((tmp2).inverse())
                 elif self.ps.dim == 3:
-                    if ti.math.determinant(tmp_CSPM_L) > self.epsilon:
+                    if ti.abs(ti.math.determinant(tmp_CSPM_L)) > self.epsilon:
                         tmp_CSPM_L_inv = tmp_CSPM_L.inverse()
-                self.ps.pt[i].CSPM_L = tmp_CSPM_L_inv
+            self.ps.pt[i].CSPM_L = tmp_CSPM_L_inv
 
     ##############################################
     # MLS
@@ -456,12 +465,14 @@ class SPHBase:
     # Rigid body
     ##############################################
     def init_rigid_body(self):
-        for r_obj_id in self.ps.object_id_rigid_body:
-            self.calc_rigid_rest_m(r_obj_id)
+        for r_obj_id in self.ps.object_id_rigid:
+            if self.ps.object_collection[r_obj_id]["isDynamic"]:
+                self.calc_rigid_rest_m(r_obj_id)
 
     def solve_rigid_body(self):
-        for r_obj_id in self.ps.object_id_rigid_body:
-            R = self.solve_constraints(r_obj_id)
+        for r_obj_id in self.ps.object_id_rigid:
+            if self.ps.object_collection[r_obj_id]["isDynamic"]:
+                R = self.solve_constraints(r_obj_id)
 
 
     @ti.kernel
@@ -471,7 +482,7 @@ class SPHBase:
 
         A = type_mat3f(0)
         for i in range(self.ps.particle_num[None]):
-            if self.ps.is_rigid_dynamic(i) and self.ps.pt[i].obj_id == object_id:
+            if self.ps.is_rigid_dynamic(i) and self.ps.is_object_id(i, object_id):
                 q = self.ps.pt[i].x0 - self.ps.rigid_rest_cm[object_id]
                 p = self.ps.pt[i].x - cm
                 A += self.ps.pt[i].m_V * self.ps.pt[i].density * p @ q.transpose()
@@ -481,7 +492,7 @@ class SPHBase:
             R = ti.Matrix.identity(type_f, self.ps.dim3)
 
         for i in range(self.ps.particle_num[None]):
-            if self.ps.is_rigid_dynamic(i) and self.ps.pt[i].obj_id == object_id:
+            if self.ps.is_rigid_dynamic(i) and self.ps.is_object_id(i, object_id):
                 goal = cm + R @ (self.ps.pt[i].x0 - self.ps.rigid_rest_cm[object_id])
                 corr = (goal - self.ps.pt[i].x) * 1.0
                 self.ps.pt[i].x += corr
@@ -492,7 +503,7 @@ class SPHBase:
         sum_m = 0.0
         cm = type_vec3f(0)
         for i in range(self.ps.particle_num[None]):
-            if self.ps.is_rigid_dynamic(i) and self.ps.pt[i].obj_id == object_id:
+            if self.ps.is_rigid_dynamic(i) and self.ps.is_object_id(i, object_id):
                 cm += self.ps.pt[i].mass * self.ps.pt[i].x
                 sum_m += self.ps.pt[i].mass
         cm /= sum_m
@@ -512,16 +523,24 @@ class SPHBase:
     ##############################################
     # Compulsory collision
     def enforce_boundary(self):
+        if self.ps.dim == 3:
+            self.enforce_boundary_3D()
+        elif self.ps.dim == 2:
+            self.enforce_boundary_2D()
+
+    @ti.func
+    def judge_enforce_bdy(self, p):
+        flag = False
         if self.ps.flag_boundary == self.ps.bdy_collision:
-            if self.ps.dim == 3:
-                self.enforce_boundary_3D()
-            elif self.ps.dim == 2:
-                self.enforce_boundary_2D()
+            flag = self.ps.is_flow_particle(p) or self.ps.is_rigid_dynamic(p)
+        else:
+            flag = self.ps.is_rigid_dynamic(p)
+        return flag
 
     @ti.kernel
     def enforce_boundary_3D(self):
         for i in range(self.ps.particle_num[None]):
-            if self.ps.is_real_particle(i) and self.ps.pt[i].is_dynamic:
+            if self.judge_enforce_bdy(i):
                 pos = self.ps.pt[i].x
                 dist_pt_r = self.ps.particle_radius - self.epsilon
                 collision_normal = type_vec3f(0)
@@ -553,7 +572,7 @@ class SPHBase:
     @ti.kernel
     def enforce_boundary_2D(self):
         for i in range(self.ps.particle_num[None]):
-            if self.ps.is_real_particle(i) and self.ps.pt[i].is_dynamic:
+            if self.judge_enforce_bdy(i):
                 pos = self.ps.pt[i].x
                 dist_pt_r = self.ps.particle_radius - self.epsilon
                 collision_normal = type_vec3f(0)
@@ -601,6 +620,7 @@ class SPHBase:
 
     @ti.func
     def calc_boundary_dist_task(self, i):
+        # ! correct in rep???
         d = self.epsilon
         chi_numerator = 0.0
         chi_denominator = 0.0
@@ -609,7 +629,7 @@ class SPHBase:
         chi = chi_numerator / (chi_denominator) if chi_denominator > self.epsilon and chi_numerator > self.epsilon else 0.5
         chi = ti.min(ti.max(chi, 0.5), 1.0)
         d = self.ps.support_radius * (2 * chi - 1)
-        if self.ps.is_fluid_particle(i) or self.ps.is_soil_particle(i):
+        if self.ps.is_flow_particle(i):
             d = ti.max(d, ti.sqrt(3.0) * self.ps.smoothing_len / 4.0)
         self.ps.pt[i].dist_B = d
 
@@ -626,23 +646,27 @@ class SPHBase:
     # i: bdy pt, j: real pt
     @ti.func
     def calc_bdy_density_task(self, i, j, ret: ti.template()):
-        if self.ps.is_real_particle(j):
+        if self.ps.is_flow_particle(j):
+        # if self.ps.is_same_type(j, i):
             ret += self.ps.pt[j].m_V * self.ps.pt[j].density_tmp * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
 
     @ti.func
     def calc_bdy_vel_task(self, i, j, ret: ti.template()):
-        if self.ps.is_real_particle(j):
+        if self.ps.is_flow_particle(j):
+        # if self.ps.is_same_type(j, i):
             ret += self.ps.pt[j].m_V * self.ps.pt[j].v_tmp * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
 
     @ti.func
     def calc_bdy_pressure_task(self, i, j, ret: ti.template()):
-        if self.ps.is_real_particle(j):
-            ret += self.ps.pt[j].m_V * self.ps.pt[j].pressure * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
+        if self.ps.is_flow_particle(j):
+        # if self.ps.is_same_type(j, i):
+            ret += self.ps.pt[j].m_V * (self.ps.pt[j].pressure + self.ps.pt[j].density_tmp * self.g.y * (self.ps.pt[i].x.y - self.ps.pt[j].x.y)) * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
 
     @ti.func
     def calc_bdy_stress_task(self, i, j, ret: ti.template()):
-        if self.ps.is_real_particle(j):
-            ret += self.ps.pt[j].m_V * self.ps.pt[j].stress_tmp * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
+        if self.ps.is_flow_particle(j):
+        # if self.ps.is_same_type(j, i):
+            ret += self.ps.pt[j].m_V * (self.ps.pt[j].stress_tmp + self.ps.pt[j].density_tmp * trans_vec3_diag(self.g) * trans_vec3_diag(self.ps.pt[i].x - self.ps.pt[j].x)) * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
 
 
     ##############################################
@@ -669,13 +693,13 @@ class SPHBase:
     # Artificial terms
     ##############################################
     @ti.func
-    def calc_arti_viscosity_task(self, alpha_Pi, beta_Pi, i, j, vsound):
+    def calc_arti_viscosity(self, alpha_Pi, beta_Pi, i, j, vsound):
         pti = self.ps.pt[i]
         ptj = self.ps.pt[j]
         res = 0.0
         vare = 0.01
         xij = pti.x - ptj.x
-        vij = pti.v_tmp - ptj.v_tmp     # ! v or v_tmp???
+        vij = pti.v_tmp - ptj.v_tmp
         vijxij = (vij * xij).sum()
         if vijxij < 0.0:
             rhoij = 0.5 * (pti.density_tmp + ptj.density_tmp)
@@ -685,6 +709,10 @@ class SPHBase:
             res = (-alpha_Pi * cij * phiij + beta_Pi * phiij**2) / rhoij
         return res
 
+    # viscous damping @nguyen2017
+    @ti.func
+    def calc_viscous_damping(self, i, E, varepsilon = 5e-5):
+        return -varepsilon * ti.sqrt(E / (self.ps.pt[i].density_tmp * self.ps.smoothing_len**2)) * self.ps.pt[i].v_tmp
 
 
     ##############################################
@@ -705,7 +733,7 @@ class SPHBase:
                 elif self.ps.color_title == 31:
                     self.ps.pt[i].val = self.ps.pt[i].v.x
                 elif self.ps.color_title == 32:
-                    self.ps.pt[i].val = self.ps.pt[i].v.y
+                    self.ps.pt[i].val = -self.ps.pt[i].v.y
                 elif self.ps.color_title == 33:
                     self.ps.pt[i].val = self.ps.pt[i].v.z
                 elif self.ps.color_title == 34:
@@ -731,17 +759,23 @@ class SPHBase:
                 elif self.ps.color_title == 52:
                     self.ps.pt[i].val = -self.ps.pt[i].stress[1,1]
                 elif self.ps.color_title == 53:
-                    self.ps.pt[i].val = self.ps.pt[i].stress[2,2]
+                    self.ps.pt[i].val = -self.ps.pt[i].stress[2,2]
                 elif self.ps.color_title == 54:
                     self.ps.pt[i].val = self.ps.pt[i].stress[0,1]
                 elif self.ps.color_title == 55:
                     self.ps.pt[i].val = self.ps.pt[i].stress[1,2]
                 elif self.ps.color_title == 56:
                     self.ps.pt[i].val = self.ps.pt[i].stress[2,0]
+                elif self.ps.color_title == 57:
+                    self.ps.pt[i].val = -(self.ps.pt[i].stress[0,0] + self.ps.pt[i].stress[1,1] + self.ps.pt[i].stress[2,2]) / 3.0
                 elif self.ps.color_title == 61:
                     self.ps.pt[i].val = self.ps.pt[i].strain_equ
+                elif self.ps.color_title == 62:
+                    self.ps.pt[i].val = self.ps.pt[i].strain_equ_p
                 elif self.ps.color_title == 7:
                     self.ps.pt[i].val = self.ps.pt[i].pressure
+                elif self.ps.color_title == 8:
+                    self.ps.pt[i].val = self.ps.pt[i].flag_retmap
 
                 elif self.ps.color_title == 100:    # grid Id test
                     self.ps.pt[i].val = self.ps.pt[i].grid_ids
@@ -752,7 +786,7 @@ class SPHBase:
                     # if self.ps.pt[i].dist_B < 0.048 and self.ps.pt[i].dist_B > 0.0:
                     #     print("pt", i, self.ps.pt[i].id0, self.ps.pt[i].dist_B)
                 elif self.ps.color_title == 103:
-                    self.ps.pt[i].val = self.ps.pt[i].v_grad[0,0]
+                    self.ps.pt[i].val = self.ps.pt[i].v_tmp.norm()
 
     ##############################################
     # Test

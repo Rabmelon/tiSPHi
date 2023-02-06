@@ -19,3 +19,10 @@ def trans_mat_3_2(mat3):
 def trans_mat_2_3_fill0(mat2):
 	return type_mat3f([[mat2[0,0], mat2[0,1], 0], [mat2[1,0], mat2[1,1], 0], [0,0,0]])
 
+@ti.func
+def trans_vec3_diag(vec3):
+    return type_mat3f([[vec3[0], 0, 0], [0, vec3[1], 0], [0, 0, vec3[2]]])
+
+@ti.func
+def calc_dev_component(ts):
+	return ti.sqrt((ts * ts).sum() * 2 / 3)

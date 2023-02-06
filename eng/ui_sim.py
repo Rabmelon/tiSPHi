@@ -1,31 +1,33 @@
 import taichi as ti
 import numpy as np
 import os
-import csv
 from datetime import datetime
 from eng.simulation import Simulation, SimConfiger
 
 
 # TODO: need a faster exporter
 
-def ui_sim(config: SimConfiger, case: Simulation):
+def ui_sim(case: Simulation):
     # Paras
-    cfg = config
-    substeps = cfg.get_cfg("stepsPerRenderUpdate")
-    stop_at_step = cfg.get_cfg("stopAtStep")
-    exit_at_step = cfg.get_cfg("exitAtStep")
-    stop_at_time = cfg.get_cfg("stopAtTime")
-    exit_at_time = cfg.get_cfg("exitAtTime")
-    stop_every_step = cfg.get_cfg("stopEveryStep")
-    pause_flag = cfg.get_cfg("pauseAtStart")
-    kradius = cfg.get_cfg("kradius")
-    given_max = cfg.get_cfg("givenMax")
-    given_min = cfg.get_cfg("givenMin")
-    fix_max = cfg.get_cfg("fixMax")
-    fix_min = cfg.get_cfg("fixMin")
-    show_pt_info = cfg.get_cfg("showParticleInfo")
-    save_png = cfg.get_cfg("exportFrame")
-    save_csv = cfg.get_cfg("exportCSV")
+    str_comment = "Comment: " + case.cfg.get_cfg("comment")
+    substeps = case.cfg.get_cfg("stepsPerRenderUpdate")
+    stop_at_step = case.cfg.get_cfg("stopAtStep")
+    exit_at_step = case.cfg.get_cfg("exitAtStep")
+    stop_at_time = case.cfg.get_cfg("stopAtTime")
+    exit_at_time = case.cfg.get_cfg("exitAtTime")
+    stop_every_step = case.cfg.get_cfg("stopEveryStep")
+    pause_flag = case.cfg.get_cfg("pauseAtStart")
+    kradius = case.cfg.get_cfg("kradius")
+    given_max = case.cfg.get_cfg("givenMax")
+    given_min = case.cfg.get_cfg("givenMin")
+    fix_max = case.cfg.get_cfg("fixMax")
+    fix_min = case.cfg.get_cfg("fixMin")
+
+    save_every_time = case.cfg.get_cfg("exportEveryTime")
+    save_every_render = case.cfg.get_cfg("exportEveryRender")
+    save_frame = case.cfg.get_cfg("exportFrame")
+    save_vtk = case.cfg.get_cfg("exportVTK")
+    save_csv = case.cfg.get_cfg("exportCSV")
 
     res = (1024, 768)
     w2s_ratio = 1.0 / max(case.ps.domain_size)
@@ -46,7 +48,8 @@ def ui_sim(config: SimConfiger, case: Simulation):
     cappath = os.getcwd() + r"\screenshots"
     if not os.path.exists(cappath):
         os.mkdir(cappath)
-    if save_png > 0 or save_csv:
+    judge_sim_path = (save_every_render > 0 or save_every_time > 0) and (save_frame or save_vtk or save_csv)
+    if judge_sim_path:
         simpath = os.getcwd() + "\\sim_" + time_stamp0
         if not os.path.exists(simpath):
             os.mkdir(simpath)
@@ -58,6 +61,8 @@ def ui_sim(config: SimConfiger, case: Simulation):
     movement_speed = 0.01 if case.ps.dim == 3 else 0.0
     substeps = 1 if substeps < 1 else substeps
     stop_at_step_tmp = stop_every_step
+    save_every_time_tmp = save_every_time
+    info_saved = False
 
     # Draw box
     num_box_pt = 8 if case.ps.dim == 3 else 4
@@ -87,10 +92,6 @@ def ui_sim(config: SimConfiger, case: Simulation):
 
     # Controls at step 0
     assign_color(case, given_max, given_min, fix_max, fix_min)
-    if len(show_pt_info) > 0:
-        show_msg(0, show_pt_info, case)
-    if save_csv:
-        export_csv(0, case, simpath)
 
     ##############################################
     # Run
@@ -104,14 +105,6 @@ def ui_sim(config: SimConfiger, case: Simulation):
                 case.solver.step()
                 count_step += 1
             assign_color(case, given_max, given_min, fix_max, fix_min)
-
-            # msg
-            if len(show_pt_info) > 0:
-                show_msg(count_step, show_pt_info, case)
-
-            # csv
-            if save_csv:
-                export_csv(count_step, case, simpath)
 
         # scene basic settings
         if movement_speed > 0:
@@ -142,26 +135,36 @@ def ui_sim(config: SimConfiger, case: Simulation):
 
         # panel
         cur_time = case.solver.dt[None] * count_step
+        str_pt_num = "Total particle number: {ptnum:,}".format(ptnum=case.ps.particle_num[None])
+        str_step = "Step: {fstep:,}".format(fstep=count_step)
+        str_dt = "dt={dt:.6f}s".format(dt=case.solver.dt[None])
+        str_time = "Time: {t:.6f}s, ".format(t=cur_time) + str_dt
+        str_colorbar = "colorbar: {str}".format(str=chooseColorTitle(case.ps.color_title))
+        str_vmax = "max value: {maxv:.6f}".format(maxv=case.ps.vmax[None])
+        str_vmin = "min value: {minv:.6f}".format(minv=case.ps.vmin[None])
         window.GUI.begin("Running Info", 0.03, 0.03, 0.24, 0.2)
-        window.GUI.text("Total particle number: {ptnum:,}".format(ptnum=case.ps.particle_num[None]))
-        window.GUI.text("Step: {fstep:,}".format(fstep=count_step))
-        window.GUI.text('Time: {t:.6f}s, dt={dt:.6f}s'.format(t=cur_time, dt=case.solver.dt[None]))
-        window.GUI.text("colorbar: {str}".format(str=chooseColorTitle(case.ps.color_title)))
-        window.GUI.text("max value: {maxv:.6f}".format(maxv=case.ps.vmax[None]))
-        window.GUI.text("min value: {minv:.6f}".format(minv=case.ps.vmin[None]))
+        window.GUI.text(str_pt_num)
+        window.GUI.text(str_step)
+        window.GUI.text(str_time)
+        window.GUI.text(str_colorbar)
+        window.GUI.text(str_vmax)
+        window.GUI.text(str_vmin)
         window.GUI.end()
 
-        str_solver = "Weakly Compressible" if case.solver_type == 1 else "Mohr-Coulomb mu(I)" if case.solver_type == 2 else "Drucker-Prager" if case.solver_type == 3 else "None"
-        str_TI = "1 Symplectic Euler" if case.solver.flagTI == 1 else "2 Leap-Frog" if case.solver.flagTI == 2 else "4 Runge-Kutta" if case.solver.flagTI == 4 else "None"
-        str_bdy = "Enforced collision" if case.ps.flag_boundary == case.ps.bdy_collision else "Dummy particles" if case.ps.flag_boundary == case.ps.bdy_dummy else "Repulsive particles" if case.ps.flag_boundary == case.ps.bdy_rep else "Dummy + repulsive pts" if case.ps.flag_boundary == case.ps.bdy_dummy_rep else "None"
-        str_kernel = "Cubic spline" if case.solver.flagKernel == 0 else "Wendland C2" if case.solver.flagKernel == 1 else "None"
-        str_kernel_corr = "CSPM" if case.solver.flagKernelCorr == 1 else "MLS" if case.solver.flagKernelCorr == 2 else "None"
+        str_solver = "Solver: " + ("Weakly Compressible" if case.solver_type == 1 else "Mohr-Coulomb mu(I)" if case.solver_type == 2 else "Drucker-Prager" if case.solver_type == 3 else "None")
+        str_TI = "Time integ: " + ("1 Symplectic Euler" if case.solver.flagTI == 1 else "2 Leap-Frog" if case.solver.flagTI == 2 else "4 Runge-Kutta" if case.solver.flagTI == 4 else "None")
+        str_bdy = "Boundary: " + ("Enforced collision" if case.ps.flag_boundary == case.ps.bdy_collision else "Dummy particles" if case.ps.flag_boundary == case.ps.bdy_dummy else "Repulsive particles" if case.ps.flag_boundary == case.ps.bdy_rep else "Dummy + repulsive pts" if case.ps.flag_boundary == case.ps.bdy_dummy_rep else "None")
+        str_kernel = "Kernel func: " + ("Cubic spline" if case.solver.flagKernel == 0 else "Wendland C2" if case.solver.flagKernel == 1 else "None")
+        str_kernel_corr = "Kernel corr: " + ("CSPM" if case.solver.flagKernelCorr == 1 else "MLS" if case.solver.flagKernelCorr == 2 else "None")
+        str_pos_upd = "Position upd: " + ("XSPH" if case.solver.flagXSPH == 1 else "None")
         window.GUI.begin("Simulation Info", 0.3, 0.03, 0.24, 0.2)
-        window.GUI.text("Solver: " + str_solver)
-        window.GUI.text("Time integ: " + str_TI)
-        window.GUI.text("Boundary: " + str_bdy)
-        window.GUI.text("Kernel func: " + str_kernel)
-        window.GUI.text("Kernel corr: " + str_kernel_corr)
+        window.GUI.text(str_solver)
+        window.GUI.text(str_TI)
+        window.GUI.text(str_bdy)
+        window.GUI.text(str_kernel)
+        window.GUI.text(str_kernel_corr)
+        window.GUI.text(str_pos_upd)
+        window.GUI.text(str_comment)
         window.GUI.end()
 
         window.GUI.begin("Control", 0.57, 0.03, 0.32, 0.2)
@@ -170,27 +173,40 @@ def ui_sim(config: SimConfiger, case: Simulation):
         # case.ps.color_title = window.GUI.slider_int("color title", case.ps.color_title, 0, 10)
         window.GUI.end()
 
+        if judge_sim_path and not info_saved:
+            save_info(simpath, "==== Running Info ====\n%s\n%s\n\n==== Simulation Info ====\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n==== Note ====\n\"time.secx1e6.0349220\" means the frame of 0.349220s\n\n\n\n==== Configure Info ====\n%s" % (str_pt_num, str_dt, str_solver, str_TI, str_bdy, str_kernel, str_kernel_corr, str_pos_upd, str_comment, case.cfg.config))
+            info_saved = True
+
         # control
         for e in window.get_events(ti.ui.PRESS):
             if e.key == ti.ui.ESCAPE:
+                if judge_sim_path:
+                    captureScreen(window, simpath, get_time_stamp())
+                else:
+                    captureScreen(window, cappath, get_time_stamp())
                 print("Simulator exits!")
                 window.running = False
             elif e.key == ti.ui.SPACE:
                 pause_flag = not pause_flag
+                if pause_flag:
+                    print("Simulation is stopped!")
+                elif not pause_flag and count_step == 0:
+                    print("Simulation starts!")
+                else:
+                    print("Simulation is resumed!")
             elif e.key == 'v':
                 initCamera(res, camera, domain_start=case.ps.domain_start * w2s_ratio, domain_end=case.ps.domain_end * w2s_ratio, DIM=case.ps.dim)
                 print("Camera initialized!")
             elif e.key == 'p':
                 captureScreen(window, cappath, get_time_stamp())
             elif e.key == 'r':
-				# ! wrong now
+                # ! wrong now
                 case.ps.clear_particles()
                 case.ps.initialize_particles()
                 assign_color(case, given_max, given_min, fix_max, fix_min)
                 count_step = 0
                 pause_flag = True
                 print("Reset ERROR NOW!!!!!")
-
 
         # stop
         if count_step >= stop_at_step and stop_at_step > 0:
@@ -204,15 +220,24 @@ def ui_sim(config: SimConfiger, case: Simulation):
             pause_flag = True
             stop_at_time = 0
 
+        # export
+        if save_every_time > 0 and judge_sim_path:
+            if count_step == 0 and pause_flag == False:
+                func_export_time(window, save_frame, save_vtk, save_csv, cur_time, simpath, case)
+            elif cur_time >= save_every_time:
+                func_export_time(window, save_frame, save_vtk, save_csv, cur_time, simpath, case)
+                save_every_time += save_every_time_tmp
+        elif save_every_render > 0 and judge_sim_path:
+            if (count_step == 0 and pause_flag == False) or (count_step % (save_every_render * substeps) == 0 and count_step > 0):
+                func_export_step(window, save_frame, save_vtk, save_csv, count_step, simpath, case)
 
         # exit
         if (count_step >= exit_at_step and exit_at_step > 0) or (cur_time >= exit_at_time and exit_at_time > 0):
-            captureScreen(window, cappath, get_time_stamp())
+            if judge_sim_path:
+                captureScreen(window, simpath, get_time_stamp())
+            else:
+                captureScreen(window, cappath, get_time_stamp())
             window.running = False
-
-        # export
-        if save_png > 0 and count_step % (save_png * substeps) == 0:
-            window.save_image(f"{count_step:06d}.png")
 
         window.show()
 
@@ -249,8 +274,8 @@ def calcBoxInfo(box_start, box_end, DIM):
         box_lines_indices_np = np.array([[0,1], [1,2], [2,3], [3,0]], dtype=np.int32)
     return box_anchors_np, box_lines_indices_np
 
-def captureScreen(window, cappath, time_stamp):
-    fname = os.path.join(cappath, f"screenshot{time_stamp}.png")
+def captureScreen(window, imgpath, time_stamp):
+    fname = os.path.join(imgpath, f"screenshot{time_stamp}.png")
     window.save_image(fname)
     print(f"Screenshot has been saved to {fname}")
 
@@ -260,26 +285,49 @@ def assign_color(case: Simulation, given_max, given_min, fix_max, fix_min):
         case.ps.v_maxmin(given_max, given_min, fix_max, fix_min)
         case.ps.set_color()
 
-# ! temporary low performance!
-def show_msg(step: int, show_pt_info: int, case: Simulation):
-    print("---- ---- ---- %06d ---- ---- ----" % step)
-    for i in show_pt_info:
-        pti = case.ps.pt[i]
-        str_msg = "---- pt[%06d]: id0=%06d, mat=%02d, x=[%.6f, %.6f, %.6f], v=[(]%.6f, %.6f, %.6f], ρ=%.6f, pressure=%.6f, σ=[xx %.6f, yy %.6f, zz %.6f, xy %.6f, yz %.6f, zx %.6f], ∇v=[[%.6f, %.6f, %.6f], [%.6f, %.6f, %.6f], [%.6f, %.6f, %.6f]], dist_B=%.6f" % (i, pti.id0, pti.mat_type, pti.x.x, pti.x.y, pti.x.z, pti.v.x, pti.v.y, pti.v.z, pti.density, pti.pressure, pti.stress[0,0], pti.stress[1,1], pti.stress[2,2], pti.stress[0,1], pti.stress[1,2], pti.stress[2,0], pti.v_grad[0,0], pti.v_grad[0,1], pti.v_grad[0,2], pti.v_grad[1,0], pti.v_grad[1,1], pti.v_grad[1,2], pti.v_grad[2,0], pti.v_grad[2,1], pti.v_grad[2,2], pti.dist_B)
-        print(str_msg)
 
-def export_csv(step: int, case: Simulation, simpath: str):
-    csv_filename = simpath + "\\csv_%06d.csv" % (step)
-    fid = open(csv_filename, "w", encoding="utf-8", newline="")
-    fid_writer = csv.writer(fid)
-    str_title = ["pid", "id0", "gid", "mat", "posx", "posy", "posz", "vx", "vy", "vz", "rho", "p", "sxx", "syy", "szz", "sxy", "syz", "szx", "gvxx", "gvxy", "gvxz", "gvyx", "gvyy", "gvyz", "gvzx", "gvzy", "gvzz", "dist_B"]
-    fid_writer.writerow(str_title)
-    for i in range(case.ps.particle_num[None]):
-        pti = case.ps.pt[i]
-        str_i = [i, pti.id0, pti.grid_ids, pti.mat_type, pti.x.x, pti.x.y, pti.x.z, pti.v.x, pti.v.y, pti.v.z, pti.density, pti.pressure, pti.stress[0,0], pti.stress[1,1], pti.stress[2,2], pti.stress[0,1], pti.stress[1,2], pti.stress[2,0], pti.v_grad[0,0], pti.v_grad[0,1], pti.v_grad[0,2], pti.v_grad[1,0], pti.v_grad[1,1], pti.v_grad[1,2], pti.v_grad[2,0], pti.v_grad[2,1], pti.v_grad[2,2], pti.dist_B]
-        fid_writer.writerow(str_i)
-    fid.close()
-    print("---- ---- %06d csv exported" % step)
+
+##############################################
+# Export
+##############################################
+def export_csv(stamp: str, simpath: str, case: Simulation):
+    # ! need to upd with the ps dump
+    csv_filename = simpath + "\\sim.csv.%s.csv" % (stamp)
+    pos_dump, data_dump = case.ps.dump()
+    data_csv = np.array([data_dump["id0"], data_dump["objId"], data_dump["material"], pos_dump["pos.x"], pos_dump["pos.y"], pos_dump["pos.z"], data_dump["vel.x"], data_dump["vel.y"], data_dump["vel.z"], data_dump["density"], data_dump["stress.xx"], data_dump["stress.yy"], data_dump["stress.zz"], data_dump["stress.xy"], data_dump["stress.yz"], data_dump["stress.zx"], data_dump["strain_equ"]]).T
+    np.savetxt(csv_filename, data_csv, delimiter=",", header="id0, objId, material, pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, density, stress.xx, stress.yy, stress.zz, stress.xy, stress.yz, stress.zx, strain_equ")
+
+def export_vtk(stamp: str, simpath: str, case: Simulation):
+    from pyevtk.hl import pointsToVTK
+    vtk_filename = simpath + "\\sim.vtk.%s" % (stamp)
+    pos_dump, data_dump = case.ps.dump()
+    pointsToVTK(vtk_filename, x=pos_dump["pos.x"], y=pos_dump["pos.y"], z=pos_dump["pos.z"], data=data_dump)
+
+def func_export_step(window, save_frame, save_vtk, save_csv, count_step, simpath, case: Simulation):
+    stamp = f"{count_step:06d}"
+    if save_frame:
+        window.save_image("%s.png" % (stamp))
+    if save_vtk:
+        export_vtk(stamp, simpath, case)
+    if save_csv:
+        export_csv(stamp, simpath, case)
+
+def func_export_time(window, save_frame, save_vtk, save_csv, cur_time, simpath, case: Simulation):
+    int_cur_time = int(cur_time * 1e6)
+    stamp = f"time.secx1e6.{int_cur_time:07d}"
+    if save_frame:
+        window.save_image("%s.png" % (stamp))
+    if save_vtk:
+        export_vtk(stamp, simpath, case)
+    if save_csv:
+        export_csv(stamp, simpath, case)
+
+def save_info(simpath, str):
+    filepath = simpath + "\\_info.txt"
+    with open(filepath, "w") as f:
+        f.write(str)
+
+
 
 ##############################################
 # Color title
@@ -299,7 +347,7 @@ def chooseColorTitle(flag):
         elif flag == 31:
             res = "velocity x m/s"
         elif flag == 32:
-            res = "velocity y m/s"
+            res = "velocity y -m/s"
         elif flag == 33:
             res = "velocity z m/s"
         elif flag == 34:
@@ -325,9 +373,9 @@ def chooseColorTitle(flag):
         elif flag == 51:
             res = "stress xx Pa"
         elif flag == 52:
-            res = "stress yy Pa"
+            res = "stress yy -Pa"
         elif flag == 53:
-            res = "stress zz Pa"
+            res = "stress zz -Pa"
         elif flag == 54:
             res = "stress xy Pa"
         elif flag == 55:
@@ -341,11 +389,13 @@ def chooseColorTitle(flag):
         elif flag == 6:
             res = "strain"
         elif flag == 61:
-            res = "strain pla equ"
+            res = "strain equ"
         elif flag == 62:
-            res = "strain pla dev"
+            res = "strain equ p"
         elif flag == 7:
             res = "pressure Pa"
+        elif flag == 8:
+            res = "ret map proj"
         elif flag >= 100:
             res = "test"
         else:

@@ -1,6 +1,5 @@
 import taichi as ti
 import numpy as np
-import trimesh as tm
 from functools import reduce    # 整数：累加；字符串、列表、元组：拼接。lambda为使用匿名函数
 from eng.type_define import *
 
@@ -11,55 +10,63 @@ from eng.type_define import *
 @ti.dataclass
 class Particle:
     # basic
-    obj_id: int
-    mat_id: int
-    mat_type: int
-    color: type_vec3f32
-    is_dynamic: int
+    obj_id: int			# in which object
+    mat_id: int			# in which material
+    mat_type: int		# material type
+    color: type_vec3f32	# initial color
+    is_dynamic: int		# is dynamic (deformable) or static (constant)
 
     # properties
-    x: type_vec3f
-    val: type_f
+    x: type_vec3f		# position
+    val: type_f			# value for visual
 
-    x0: type_vec3f
-    m_V: type_f
-    density: type_f
-    mass: type_f
-    v: type_vec3f
-    pressure: type_f
-    stress: type_mat3f
+    x0: type_vec3f		# init position
+    m_V: type_f			# volume
+    density: type_f		# density
+    mass: type_f		# mass
+    v: type_vec3f		# velocity
+    pressure: type_f	# pressure
+    stress: type_mat3f	# total stress
 
     # counting sort
-    grid_ids: int
-    id_new: int
-    id0: int
+    grid_ids: int		# grid index
+    id_new: int			# new id when counting sort
+    id0: int			# init id
 
     # visulization
-    pos2vis: type_vec3f32
+    pos2vis: type_vec3f32	# position in GUI
 
     # correction
-    CSPM_f: type_f
-    CSPM_L: type_mat3f
-    MLS_beta: type_vec4f
+    CSPM_f: type_f		# Shepard filter for kernel correction
+    CSPM_L: type_mat3f	# CSPM matrix for kernel gradient correction
+    MLS_beta: type_vec4f	# beta in MLS correction
 
     # solver
-    d_density: type_f
-    d_vel: type_vec3f
-    d_stress: type_mat3f
-    v_grad: type_mat3f
-    strain_equ: type_f
-    d_strain_equ: type_f
-    dist_B: type_f
+    d_density: type_f	# increment
+    d_vel: type_vec3f	# increment
+    d_stress: type_mat3f	# increment
+    v_grad: type_mat3f	# gradient of velocity
+    dist_B: type_f			# distance between the current particle and the boundary interface
+
+    flag_retmap: int		# projection type in returning map (plastic deformation behavior. 0 for elastic, 1 for perfectly plastic, 2 for imperfectly plastic responses, 3 for tension cracking)
+    g_p: type_f			# plastic potential function
+    strain_equ: type_f	# equivalent total strain (deviatoric shear strain)
+    d_strain_equ: type_f	# increment
+    strain_equ_p: type_f	# equivalent plastic strain (deviatoric plastic strain)
+    d_strain_equ_p: type_f	# increment
 
     # tmp
-    density_tmp: type_f
-    v_tmp: type_vec3f
-    stress_tmp: type_mat3f
+    density_tmp: type_f		# temporary for time integration
+    v_tmp: type_vec3f		# temporary for time integration
+    stress_tmp: type_mat3f	# temporary for time integration
 
     # for RK4
-    d_density_RK: type_f
-    d_vel_RK: type_vec3f
-    d_stress_RK: type_mat3f
+    d_density_RK: type_f	# only for RK4
+    d_vel_RK: type_vec3f	# only for RK4
+    d_stress_RK: type_mat3f	# only for RK4
+
+    # for rigid body
+    drag_force: type_vec3f
 
 
     @ti.func
@@ -196,12 +203,12 @@ def add_cube(ps,
     mat_type_arr = np.full_like(np.zeros(num_new_particles, dtype=np.int32), mat_type)
     is_dynamic_arr = np.full_like(np.zeros(num_new_particles, dtype=np.int32), is_dynamic)
     color_arr = np.stack([np.full_like(np.zeros(num_new_particles, dtype=np.int32), c, dtype=np.float32) for c in color], axis=1)
-    density_arr = np.full_like(np.zeros(num_new_particles, dtype=np.float64), density if density is not None else 1000.)
+    density_arr = np.full_like(np.zeros(num_new_particles, dtype=np.float64), density if density is not None else 0.)
     pressure_arr = np.full_like(np.zeros(num_new_particles, dtype=np.float64), pressure if pressure is not None else 0.)
     add_particles(ps, object_id, num_new_particles, new_positions, velocity_arr, density_arr, pressure_arr, mat_id_arr, mat_type_arr, is_dynamic_arr, color_arr)
 
-def add_cube_boundary(ps, pos_bld, pos_fru, type, offset=None, color=[0,0,0]):
-    add_cube(ps=ps, lower_corner=pos_bld, cube_size=pos_fru - pos_bld, mat_type=type, color=color, object_id=type, offset=offset)
+def add_cube_boundary(ps, pos_bld, pos_fru, type, obj_id, offset=None, color=[0,0,0]):
+    add_cube(ps=ps, lower_corner=pos_bld, cube_size=pos_fru - pos_bld, mat_type=type, color=color, object_id=obj_id, offset=offset)
 
 
 
@@ -252,10 +259,11 @@ def calc_cube_particle_num(translation, size, dim=3, offset=None):
     return reduce(lambda x, y: x * y, [len(n) for n in num_dim]), num_dim
 
 def count_cube_num(pos_bld, pos_fru, dim, offset):
-    tmp = calc_cube_particle_num(pos_bld, pos_fru - pos_bld, dim, offset=offset)
-    return tmp[0]
+    tmp, _ = calc_cube_particle_num(pos_bld, pos_fru - pos_bld, dim, offset=offset)
+    return tmp
 
 def load_body(body, vox_len):
+    import trimesh as tm
     obj_id = body["objectId"]
     mesh = tm.load(body["geometryFile"])
     mesh.apply_scale(body["scale"])
@@ -299,9 +307,10 @@ def count_boundary(boundary, dim, offset):
 
 def add_boundary(ps, boundary, type, offset=None, color=[255,255,255]):
     bdy_type = type
+    bdy_obj_id = type
     bdy_color = np.array(color) / 255
     for i in range(len(boundary)):
-        add_cube_boundary(ps, boundary[i][0], boundary[i][1], bdy_type, offset, bdy_color)
+        add_cube_boundary(ps, boundary[i][0], boundary[i][1], bdy_type, bdy_obj_id, offset, bdy_color)
 
 # Dummy particle
 def calc_dummy_boundary(dim, domain_start, domain_end, vdomain_start, vdomain_end):

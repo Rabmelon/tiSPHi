@@ -36,9 +36,24 @@ class MUISPHSolver(SPHBase):
             ret += self.calc_repulsive_force(self.ps.pt[i].x - self.ps.pt[j].x, self.vsound)
 
     @ti.func
-    def upd_stress_task(self, i, j, ret: ti.template()):
+    def calc_d_vel_from_stress_task(self, i, j, ret: ti.template()):
+        arti_visco = 0.0
+        # arti_visco = self.calc_arti_viscosity(0.1, 0.0, i, j, self.vsound) if self.ps.is_soil_particle(j) else 0.0
+        tmp = self.ps.pt[j].m_V * self.ps.pt[j].density_tmp * (self.ps.pt[j].stress_tmp / self.ps.pt[j].density_tmp**2 + self.ps.pt[i].stress_tmp / self.ps.pt[i].density_tmp**2 + arti_visco * self.I3) @ self.kernel_deriv_corr(i, j)
+        ret += tmp
+
+        if self.ps.is_rigid_dynamic(j):
+            self.ps.pt[j].d_vel -= tmp
+
+    @ti.func
+    def regu_density_task(self, i, j, ret: ti.template()):
         if self.ps.pt[j].mat_type == self.ps.pt[i].mat_type:
-            ret += self.ps.pt[j].m_V * self.ps.pt[j].stress_tmp * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
+            ret += self.ps.pt[j].m_V * self.ps.pt[j].density * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
+
+    @ti.func
+    def regu_stress_task(self, i, j, ret: ti.template()):
+        if self.ps.pt[j].mat_type == self.ps.pt[i].mat_type:
+            ret += self.ps.pt[j].m_V * self.ps.pt[j].stress * self.kernel(self.ps.pt[i].x - self.ps.pt[j].x)
 
 
     ##############################################
@@ -48,6 +63,7 @@ class MUISPHSolver(SPHBase):
     def one_step(self):
         # ti.loop_config(serialize=True)
 
+        # Pre-compute soil stress
         for i in range(self.ps.particle_num[None]):
             if self.ps.is_soil_particle(i):
                 # vel gradient
@@ -75,6 +91,7 @@ class MUISPHSolver(SPHBase):
                 strain_r_equ = strain_r - strain_r.trace() / 3.0 * self.I3
                 self.ps.pt[i].d_strain_equ = ti.sqrt((strain_r_equ * strain_r_equ).sum() * 2 / 3)
 
+        # Bdy condition
         for i in range(self.ps.particle_num[None]):
             if self.ps.is_bdy_particle(i) or self.ps.is_rigid(i):
                 # @adami2012
@@ -94,6 +111,7 @@ class MUISPHSolver(SPHBase):
             if self.ps.is_rigid_dynamic(i):
                 self.ps.pt[i].d_vel = self.g
 
+        # Upd acceration
         for i in range(self.ps.particle_num[None]):
             if self.ps.is_soil_particle(i):
                 # d vel
@@ -104,7 +122,10 @@ class MUISPHSolver(SPHBase):
                 if self.ps.flag_boundary == self.ps.bdy_dummy_rep or self.ps.flag_boundary == self.ps.bdy_rep:
                     self.ps.for_all_neighbors(i, self.calc_rep_force_task, d_v)
 
-                self.ps.pt[i].d_vel = d_v + self.g
+                # Fd = 0.0
+                Fd = self.calc_viscous_damping(i, self.E)
+
+                self.ps.pt[i].d_vel = d_v + self.g + Fd
 
         for i in range(self.ps.particle_num[None]):
             if self.ps.is_rigid_static(i):
@@ -113,14 +134,25 @@ class MUISPHSolver(SPHBase):
     @ti.func
     def advect_something_func(self, i):
         if self.ps.is_soil_particle(i):
+            # # regulisation density
+            # regu_density = 0.0
+            # self.ps.for_all_neighbors(i, self.regu_density_task, regu_density)
+            # self.ps.pt[i].density = regu_density * self.ps.pt[i].CSPM_f
             self.chk_density(i, self.density0)
+
+            # # regulisation stress
+            # regu_stress = type_mat3f(0)
+            # self.ps.for_all_neighbors(i, self.regu_stress_task, regu_stress)
+            # self.ps.pt[i].stress = regu_stress * self.ps.pt[i].CSPM_f
+
             # advect strain equ
             self.ps.pt[i].strain_equ += self.dt[None] * self.ps.pt[i].d_strain_equ
 
-            # upd_stress_tmp = type_mat3f(0)
-            # self.ps.for_all_neighbors(i, self.upd_stress_task, upd_stress_tmp)
-            # self.ps.pt[i].stress = upd_stress_tmp * self.ps.pt[i].CSPM_f
-
             self.ps.pt[i].stress = self.ps.pt[i].stress_tmp
+
+            # regulisation stress
+            regu_stress = type_mat3f(0)
+            self.ps.for_all_neighbors(i, self.regu_stress_task, regu_stress)
+            self.ps.pt[i].stress = regu_stress * self.ps.pt[i].CSPM_f
 
 
